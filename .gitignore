@@ -1,0 +1,16 @@
+#exclude all unless allowed
+/*
+
+!/gradle/
+!/gradlew
+!/gradlew.bat
+!/settings.gradle
+!/build.gradle
+
+#projects
+!/src/
+
+#Github
+!/README.md
+!.gitignore
+!.gitattributes
