@@ -1,24 +1,8 @@
 plugins{
 	id 'java'
-    id 'groovy'
-    id 'idea'
 }
 
 sourceCompatibility = '1.8'
-[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
-
-processResources {
-    from ('src/main/java') {
-        include '**/*.json'
-        include '**/*.yml'
-    }
-}
-
-jar {
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-}
 
 repositories {
     mavenCentral()
@@ -26,12 +10,8 @@ repositories {
 
 dependencies {
     implementation  ("com.google.guava:guava:30.1-jre")
-    implementation 'org.jetbrains:annotations:20.1.0'
+
 
     //test
-    testCompile "junit:junit:4.11"
-}
-
-test{
-    useJUnitPlatform()
+    testImplementation  "junit:junit:4.13.2"
 }
