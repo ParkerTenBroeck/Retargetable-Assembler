@@ -13,22 +13,13 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.exception;
+package org.parker.retargetableassembler.base.preprocessor.statements;
 
-import org.parker.retargetableassembler.util.linking.Label;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
-public class IllegalLabelReference extends LinkingException{
+import java.io.Serializable;
 
-    private final Label label;
-    private final Label reference;
+public interface PreProcessedStatement extends Serializable {
 
-    public IllegalLabelReference(Label label, Label reference){
-        this.label = label;
-        this.reference = reference;
-    }
-
-    @Override
-    public String toString() {
-        return "Cannot reference \n" + reference.toString() + "\nwith " + label.toString();
-    }
+    Line getLine();
 }

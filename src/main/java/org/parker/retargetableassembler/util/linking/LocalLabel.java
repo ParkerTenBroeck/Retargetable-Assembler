@@ -15,7 +15,7 @@
  */
 package org.parker.retargetableassembler.util.linking;
 
-import org.parker.retargetableassembler.util.Line;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
 public class LocalLabel extends Label{
 

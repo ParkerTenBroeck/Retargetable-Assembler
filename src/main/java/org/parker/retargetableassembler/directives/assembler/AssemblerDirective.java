@@ -16,8 +16,8 @@
 package org.parker.retargetableassembler.directives.assembler;
 
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.util.CompiledExpression;
-import org.parker.retargetableassembler.util.Line;
+import org.parker.retargetableassembler.base.preprocessor.expressions.CompiledExpression;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
 public interface AssemblerDirective {
 

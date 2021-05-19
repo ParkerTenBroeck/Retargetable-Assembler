@@ -16,7 +16,7 @@
 package org.parker.retargetableassembler.base;
 
 import org.parker.retargetableassembler.base.assembler.Assembler;
-import org.parker.retargetableassembler.exception.LinkingException;
+import org.parker.retargetableassembler.exception.linker.LinkingException;
 
 public interface LinkableData{
     void link(Assembler assembler, long sourceAddress) throws LinkingException;

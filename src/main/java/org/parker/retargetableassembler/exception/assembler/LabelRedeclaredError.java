@@ -13,24 +13,17 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.exception;
+package org.parker.retargetableassembler.exception.assembler;
 
-import org.parker.retargetableassembler.util.Line;
+import org.parker.retargetableassembler.exception.assembler.AssemblerError;
+import org.parker.retargetableassembler.util.linking.Label;
 
-public class ParameterTypeError extends AssemblerError{
+public class LabelRedeclaredError extends AssemblerError {
 
-    public ParameterTypeError(String message, Line line, int s, int e, Exception ex){
-        super(message,line, s, e, ex);
-    }
-    public ParameterTypeError(String message, Line line, int s, int e){
-        super(message,line, s, e);
-    }
+    private final Label label;
 
-    public ParameterTypeError(String message, Line line, int s){
-        super(message,line, s);
-    }
-
-    public ParameterTypeError(String message, Line line, int s, Exception ex){
-        super(message,line, s, ex);
+    public LabelRedeclaredError(Label label) {
+        super("Label: " + label.mnemonic + " has already been declared in this assembly unit", label.line);
+        this.label = label;
     }
 }

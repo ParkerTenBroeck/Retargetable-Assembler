@@ -19,7 +19,7 @@ import org.parker.retargetableassembler.util.linking.GlobalLabel;
 import org.parker.retargetableassembler.util.AssemblerLogLevel;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
 import org.parker.retargetableassembler.base.Data;
-import org.parker.retargetableassembler.exception.ParameterCountError;
+import org.parker.retargetableassembler.exception.assembler.ParameterCountError;
 import org.parker.retargetableassembler.util.linking.ReferencedLabel;
 
 import java.io.File;

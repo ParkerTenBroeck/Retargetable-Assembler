@@ -13,11 +13,11 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.exception;
+package org.parker.retargetableassembler.exception.assembler;
 
-import org.parker.retargetableassembler.util.Line;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
-public class ParameterCountError extends AssemblerError{
+public class ParameterCountError extends AssemblerError {
     public ParameterCountError(String message, Line line, int s, int e, Exception ex){
         super(message,line, s, e, ex);
     }

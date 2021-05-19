@@ -16,9 +16,9 @@
 package org.parker.retargetableassembler.directives.preprocessor;
 
 import org.parker.retargetableassembler.base.preprocessor.BasePreProcessor;
-import org.parker.retargetableassembler.base.preprocessor.IntermediateDirective;
-import org.parker.retargetableassembler.base.preprocessor.IntermediateStatement;
-import org.parker.retargetableassembler.util.ExpressionCompiler;
+import org.parker.retargetableassembler.base.preprocessor.statements.IntermediateDirective;
+import org.parker.retargetableassembler.base.preprocessor.statements.IntermediateStatement;
+import org.parker.retargetableassembler.base.preprocessor.expressions.ExpressionCompiler;
 
 import java.util.List;
 

@@ -17,7 +17,7 @@ package org.parker.retargetableassembler.util.linking;
 
 import org.parker.retargetableassembler.base.Data;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.exception.LabelRedeclaredError;
+import org.parker.retargetableassembler.exception.assembler.LabelRedeclaredError;
 
 import java.io.Serializable;
 import java.util.List;

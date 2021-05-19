@@ -19,11 +19,15 @@ import org.parker.retargetableassembler.base.Data;
 import org.parker.retargetableassembler.base.DataStatement;
 import org.parker.retargetableassembler.base.LinkableData;
 import org.parker.retargetableassembler.base.preprocessor.*;
+import org.parker.retargetableassembler.base.preprocessor.statements.PreProcessedAssemblyDirective;
+import org.parker.retargetableassembler.base.preprocessor.statements.PreProcessedAssemblyStatement;
+import org.parker.retargetableassembler.base.preprocessor.statements.PreProcessedLabel;
+import org.parker.retargetableassembler.base.preprocessor.statements.PreProcessedStatement;
 import org.parker.retargetableassembler.debugger.Debugger;
 import org.parker.retargetableassembler.debugger.FinalizedLabel;
 import org.parker.retargetableassembler.directives.assembler.AssemblerDirectives;
-import org.parker.retargetableassembler.exception.AssemblerError;
-import org.parker.retargetableassembler.util.CompiledExpression;
+import org.parker.retargetableassembler.exception.assembler.AssemblerError;
+import org.parker.retargetableassembler.base.preprocessor.expressions.CompiledExpression;
 import org.parker.retargetableassembler.util.linking.AssemblyUnit;
 import org.parker.retargetableassembler.util.linking.Label;
 import org.parker.retargetableassembler.util.linking.LocalLabel;
@@ -38,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-public abstract class BaseAssembler<P extends BasePreProcessor> implements Assembler{
+public abstract class BaseAssembler<P extends PreProcessor> implements Assembler{
 
 
     private static final Logger ASSEMBLER_LOGGER = Logger.getLogger(BaseAssembler.class.getName() + "\\.Assembler");
@@ -63,7 +67,7 @@ public abstract class BaseAssembler<P extends BasePreProcessor> implements Assem
 
     protected boolean isBigEndian;
 
-    private void assemble(File input){
+    protected void assemble(File input){
 
         if(input == null) {
             ASSEMBLER_LOGGER.log(AssemblerLogLevel.ASSEMBLER_ERROR, "Provided file is null skipping");
@@ -72,73 +76,80 @@ public abstract class BaseAssembler<P extends BasePreProcessor> implements Assem
         ASSEMBLER_LOGGER.log(AssemblerLogLevel.ASSEMBLER_MESSAGE, "Started assembly of: " + input.getAbsolutePath());
 
         currentFile = input;
-        fileLabelMap = new HashMap<>();
-        fileDataList = new ArrayList<>();
-        currentAssemblyUnit = new AssemblyUnit(fileDataList, fileLabelMap);
-
-        List<PreProcessedStatement> lines = preProcessor.preprocess(input);
-
-        currentAssemblyUnitAddress = 0;
-        currentAssemblyUnitSize = 0;
+        initLocalFileRelatedContent();
+        List<PreProcessedStatement> lines = preProcessFile(input);
 
         for(int i = 0; i < lines.size(); i ++){
-
             currentStatement = lines.get(i);
-            Data data = null;
-
-                if (currentStatement instanceof PreProcessedAssemblyStatement) {
-
-                    try {
-                        String mnemonic = ((PreProcessedAssemblyStatement) currentStatement).identifier;
-                        CompiledExpression[] args = ((PreProcessedAssemblyStatement) currentStatement).args;
-
-                        DataStatement instruction = getInstruction(mnemonic);
-                        instruction.setArgExpressions(args, ((PreProcessedAssemblyStatement) currentStatement).parentLine);
-                        data = instruction;
-                    }catch (Exception e){
-                        ASSEMBLER_LOGGER.log(AssemblerLogLevel.ASSEMBLER_ERROR, "", new AssemblerError("Failed to evaluate Assembly Statement", ((PreProcessedAssemblyStatement) currentStatement).parentLine, e));
-                        continue;
-                    }
-
-                } else if (currentStatement instanceof PreProcessedAssemblyDirective) {
-
-                    try {
-                        String directive = ((PreProcessedAssemblyDirective) currentStatement).identifier;
-                        CompiledExpression[] args = ((PreProcessedAssemblyDirective) currentStatement).args;
-
-                        AssemblerDirectives.getHandler(directive).parse(
-                                ((PreProcessedAssemblyDirective) currentStatement).parentLine, args, this);
-                    }catch (Exception e){
-                        ASSEMBLER_LOGGER.log(AssemblerLogLevel.ASSEMBLER_ERROR, "", new AssemblerError("Failed to evaluate AssemblyDirective", ((PreProcessedAssemblyDirective) currentStatement).parentLine, -1, e));
-                        continue;
-                    }
-
-                } else if (currentStatement instanceof PreProcessedLabel) {
-                    try {
-
-                        Label label = new LocalLabel(currentAssemblyUnitAddress, this.currentAssemblyUnit, ((PreProcessedLabel) currentStatement).label, ((PreProcessedLabel) currentStatement).parentLine);
-                        currentAssemblyUnit.addLabel(label);
-
-                    }catch (Exception e){
-                        ASSEMBLER_LOGGER.log(AssemblerLogLevel.ASSEMBLER_ERROR, "", new AssemblerError("Failed to evaluate Label", ((PreProcessedLabel) currentStatement).parentLine, -1, e));
-                        continue;
-                    }
-                }
-
-            if(data != null){
-                this.addDataToCurrent(data);
-            }
-
+            evaluatePreProcessedStatement(currentStatement);
         }
         currentAssemblyUnit.setSize(currentAssemblyUnitSize);
-
         assemblyUnits.add(currentAssemblyUnit);
 
+        clearLocalFileRelatedContent();
+    }
+
+    protected void evaluatePreProcessedStatement(PreProcessedStatement statement){
+        if (currentStatement instanceof PreProcessedAssemblyStatement) {
+
+            try {
+                String mnemonic = ((PreProcessedAssemblyStatement) currentStatement).identifier;
+                CompiledExpression[] args = ((PreProcessedAssemblyStatement) currentStatement).args;
+
+                DataStatement instruction = getInstruction(mnemonic);
+                instruction.setArgExpressions(args, currentStatement.getLine());
+                //data = instruction;
+                addDataToCurrent(instruction);
+            }catch (Exception e){
+                ASSEMBLER_LOGGER.log(AssemblerLogLevel.ASSEMBLER_ERROR, "", new AssemblerError("Failed to evaluate Assembly Statement", currentStatement.getLine(), e));
+                return;
+            }
+
+        } else if (currentStatement instanceof PreProcessedAssemblyDirective) {
+
+            try {
+                String directive = ((PreProcessedAssemblyDirective) currentStatement).identifier;
+                CompiledExpression[] args = ((PreProcessedAssemblyDirective) currentStatement).args;
+
+                AssemblerDirectives.getHandler(directive).parse(
+                        ((PreProcessedAssemblyDirective) currentStatement).parentLine, args, this);
+            }catch (Exception e){
+                ASSEMBLER_LOGGER.log(AssemblerLogLevel.ASSEMBLER_ERROR, "", new AssemblerError("Failed to evaluate AssemblyDirective", currentStatement.getLine(), -1, e));
+                return;
+            }
+
+        } else if (currentStatement instanceof PreProcessedLabel) {
+            try {
+                Label label = new LocalLabel(currentAssemblyUnitAddress, this.currentAssemblyUnit, ((PreProcessedLabel) currentStatement).label, currentStatement.getLine());
+                currentAssemblyUnit.addLabel(label);
+
+            }catch (Exception e){
+                ASSEMBLER_LOGGER.log(AssemblerLogLevel.ASSEMBLER_ERROR, "", new AssemblerError("Failed to evaluate Label",  currentStatement.getLine(), -1, e));
+                return;
+            }
+        }else{
+            ASSEMBLER_LOGGER.log(AssemblerLogLevel.ASSEMBLER_ERROR, "", new AssemblerError("Failed To Evaluate PreProcessor Statement: " + currentStatement.getClass().getSimpleName(), currentStatement.getLine()));
+        }
+    }
+
+    protected List<PreProcessedStatement> preProcessFile(File file){
+        return preProcessor.preprocess(file);
+    }
+
+    protected void clearLocalFileRelatedContent(){
         currentFile = null;
         currentStatement = null;
         fileLabelMap = null;
         fileDataList = null;
         currentAssemblyUnit = null;
+        currentAssemblyUnitAddress = 0;
+        currentAssemblyUnitSize = 0;
+    }
+
+    protected void initLocalFileRelatedContent(){
+        fileLabelMap = new HashMap<>();
+        fileDataList = new ArrayList<>();
+        currentAssemblyUnit = new AssemblyUnit(fileDataList, fileLabelMap);
         currentAssemblyUnitAddress = 0;
         currentAssemblyUnitSize = 0;
     }
@@ -152,7 +163,7 @@ public abstract class BaseAssembler<P extends BasePreProcessor> implements Assem
         dataToPreProcessedStatement.put(data, currentStatement);
     }
 
-    public PagedMemory linkGlobal(){
+    protected PagedMemory linkGlobal(){
 
         LINKER_LOGGER.log(AssemblerLogLevel.ASSEMBLER_MESSAGE, "Started linking global");
 

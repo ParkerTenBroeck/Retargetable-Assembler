@@ -5,7 +5,7 @@ import org.parker.mips.assembler.instructions.formatter.jump.MipsJumpFormatter;
 import org.parker.mips.assembler.instructions.formatter.jump.MipsTrapFormatter;
 import org.parker.mips.assembler.instructions.formatter.register.*;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.exception.InstructionNotFoundError;
+import org.parker.retargetableassembler.exception.assembler.InstructionNotFoundError;
 import org.parker.retargetableassembler.instruction.InstructionFormatter;
 import org.parker.retargetableassembler.instruction.InstructionParser;
 import org.parker.retargetableassembler.instruction.StandardInstruction;

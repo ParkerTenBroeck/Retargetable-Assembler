@@ -15,10 +15,11 @@
  */
 package org.parker.retargetableassembler.util.linking;
 
-import org.parker.retargetableassembler.exception.IllegalLabelReference;
-import org.parker.retargetableassembler.util.Line;
+import org.parker.retargetableassembler.exception.linker.IllegalLabelReference;
+import org.parker.retargetableassembler.exception.linker.LinkingException;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.exception.LabelNotDeclaredError;
+import org.parker.retargetableassembler.exception.linker.LabelNotDeclaredError;
 
 import java.util.Map;
 
@@ -36,7 +37,7 @@ public class ReferencedLabel extends Label{
     }
 
     @Override
-    public long getAddress() {
+    public long getAddress() throws LinkingException {
         if(this.globalLabelMap.containsKey(this.mnemonic)) {
             if(globalLabelMap.get(this.mnemonic) instanceof ReferencedLabel){
                 throw new IllegalLabelReference(this, globalLabelMap.get(this.mnemonic));

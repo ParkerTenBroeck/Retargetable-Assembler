@@ -13,11 +13,14 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.base.preprocessor;
+package org.parker.retargetableassembler.base.preprocessor.expressions;
 
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.util.ExpressionCompiler;
+import org.parker.retargetableassembler.base.preprocessor.BasePreProcessor;
+import org.parker.retargetableassembler.exception.preprocessor.expression.ExpressionError;
+import org.parker.retargetableassembler.exception.preprocessor.expression.ParseMemberAccessError;
 import org.parker.retargetableassembler.util.linking.Label;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class BaseExpressionCompiler<A extends BaseAssembler, P extends BasePreProcessor> extends ExpressionCompiler {
 
@@ -61,7 +64,11 @@ public class BaseExpressionCompiler<A extends BaseAssembler, P extends BasePrePr
     protected Object parseMemberAccess(Object variable, String memberAccess) {
         if(variable instanceof Label){
             if(memberAccess.equals("byteAddress")){
-                return ((Label) variable).getAddress();
+                try {
+                    return ((Label) variable).getAddress();
+                }catch (Exception e){
+                    throw new ParseMemberAccessError("Cannot parse byteAddress for label", e);
+                }
             }
         }
         return super.parseMemberAccess(variable, memberAccess);

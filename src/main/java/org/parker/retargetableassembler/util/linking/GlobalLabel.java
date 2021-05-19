@@ -15,9 +15,14 @@
  */
 package org.parker.retargetableassembler.util.linking;
 
-import org.parker.retargetableassembler.util.Line;
-import org.parker.retargetableassembler.exception.LabelNotDeclaredError;
+import org.parker.retargetableassembler.exception.linker.LinkingException;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
+import org.parker.retargetableassembler.exception.linker.LabelNotDeclaredError;
 
+/**
+ * A label that belongs to a specific assemblyUnit that is declared to be global
+ * and is allowed to be referenced from other assembly units
+ */
 public class GlobalLabel extends Label{
 
     private final AssemblyUnit parentAssemblyUnit;
@@ -28,7 +33,7 @@ public class GlobalLabel extends Label{
     }
 
     @Override
-    public long getAddress() {
+    public long getAddress() throws LinkingException {
         if(!(parentAssemblyUnit.getAsuLabelMap().containsKey(this.mnemonic))){
             throw new LabelNotDeclaredError(this);
         }

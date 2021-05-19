@@ -6,7 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.parker.mips.assembler.MipsAssembler;
 import org.parker.mips.assembler.MipsPreProcessor;
-import org.parker.retargetableassembler.base.preprocessor.PreProcessedStatement;
+import org.parker.retargetableassembler.base.preprocessor.statements.PreProcessedStatement;
 
 import java.io.File;
 import java.util.HashMap;

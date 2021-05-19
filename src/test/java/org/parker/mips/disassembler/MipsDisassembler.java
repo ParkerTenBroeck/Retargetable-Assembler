@@ -17,13 +17,16 @@ package org.parker.mips.disassembler;
 
 import org.parker.retargetableassembler.util.Memory;
 
+@SuppressWarnings("unused")
 public class MipsDisassembler {
 
-    public static void disassemble(Memory memory){
+    public static String disassemble(Memory memory){
         StringBuilder sb = new StringBuilder();
-        for(int i = 0; i < memory.getSize() / 4; i ++){
-            sb.append(instructionToString(memory.getWord(i * 4, true)) + "\n");
+        for(long i = 0; i < memory.getSize() / 4; i ++){
+            sb.append(instructionToString(memory.getWord(i * 4, true)));
+            sb.append("\n");
         }
+        return sb.toString();
     }
 
     public static String instructionToString(int opCode) {
@@ -135,8 +138,9 @@ public class MipsDisassembler {
             case 0B010011: //mtlo
                 return "mtlo  $" + s;
 
+            default:
+                return ".word 0x"+String.format("%02X", opCode);
         }
-        return "NA";
     }
 
     private static String immediateEncoding(int opCode) {
@@ -214,8 +218,9 @@ public class MipsDisassembler {
             case 0B101011: //sw
                 return "sw    $" + t + ", " + SEi + "($" + s + ")";
 
+            default:
+                return ".word 0x"+String.format("%02X", opCode);
         }
-        return "NA";
     }
 
     private static String jumpEncoding(int opCode) {
@@ -232,7 +237,8 @@ public class MipsDisassembler {
             case 0B011010: //trap
                 return "trap  " + i;
 
+            default:
+                return ".word 0x"+String.format("%02X", opCode);
         }
-        return "NA";
     }
 }

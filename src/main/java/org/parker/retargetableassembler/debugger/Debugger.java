@@ -15,10 +15,8 @@
  */
 package org.parker.retargetableassembler.debugger;
 
-import com.google.common.collect.Range;
-import com.google.common.collect.RangeMap;
-import com.google.common.collect.TreeRangeMap;
-import org.parker.retargetableassembler.util.Line;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.File;
 import java.io.Serializable;
@@ -26,22 +24,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Debugger implements Serializable {
-    private final RangeMap<Long, Line> rangeToLine = TreeRangeMap.create();
-    private final Map<Line, Range<Long>> lineToRange = new HashMap<>();
+    //private final RangeMap<Long, Line> rangeToLine = TreeRangeMap.create();
+    //private final Map<Line, Range<Long>> lineToRange = new HashMap<>();
     private final Map<Long, FinalizedLabel> addressToLabel = new HashMap<>();
     private final Map<FinalizedLabel, Long> labelToAddress = new HashMap<>();
 
 
     public void clear(){
-        rangeToLine.clear();
-        lineToRange.clear();
+        //rangeToLine.clear();
+        //lineToRange.clear();
         addressToLabel.clear();
         labelToAddress.clear();
     }
 
     public void addDataRange(long beginning, long ending, Line line){
-        rangeToLine.put(Range.closed(beginning, ending), line);
-        lineToRange.put(line, Range.closed(beginning, ending));
+        //rangeToLine.put(Range.closed(beginning, ending), line);
+        //lineToRange.put(line, Range.closed(beginning, ending));
     }
 
     public void addLabel(FinalizedLabel label){
@@ -58,7 +56,8 @@ public class Debugger implements Serializable {
     }
 
     public Line getDataLineFromAddress(long address) {
-        return rangeToLine.get(address);
+        //return rangeToLine.get(address);
+        throw new NotImplementedException();
     }
 }
 

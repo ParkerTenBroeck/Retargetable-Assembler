@@ -13,28 +13,25 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.exception;
+package org.parker.retargetableassembler.exception.preprocessor.expression;
 
-import org.parker.retargetableassembler.util.Line;
+import org.parker.retargetableassembler.exception.assembler.AssemblerError;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
-public class DirectivesError extends AssemblerError {
+public class ExpressionError extends AssemblerError {
 
-    public DirectivesError(String message, Line line, int s, int e, Exception ex){
+    public ExpressionError(String message, Line line, int s, int e, Exception ex){
         super(message,line, s, e, ex);
     }
-    public DirectivesError(String message, Line line, int s, int e){
+    public ExpressionError(String message, Line line, int s, int e){
         super(message,line, s, e);
     }
 
-    public DirectivesError(String message, Line line, int s){
+    public ExpressionError(String message, Line line, int s){
         super(message,line, s);
     }
 
-    public DirectivesError(String message, Line line, int s, Exception ex){
+    public ExpressionError(String message, Line line, int s, Exception ex){
         super(message,line, s, ex);
-    }
-
-    public DirectivesError(String message, Line line) {
-        super(message, line);
     }
 }

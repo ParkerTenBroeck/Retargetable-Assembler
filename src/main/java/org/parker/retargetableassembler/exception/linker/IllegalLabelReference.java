@@ -13,17 +13,23 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.exception;
+package org.parker.retargetableassembler.exception.linker;
 
-public class LinkingException extends RuntimeException{
+import org.parker.retargetableassembler.exception.linker.LinkingException;
+import org.parker.retargetableassembler.util.linking.Label;
 
-    public LinkingException(String message){
-        super(message);
+public class IllegalLabelReference extends LinkingException {
+
+    private final Label label;
+    private final Label reference;
+
+    public IllegalLabelReference(Label label, Label reference){
+        this.label = label;
+        this.reference = reference;
     }
-    public LinkingException(String message, Exception cause){
-        super(message, cause);
-    }
-    public LinkingException(){
 
+    @Override
+    public String toString() {
+        return "Cannot reference \n" + reference.toString() + "\nwith " + label.toString();
     }
 }

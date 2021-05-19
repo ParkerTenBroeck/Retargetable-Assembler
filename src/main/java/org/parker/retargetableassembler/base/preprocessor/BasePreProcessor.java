@@ -16,8 +16,10 @@
 package org.parker.retargetableassembler.base.preprocessor;
 
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
+import org.parker.retargetableassembler.base.preprocessor.expressions.BaseExpressionCompiler;
+import org.parker.retargetableassembler.base.preprocessor.statements.*;
 import org.parker.retargetableassembler.directives.preprocessor.PreProcessorDirectives;
-import org.parker.retargetableassembler.util.Line;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 import org.parker.retargetableassembler.util.AssemblerLogLevel;
 
 import java.io.BufferedReader;
@@ -31,7 +33,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
-public abstract class BasePreProcessor<A extends BaseAssembler> {
+public abstract class BasePreProcessor<A extends BaseAssembler> implements PreProcessor {
 
     private static final Logger LOGGER = Logger.getLogger(BasePreProcessor.class.getName());
 

@@ -15,7 +15,7 @@
  */
 package org.parker.retargetableassembler.debugger;
 
-import org.parker.retargetableassembler.util.Line;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
 import java.io.Serializable;
 

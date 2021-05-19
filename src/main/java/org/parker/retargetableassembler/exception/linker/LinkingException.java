@@ -13,11 +13,17 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.base.preprocessor;
+package org.parker.retargetableassembler.exception.linker;
 
-import org.parker.retargetableassembler.util.Line;
+public class LinkingException extends Exception{
 
-public interface IntermediateStatement {
+    public LinkingException(String message){
+        super(message);
+    }
+    public LinkingException(String message, Exception cause){
+        super(message, cause);
+    }
+    public LinkingException(){
 
-     Line getLine();
+    }
 }

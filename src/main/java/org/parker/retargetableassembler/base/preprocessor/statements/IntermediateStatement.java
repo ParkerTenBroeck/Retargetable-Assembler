@@ -13,20 +13,11 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.util;
+package org.parker.retargetableassembler.base.preprocessor.statements;
 
-import java.io.Serializable;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
-public abstract class CompiledExpression implements Serializable {
-    public final int startingAddress;
-    public final int endingAddress;
-    public final Line line;
+public interface IntermediateStatement {
 
-    public CompiledExpression(Line line, int s, int e){
-        this.line = line;
-        this.startingAddress = s;
-        this.endingAddress = e;
-    }
-
-    public abstract Object evaluate();
+     Line getLine();
 }

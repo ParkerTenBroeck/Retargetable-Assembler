@@ -15,7 +15,7 @@
  */
 package org.parker.mips.assembler;
 
-import org.parker.retargetableassembler.base.preprocessor.BaseExpressionCompiler;
+import org.parker.retargetableassembler.base.preprocessor.expressions.BaseExpressionCompiler;
 import org.parker.retargetableassembler.util.Register;
 
 import java.util.HashMap;

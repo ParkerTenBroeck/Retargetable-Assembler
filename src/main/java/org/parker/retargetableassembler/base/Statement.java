@@ -15,11 +15,11 @@
  */
 package org.parker.retargetableassembler.base;
 
-import org.parker.retargetableassembler.exception.AssemblerError;
-import org.parker.retargetableassembler.exception.ParameterCountError;
-import org.parker.retargetableassembler.exception.ParameterTypeError;
-import org.parker.retargetableassembler.util.CompiledExpression;
-import org.parker.retargetableassembler.util.Line;
+import org.parker.retargetableassembler.exception.assembler.AssemblerError;
+import org.parker.retargetableassembler.exception.assembler.ParameterCountError;
+import org.parker.retargetableassembler.exception.assembler.ParameterTypeError;
+import org.parker.retargetableassembler.base.preprocessor.expressions.CompiledExpression;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
 import java.util.Arrays;
 

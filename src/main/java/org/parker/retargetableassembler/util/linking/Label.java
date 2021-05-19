@@ -15,7 +15,9 @@
  */
 package org.parker.retargetableassembler.util.linking;
 
-import org.parker.retargetableassembler.util.Line;
+import org.parker.retargetableassembler.exception.linker.LabelNotDeclaredError;
+import org.parker.retargetableassembler.exception.linker.LinkingException;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
 public abstract class Label {
 
@@ -27,7 +29,12 @@ public abstract class Label {
         this.line = line;
     }
 
-    public abstract long getAddress();
+    /**
+     *
+     * @return returns a long representing the location in memory this label points to
+     * @throws LabelNotDeclaredError this is thrown when this label is not declared. ex, a global label is referenced but never declared
+     */
+    public abstract long getAddress() throws LinkingException;
 
     @Override
     public String toString() {

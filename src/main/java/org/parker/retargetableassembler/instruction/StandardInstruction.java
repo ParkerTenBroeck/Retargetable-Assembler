@@ -20,7 +20,7 @@ import org.parker.retargetableassembler.operand.OpImmediate;
 import org.parker.retargetableassembler.operand.OpLabel;
 import org.parker.retargetableassembler.operand.OpRegister;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.exception.AssemblerError;
+import org.parker.retargetableassembler.exception.assembler.AssemblerError;
 import org.parker.retargetableassembler.operand.Operand;
 import org.parker.retargetableassembler.util.Register;
 import org.parker.retargetableassembler.util.linking.Label;

@@ -16,7 +16,8 @@
 package org.parker.retargetableassembler.operand;
 
 import org.parker.retargetableassembler.base.assembler.Assembler;
-import org.parker.retargetableassembler.exception.LabelNotDeclaredError;
+import org.parker.retargetableassembler.exception.linker.LabelNotDeclaredError;
+import org.parker.retargetableassembler.exception.linker.LinkingException;
 import org.parker.retargetableassembler.util.linking.Label;
 import org.parker.retargetableassembler.util.linking.LinkType;
 
@@ -39,17 +40,12 @@ public class OpLabel extends OpLong implements LinkableOperand{
     }
 
     @Override
-    public void link(Assembler assembler, long sourceAddr, LinkType linkType) throws LabelNotDeclaredError {
-        //if(labelMap.containsKey(labelMnemonic)){
-            //Label label = labelMap.get(labelMnemonic);
-            if(linkType == null){
-                this.setValue(LinkType.ABSOLUTE_BYTE.link(sourceAddr, label.getAddress()));
-            }else{
-                this.setValue(linkType.link(sourceAddr, label.getAddress()));
-            }
-        //}else{
-            //throw new LableNotDeclaredError("Label: " + labelMnemonic + " is not defined or not defined in the current scope");
-        //}
+    public void link(Assembler assembler, long sourceAddr, LinkType linkType) throws LinkingException {
+        if(linkType == null){
+            this.setValue(LinkType.ABSOLUTE_BYTE.link(sourceAddr, label.getAddress()));
+        }else{
+            this.setValue(linkType.link(sourceAddr, label.getAddress()));
+        }
         this.linked = true;
     }
 }

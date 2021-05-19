@@ -13,9 +13,9 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.base.preprocessor;
+package org.parker.retargetableassembler.base.preprocessor.statements;
 
-import org.parker.retargetableassembler.util.Line;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
 import java.util.regex.Matcher;
 

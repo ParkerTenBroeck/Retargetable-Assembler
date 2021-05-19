@@ -15,11 +15,10 @@
  */
 package org.parker.mips.assembler;
 
-import org.parker.retargetableassembler.base.preprocessor.BaseExpressionCompiler;
+import org.parker.retargetableassembler.base.preprocessor.expressions.BaseExpressionCompiler;
 import org.parker.retargetableassembler.base.preprocessor.BasePreProcessor;
-import org.parker.retargetableassembler.util.ExpressionCompiler;
+import org.parker.retargetableassembler.base.preprocessor.expressions.ExpressionCompiler;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;

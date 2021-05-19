@@ -13,12 +13,12 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.base.preprocessor;
+package org.parker.retargetableassembler.base.preprocessor.statements;
 
-import org.parker.retargetableassembler.util.CompiledExpression;
-import org.parker.retargetableassembler.util.Line;
+import org.parker.retargetableassembler.base.preprocessor.expressions.CompiledExpression;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
-public class PreProcessedAssemblyDirective implements PreProcessedStatement{
+public class PreProcessedAssemblyStatement implements PreProcessedStatement{
 
     public final Line parentLine;
     public final String identifier;
@@ -26,7 +26,7 @@ public class PreProcessedAssemblyDirective implements PreProcessedStatement{
     public final CompiledExpression[] args;
 
 
-    public PreProcessedAssemblyDirective(Line parentLine, String identifier, String expressionString, CompiledExpression[] args){
+    public PreProcessedAssemblyStatement(Line parentLine, String identifier, String expressionString, CompiledExpression[] args){
         this.parentLine = parentLine;
         this.identifier = identifier;
         this.expressionString = expressionString;

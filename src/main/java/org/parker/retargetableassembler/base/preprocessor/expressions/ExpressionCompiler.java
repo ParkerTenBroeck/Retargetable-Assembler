@@ -13,9 +13,14 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.util;
+package org.parker.retargetableassembler.base.preprocessor.expressions;
+
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
+import org.parker.retargetableassembler.exception.preprocessor.expression.ParseFunctionError;
+import org.parker.retargetableassembler.exception.preprocessor.expression.ParseVariableMnemonicError;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -24,11 +29,9 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ExpressionCompiler {
+public class ExpressionCompiler implements Serializable{
 
-
-    private static final Logger LOGGER = Logger.getLogger(ExpressionParser.class.getName());
-
+    private static final Logger LOGGER = Logger.getLogger(ExpressionCompiler.class.getName());
 
     public static int countTopLevelExpressions(String expression){
         if(expression.trim().isEmpty())return 0;
@@ -37,7 +40,6 @@ public class ExpressionCompiler {
         int index = 0;
 
         int count = 1;
-
 
         int into = 0;
         boolean string = false;
@@ -68,43 +70,6 @@ public class ExpressionCompiler {
     }
 
     public ExpressionCompiler() {
-    }
-
-
-    public static void main(String... args){
-
-        ExpressionCompiler ec = new ExpressionCompiler();
-        CompiledExpression e = ec.compileExpression("(5+4+(4*(5/2.5)))", null, 0);
-
-        Expression en = null;
-
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out = null;
-        try {
-            out = new ObjectOutputStream(bos);
-            out.writeObject(e);
-            out.flush();
-            byte[] yourBytes = bos.toByteArray();
-
-            try{
-                ByteArrayInputStream bin = new ByteArrayInputStream(yourBytes);
-                ObjectInputStream in = new ObjectInputStream(bin);
-                en = (Expression) in.readObject();
-            }catch(Exception ee){
-                System.out.println(ee);
-            }
-
-        }catch(Exception eee){
-            System.out.println(eee);
-        } finally {
-            try {
-                bos.close();
-            } catch (IOException ex) {
-                System.out.println(ex);
-            }
-        }
-
-        System.out.println(en.evaluate() + " " + e.evaluate());
     }
 
     public synchronized CompiledExpression compileExpression(String str, Line line, int offset) {
@@ -141,13 +106,13 @@ public class ExpressionCompiler {
         primitiveCastMap.put("char", Character.class);
     }
 
-    private interface Expression{
+    private interface Expression extends Serializable{
         Object evaluate();
     }
 
-    private class PrivateExpressionCompiler{
+    private class PrivateExpressionCompiler implements Serializable{
 
-        class CompilationError extends org.parker.retargetableassembler.exception.ExpressionError {
+        class CompilationError extends org.parker.retargetableassembler.exception.preprocessor.expression.ExpressionError {
 
             public CompilationError(String message, final int s, final int e){
                 super(message, expressionLine, s, e);
@@ -163,7 +128,7 @@ public class ExpressionCompiler {
         }
 
 
-        private class ExpressionError extends org.parker.retargetableassembler.exception.ExpressionError {
+        private class ExpressionError extends org.parker.retargetableassembler.exception.preprocessor.expression.ExpressionError {
 
             public ExpressionError(String message, final int s, final int e){
                 super(message,expressionLine, s + expressionLineIndexOffset, e + expressionLineIndexOffset);
@@ -1291,7 +1256,6 @@ public class ExpressionCompiler {
 
             return xEM;
         }
-
     }
 
     protected Object parseMemberAccess(Object parseVariable, String memberAccess) {
@@ -1303,7 +1267,7 @@ public class ExpressionCompiler {
     }
 
     protected Object parseVariable(String token){
-        throw new IllegalArgumentException("Variable: " + token + " not found");
+        throw new ParseVariableMnemonicError("Variable: " + token + " not found");
     }
 
     protected Object parseFunction(String token, Object parms) {
@@ -1311,13 +1275,13 @@ public class ExpressionCompiler {
         if (FUNCTION_MAP.containsKey(token)) {
             return FUNCTION_MAP.get(token).parse(parms);
         } else {
-            throw new IllegalArgumentException("Function: " + token + " is not defined");
+            throw new ParseFunctionError("Function: " + token + " is not defined");
         }
     }
 
     private static final HashMap<String, ExpressionCompiler.FunctionParser> FUNCTION_MAP = new HashMap<>();
 
-    private static abstract class FunctionParser {
+    private static abstract class FunctionParser implements Serializable{
         abstract public Object parse(Object parms);
     }
 
@@ -1568,11 +1532,19 @@ public class ExpressionCompiler {
                 }
             }
             // for all different Number types, let's check there double values
-            if (((Number) number1).doubleValue() < ((Number) number2).doubleValue())
-                return -1;
-            if (((Number) number1).doubleValue() > ((Number) number2).doubleValue())
-                return 1;
-            return 0;
+            if (number1 instanceof Double || number1 instanceof Float || number1 instanceof BigDecimal || number2 instanceof Double || number2 instanceof Float || number2 instanceof BigDecimal) {
+                if (((Number) number1).doubleValue() < ((Number) number2).doubleValue())
+                    return -1;
+                if (((Number) number1).doubleValue() > ((Number) number2).doubleValue())
+                    return 1;
+                return 0;
+            } else {
+                if (((Number) number1).longValue() < ((Number) number2).longValue())
+                    return -1;
+                if (((Number) number1).longValue() > ((Number) number2).longValue())
+                    return 1;
+                return 0;
+            }
         }
     }
 
@@ -1590,8 +1562,5 @@ public class ExpressionCompiler {
             temp = (int) Long.parseLong(string.trim());
         }
         return temp;
-
     }
-
-
 }

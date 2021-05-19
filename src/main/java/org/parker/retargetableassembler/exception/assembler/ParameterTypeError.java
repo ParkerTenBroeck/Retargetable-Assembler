@@ -13,27 +13,24 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.base.preprocessor;
+package org.parker.retargetableassembler.exception.assembler;
 
-import org.parker.retargetableassembler.util.Line;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
-public class PreProcessedLabel implements PreProcessedStatement{
+public class ParameterTypeError extends AssemblerError {
 
-    public final Line parentLine;
-    public final String label;
-
-    public PreProcessedLabel(Line parentLine, String label){
-        this.parentLine = parentLine;
-        this.label = label;
+    public ParameterTypeError(String message, Line line, int s, int e, Exception ex){
+        super(message,line, s, e, ex);
+    }
+    public ParameterTypeError(String message, Line line, int s, int e){
+        super(message,line, s, e);
     }
 
-    @Override
-    public String toString() {
-        return label + ":";
+    public ParameterTypeError(String message, Line line, int s){
+        super(message,line, s);
     }
 
-    @Override
-    public final Line getLine() {
-        return parentLine;
+    public ParameterTypeError(String message, Line line, int s, Exception ex){
+        super(message,line, s, ex);
     }
 }
