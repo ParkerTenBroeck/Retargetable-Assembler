@@ -16,7 +16,7 @@
 package org.parker.retargetableassembler.base.assembler;
 
 import org.parker.retargetableassembler.base.Data;
-import org.parker.retargetableassembler.base.DataStatement;
+import org.parker.retargetableassembler.base.StatementAssociatedData;
 import org.parker.retargetableassembler.base.LinkableData;
 import org.parker.retargetableassembler.base.preprocessor.*;
 import org.parker.retargetableassembler.base.preprocessor.statements.PreProcessedAssemblyDirective;
@@ -28,9 +28,9 @@ import org.parker.retargetableassembler.debugger.FinalizedLabel;
 import org.parker.retargetableassembler.directives.assembler.AssemblerDirectives;
 import org.parker.retargetableassembler.exception.assembler.AssemblerError;
 import org.parker.retargetableassembler.base.preprocessor.expressions.CompiledExpression;
-import org.parker.retargetableassembler.util.linking.AssemblyUnit;
-import org.parker.retargetableassembler.util.linking.Label;
-import org.parker.retargetableassembler.util.linking.LocalLabel;
+import org.parker.retargetableassembler.base.assembler.linking.AssemblyUnit;
+import org.parker.retargetableassembler.base.assembler.linking.Label;
+import org.parker.retargetableassembler.base.assembler.linking.LocalLabel;
 import org.parker.retargetableassembler.util.AssemblerLogLevel;
 import org.parker.retargetableassembler.util.Memory;
 import org.parker.retargetableassembler.util.PagedMemory;
@@ -96,7 +96,7 @@ public abstract class BaseAssembler<P extends PreProcessor> implements Assembler
                 String mnemonic = ((PreProcessedAssemblyStatement) currentStatement).identifier;
                 CompiledExpression[] args = ((PreProcessedAssemblyStatement) currentStatement).args;
 
-                DataStatement instruction = getInstruction(mnemonic);
+                StatementAssociatedData instruction = getInstruction(mnemonic);
                 instruction.setArgExpressions(args, currentStatement.getLine());
                 //data = instruction;
                 addDataToCurrent(instruction);
@@ -309,28 +309,5 @@ public abstract class BaseAssembler<P extends PreProcessor> implements Assembler
     }
 
     protected abstract P createPreProcessor();
-    protected abstract DataStatement getInstruction(String mnemonic);
-
-    public static long align(long address, long alignment){
-        return address + getAlignmentOffset(address, alignment);
-    }
-
-    public static long getAlignmentOffset(long address, long alignment){
-        if(bitCount(alignment) != 1){
-
-        }else{
-            long mask = alignment - 1;
-            long offset = ((~(mask & address)) + 1) & mask;
-            return offset;
-        }
-        return 0;
-    }
-
-    public static int bitCount(long number){
-        int count = 0;
-        for(int i = 0; i < 64; i ++){
-            count += ((number >> i) & 0b1) > 0?1:0;
-        }
-        return count;
-    }
+    protected abstract StatementAssociatedData getInstruction(String mnemonic);
 }

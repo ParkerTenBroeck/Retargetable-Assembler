@@ -13,31 +13,30 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.util.linking;
+package org.parker.retargetableassembler.base.assembler.linking;
 
-import org.parker.retargetableassembler.exception.linker.LabelNotDeclaredError;
 import org.parker.retargetableassembler.exception.linker.LinkingException;
 import org.parker.retargetableassembler.base.preprocessor.util.Line;
+import org.parker.retargetableassembler.exception.linker.LabelNotDeclaredError;
 
-public abstract class Label {
+/**
+ * A label that belongs to a specific assemblyUnit that is declared to be global
+ * and is allowed to be referenced from other assembly units
+ */
+public class GlobalLabel extends Label{
 
-    public final String mnemonic;
-    public final Line line;
+    private final AssemblyUnit parentAssemblyUnit;
 
-    public Label(String mnemonic, Line line){
-        this.mnemonic = mnemonic;
-        this.line = line;
+    public GlobalLabel(AssemblyUnit au, String mnemonic, Line line) {
+        super(mnemonic, line);
+        this.parentAssemblyUnit = au;
     }
 
-    /**
-     *
-     * @return returns a long representing the location in memory this label points to
-     * @throws LabelNotDeclaredError this is thrown when this label is not declared. ex, a global label is referenced but never declared
-     */
-    public abstract long getAddress() throws LinkingException;
-
     @Override
-    public String toString() {
-        return "Label: " + mnemonic + " on line: " + line.getHumanLineNumber() + " from: " + line.getFile().getAbsolutePath();
+    public long getAddress() throws LinkingException {
+        if(!(parentAssemblyUnit.getAsuLabelMap().containsKey(this.mnemonic))){
+            throw new LabelNotDeclaredError(this);
+        }
+        return parentAssemblyUnit.getAsuLabelMap().get(this.mnemonic).getAddress();
     }
 }

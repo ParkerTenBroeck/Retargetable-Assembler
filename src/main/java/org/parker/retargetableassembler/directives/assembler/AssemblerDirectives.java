@@ -15,12 +15,12 @@
  */
 package org.parker.retargetableassembler.directives.assembler;
 
-import org.parker.retargetableassembler.util.linking.GlobalLabel;
+import org.parker.retargetableassembler.util.BitManipulation;
+import org.parker.retargetableassembler.base.assembler.linking.GlobalLabel;
 import org.parker.retargetableassembler.util.AssemblerLogLevel;
-import org.parker.retargetableassembler.base.assembler.BaseAssembler;
 import org.parker.retargetableassembler.base.Data;
 import org.parker.retargetableassembler.exception.assembler.ParameterCountError;
-import org.parker.retargetableassembler.util.linking.ReferencedLabel;
+import org.parker.retargetableassembler.base.assembler.linking.ReferencedLabel;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -282,11 +282,11 @@ public class AssemblerDirectives {
         }
         int i = ((Number)arg).intValue();
 
-        if(BaseAssembler.bitCount(i) != 1 || i < 1 || i > 32768){
+        if(BitManipulation.bitCount(i) != 1 || i < 1 || i > 32768){
             throw new IllegalArgumentException("Alignment must be a positive power of two from 1 to 32,768");
         }
 
-        long offset = BaseAssembler.getAlignmentOffset(assembler.getCurrentAssemblyUnitAddress(), i);
+        long offset = BitManipulation.getAlignmentOffset(assembler.getCurrentAssemblyUnitAddress(), i);
 
         assembler.setCurrentAssemblyUnitAlignment(i);
 

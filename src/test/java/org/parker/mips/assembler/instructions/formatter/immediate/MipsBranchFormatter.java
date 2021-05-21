@@ -1,13 +1,15 @@
 package org.parker.mips.assembler.instructions.formatter.immediate;
 
-import org.parker.mips.assembler.instructions.formatter.MipsImmediateFormatter;
+import org.parker.mips.assembler.MipsLinkType;
+import org.parker.mips.assembler.instructions.formatter.MipsFormatter;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.instruction.StandardInstruction;
+import org.parker.retargetableassembler.instruction.LinkableInstructionFormatter;
+import org.parker.retargetableassembler.instruction.StandardFormattedInstruction;
 import org.parker.retargetableassembler.operand.OpLong;
 import org.parker.retargetableassembler.operand.OpRegister;
-import org.parker.retargetableassembler.util.linking.LinkType;
+import org.parker.retargetableassembler.base.assembler.linking.LinkType;
 
-public enum MipsBranchFormatter implements MipsImmediateFormatter {
+public enum MipsBranchFormatter implements MipsFormatter, LinkableInstructionFormatter {
 
     beq(0b000100),
     bne(0b000101);
@@ -19,7 +21,7 @@ public enum MipsBranchFormatter implements MipsImmediateFormatter {
     }
 
     @Override
-    public void encode(byte[] data, StandardInstruction instruction, BaseAssembler assembler) {
+    public void encode(byte[] data, StandardFormattedInstruction instruction, BaseAssembler assembler) {
         int regt = 0;
         int regs = 0;
         int im = 0;
@@ -41,11 +43,11 @@ public enum MipsBranchFormatter implements MipsImmediateFormatter {
             instruction.throwParameterCountError(3);
         }
         //Operand Order o,s,t,i
-        MipsImmediateFormatter.super.encode(data, new int[]{opCode, regs, regt, im}, assembler);
+        MipsFormatter.encodeImmediate(data, new int[]{opCode, regs, regt, im}, assembler);
     }
 
     @Override
     public LinkType[] getLinkTypes() {
-        return new LinkType[]{null, null, LinkType.RELATIVE_WORD};
+        return new LinkType[]{null, null, MipsLinkType.RELATIVE_WORD};
     }
 }

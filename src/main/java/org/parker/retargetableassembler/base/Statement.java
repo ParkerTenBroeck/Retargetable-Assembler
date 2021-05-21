@@ -61,6 +61,9 @@ public abstract class Statement<ArgType> {
 
     @SuppressWarnings("unchecked")
     public final void setArgExpressions(CompiledExpression[] expressions, Line line){
+        assert argExpressions == null;
+        assert expressions != null;
+
         this.argExpressions = expressions;
         evaluated = new boolean[expressions.length];
         Arrays.fill(evaluated, false);
@@ -70,7 +73,7 @@ public abstract class Statement<ArgType> {
 
 
     public final void throwParameterTypeError(int i, Class<?> expected) {
-        throw new ParameterTypeError("Wrong type for parameter: " + (i + 1) + " expected: " + expected.getSimpleName() + " gotten: " + getArg(i).getClass().getSimpleName(), argExpressions[i].line, argExpressions[i].startingAddress, argExpressions[i].endingAddress);
+        throw new ParameterTypeError("Wrong type for parameter: " + (i + 1) + " expected: " + expected.getSimpleName() + " got: " + getArg(i).getClass().getSimpleName(), argExpressions[i].line, argExpressions[i].startingAddress, argExpressions[i].endingAddress);
     }
 
     public final void throwParameterCountError(int expected) {
@@ -82,7 +85,15 @@ public abstract class Statement<ArgType> {
 
     }
 
-    protected void throwLinkingException(int i, Exception e){
+    public final void throwUnexpectedParameterTypeException(int index, Class<?> got) {
+        throw new ParameterTypeError("Unexpected type for parameter: " + (index + 1) + " got: " + got.getSimpleName(), argExpressions[index].line, argExpressions[index].startingAddress, argExpressions[index].endingAddress);
+    }
+
+    protected void throwParameterLinkingException(int i, Exception e){
         throw new AssemblerError("Failed to link argument: " + i, argExpressions[i].line, argExpressions[i].startingAddress, argExpressions[i].endingAddress, e);
+    }
+
+    protected final void throwInstructionFormatterException(String message){
+        throw new AssemblerError(message, this.line);
     }
 }

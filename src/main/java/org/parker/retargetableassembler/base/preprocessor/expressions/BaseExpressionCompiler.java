@@ -17,10 +17,8 @@ package org.parker.retargetableassembler.base.preprocessor.expressions;
 
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
 import org.parker.retargetableassembler.base.preprocessor.BasePreProcessor;
-import org.parker.retargetableassembler.exception.preprocessor.expression.ExpressionError;
 import org.parker.retargetableassembler.exception.preprocessor.expression.ParseMemberAccessError;
-import org.parker.retargetableassembler.util.linking.Label;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import org.parker.retargetableassembler.base.assembler.linking.Label;
 
 public class BaseExpressionCompiler<A extends BaseAssembler, P extends BasePreProcessor> extends ExpressionCompiler {
 

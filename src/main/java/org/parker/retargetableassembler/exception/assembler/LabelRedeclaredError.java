@@ -15,8 +15,7 @@
  */
 package org.parker.retargetableassembler.exception.assembler;
 
-import org.parker.retargetableassembler.exception.assembler.AssemblerError;
-import org.parker.retargetableassembler.util.linking.Label;
+import org.parker.retargetableassembler.base.assembler.linking.Label;
 
 public class LabelRedeclaredError extends AssemblerError {
 

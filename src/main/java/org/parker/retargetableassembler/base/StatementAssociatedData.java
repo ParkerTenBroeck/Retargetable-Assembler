@@ -15,5 +15,5 @@
  */
 package org.parker.retargetableassembler.base;
 
-public abstract class DataStatement<ArgType> extends Statement<ArgType>  implements Data {
+public abstract class StatementAssociatedData<ArgType> extends Statement<ArgType>  implements Data {
 }

@@ -13,52 +13,56 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.util.linking;
+package org.parker.retargetableassembler.base.assembler.linking;
 
 import org.parker.retargetableassembler.base.Data;
-import org.parker.retargetableassembler.base.assembler.BaseAssembler;
 import org.parker.retargetableassembler.exception.assembler.LabelRedeclaredError;
+import org.parker.retargetableassembler.util.BitManipulation;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 public class AssemblyUnit implements Serializable {
+
     private long startingAddress = -1;
     private long size;
     private long alignment = 1;
     public final Map<String, Label> asuLabelMap;
     public final List<Data> data;
 
-    public AssemblyUnit(List<Data> data, Map<String, Label> asuLabelMap){
+    public AssemblyUnit(List<Data> data, Map<String, Label> asuLabelMap) {
         this.data = data;
         this.asuLabelMap = asuLabelMap;
     }
-    public long getStartingAddress(){
-        if(this.startingAddress == -1){
+
+    public long getStartingAddress() {
+        if (this.startingAddress == -1) {
             return this.startingAddress;
         }
-        return BaseAssembler.align(this.startingAddress, alignment);
+        return BitManipulation.align(this.startingAddress, alignment);
     }
 
     public Map<String, Label> getAsuLabelMap() {
         return asuLabelMap;
     }
 
-    public void addLabel(Label label){
+    public void addLabel(Label label) {
         if (asuLabelMap.containsKey(label.mnemonic)) {
             throw new LabelRedeclaredError(label);
         }
         asuLabelMap.put(label.mnemonic, label);
     }
 
-    public long getEndingAddress(){
+    public long getEndingAddress() {
         return getStartingAddress() + getSize();
     }
-    public void setStartingAddress(long startingAddress){
+
+    public void setStartingAddress(long startingAddress) {
         this.startingAddress = startingAddress;
     }
-    public void setSize(long size){
+
+    public void setSize(long size) {
         this.size = size;
     }
 

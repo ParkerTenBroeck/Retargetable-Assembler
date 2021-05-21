@@ -16,47 +16,46 @@
 package org.parker.mips.assembler;
 
 import org.parker.retargetableassembler.base.preprocessor.expressions.BaseExpressionCompiler;
-import org.parker.retargetableassembler.util.Register;
 
 import java.util.HashMap;
 
 public class MipsExpressionCompiler extends BaseExpressionCompiler<MipsAssembler, MipsPreProcessor> {
 
-    private static final HashMap<String, Register> regMap = new HashMap<>();
+    private static final HashMap<String, MipsRegister> regMap = new HashMap<>();
 
     static{
-        regMap.put("$0", new Register(0));
-        regMap.put("$1", new Register(1));
-        regMap.put("$2", new Register(2));
-        regMap.put("$3", new Register(3));
-        regMap.put("$4", new Register(4));
-        regMap.put("$5", new Register(5));
-        regMap.put("$6", new Register(6));
-        regMap.put("$7", new Register(7));
-        regMap.put("$8", new Register(8));
-        regMap.put("$9", new Register(9));
-        regMap.put("$10", new Register(10));
-        regMap.put("$11", new Register(11));
-        regMap.put("$12", new Register(12));
-        regMap.put("$13", new Register(13));
-        regMap.put("$14", new Register(14));
-        regMap.put("$15", new Register(15));
-        regMap.put("$16", new Register(16));
-        regMap.put("$17", new Register(17));
-        regMap.put("$18", new Register(18));
-        regMap.put("$19", new Register(19));
-        regMap.put("$20", new Register(20));
-        regMap.put("$21", new Register(21));
-        regMap.put("$22", new Register(22));
-        regMap.put("$23", new Register(23));
-        regMap.put("$24", new Register(24));
-        regMap.put("$25", new Register(25));
-        regMap.put("$26", new Register(26));
-        regMap.put("$27", new Register(27));
-        regMap.put("$28", new Register(28));
-        regMap.put("$29", new Register(29));
-        regMap.put("$30", new Register(30));
-        regMap.put("$31", new Register(31));
+        regMap.put("$0", new MipsRegister(0));
+        regMap.put("$1", new MipsRegister(1));
+        regMap.put("$2", new MipsRegister(2));
+        regMap.put("$3", new MipsRegister(3));
+        regMap.put("$4", new MipsRegister(4));
+        regMap.put("$5", new MipsRegister(5));
+        regMap.put("$6", new MipsRegister(6));
+        regMap.put("$7", new MipsRegister(7));
+        regMap.put("$8", new MipsRegister(8));
+        regMap.put("$9", new MipsRegister(9));
+        regMap.put("$10", new MipsRegister(10));
+        regMap.put("$11", new MipsRegister(11));
+        regMap.put("$12", new MipsRegister(12));
+        regMap.put("$13", new MipsRegister(13));
+        regMap.put("$14", new MipsRegister(14));
+        regMap.put("$15", new MipsRegister(15));
+        regMap.put("$16", new MipsRegister(16));
+        regMap.put("$17", new MipsRegister(17));
+        regMap.put("$18", new MipsRegister(18));
+        regMap.put("$19", new MipsRegister(19));
+        regMap.put("$20", new MipsRegister(20));
+        regMap.put("$21", new MipsRegister(21));
+        regMap.put("$22", new MipsRegister(22));
+        regMap.put("$23", new MipsRegister(23));
+        regMap.put("$24", new MipsRegister(24));
+        regMap.put("$25", new MipsRegister(25));
+        regMap.put("$26", new MipsRegister(26));
+        regMap.put("$27", new MipsRegister(27));
+        regMap.put("$28", new MipsRegister(28));
+        regMap.put("$29", new MipsRegister(29));
+        regMap.put("$30", new MipsRegister(30));
+        regMap.put("$31", new MipsRegister(31));
     }
 
     @Override

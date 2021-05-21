@@ -1,12 +1,14 @@
 package org.parker.mips.assembler.instructions.formatter.jump;
 
-import org.parker.mips.assembler.instructions.formatter.MipsJumpFormatterI;
+import org.parker.mips.assembler.MipsLinkType;
+import org.parker.mips.assembler.instructions.formatter.MipsFormatter;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.instruction.StandardInstruction;
+import org.parker.retargetableassembler.instruction.LinkableInstructionFormatter;
+import org.parker.retargetableassembler.instruction.StandardFormattedInstruction;
 import org.parker.retargetableassembler.operand.OpLong;
-import org.parker.retargetableassembler.util.linking.LinkType;
+import org.parker.retargetableassembler.base.assembler.linking.LinkType;
 
-public enum MipsJumpFormatter implements MipsJumpFormatterI {
+public enum MipsJumpFormatter implements MipsFormatter, LinkableInstructionFormatter {
 
     j(0b000010),
     jal(0b000011);
@@ -18,7 +20,7 @@ public enum MipsJumpFormatter implements MipsJumpFormatterI {
     }
 
     @Override
-    public void encode(byte[] data, StandardInstruction instruction, BaseAssembler assembler){
+    public void encode(byte[] data, StandardFormattedInstruction instruction, BaseAssembler assembler){
         int im = 0;
 
         if(instruction.argsLength() == 1){
@@ -30,12 +32,12 @@ public enum MipsJumpFormatter implements MipsJumpFormatterI {
             instruction.throwParameterCountError(1);
         }
         //Operand Order o,i
-        MipsJumpFormatterI.super.encode(data, new int[]{opCode, im}, assembler);
+        MipsFormatter.encodeJump(data, new int[]{opCode, im}, assembler);
     }
 
     @Override
     public LinkType[] getLinkTypes() {
-        return new LinkType[]{LinkType.RELATIVE_WORD};
+        return new LinkType[]{MipsLinkType.RELATIVE_WORD};
     }
 
 

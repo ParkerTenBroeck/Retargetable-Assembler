@@ -1,11 +1,11 @@
 package org.parker.mips.assembler.instructions.formatter.jump;
 
-import org.parker.mips.assembler.instructions.formatter.MipsJumpFormatterI;
+import org.parker.mips.assembler.instructions.formatter.MipsFormatter;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.instruction.StandardInstruction;
+import org.parker.retargetableassembler.instruction.StandardFormattedInstruction;
 import org.parker.retargetableassembler.operand.OpImmediate;
 
-public enum MipsTrapFormatter implements MipsJumpFormatterI {
+public enum MipsTrapFormatter implements MipsFormatter {
 
     trap(0b011010);
 
@@ -16,7 +16,7 @@ public enum MipsTrapFormatter implements MipsJumpFormatterI {
     }
 
     @Override
-    public void encode(byte[] data, StandardInstruction instruction, BaseAssembler assembler){
+    public void encode(byte[] data, StandardFormattedInstruction instruction, BaseAssembler assembler){
         int im = 0;
 
         if(instruction.argsLength() == 1){
@@ -28,7 +28,7 @@ public enum MipsTrapFormatter implements MipsJumpFormatterI {
             instruction.throwParameterCountError(1);
         }
         //Operand Order o,i
-        MipsJumpFormatterI.super.encode(data, new int[]{opCode, im}, assembler);
+        MipsFormatter.encodeJump(data, new int[]{opCode, im}, assembler);
     }
 }
 

@@ -19,18 +19,24 @@ import org.parker.retargetableassembler.operand.LinkableOperand;
 import org.parker.retargetableassembler.base.LinkableData;
 import org.parker.retargetableassembler.base.assembler.Assembler;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.util.linking.LinkType;
+import org.parker.retargetableassembler.base.assembler.linking.LinkType;
 
-public class StandardLinkableInstruction extends StandardInstruction implements LinkableData {
+public class StandardFormattedLinkableInstruction extends StandardFormattedInstruction implements LinkableData {
 
-    public StandardLinkableInstruction(InstructionFormatter isf, BaseAssembler assembler) {
+    public StandardFormattedLinkableInstruction(LinkableInstructionFormatter isf, BaseAssembler assembler) {
         super(isf, assembler);
     }
 
     @Override
     public void link(Assembler assembler, long sourceAddress) {
 
-        LinkType[] linkTypes = isf.getLinkTypes();
+        LinkType[] linkTypes = null;
+        if(isf instanceof LinkableInstructionFormatter) {
+            linkTypes = ((LinkableInstructionFormatter) isf).getLinkTypes();
+        }else{
+            this.throwInstructionFormatterException("Instruction Formatter Provided for instruction is not instance of LinkableInstructionFormatter");
+        }
+        assert linkTypes != null;
 
         for(int i = 0; i < linkTypes.length; i ++){
             if(linkTypes[i] == null) continue;
@@ -39,7 +45,7 @@ public class StandardLinkableInstruction extends StandardInstruction implements 
                 try {
                     ((LinkableOperand) getArg(i)).link(assembler, sourceAddress, linkTypes[i]);
                 }catch(Exception e){
-                    this.throwLinkingException(i, e);
+                    this.throwParameterLinkingException(i, e);
                 }
             }
         }

@@ -1,11 +1,11 @@
 package org.parker.mips.assembler.instructions.formatter.register;
 
-import org.parker.mips.assembler.instructions.formatter.MipsRegisterFormatter;
-import org.parker.retargetableassembler.instruction.StandardInstruction;
+import org.parker.mips.assembler.instructions.formatter.MipsFormatter;
+import org.parker.retargetableassembler.instruction.StandardFormattedInstruction;
 import org.parker.retargetableassembler.operand.OpRegister;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
 
-public enum MipsArithLogFormatter implements MipsRegisterFormatter {
+public enum MipsArithLogFormatter implements MipsFormatter {
 
     add(0b100000),
     addu(0b100001),
@@ -25,7 +25,7 @@ public enum MipsArithLogFormatter implements MipsRegisterFormatter {
     }
 
     @Override
-    public void encode(byte[] data, StandardInstruction instruction, BaseAssembler assembler){
+    public void encode(byte[] data, StandardFormattedInstruction instruction, BaseAssembler assembler){
         int regd = 0;
         int regs = 0;
         int regt = 0;
@@ -42,6 +42,6 @@ public enum MipsArithLogFormatter implements MipsRegisterFormatter {
             instruction.throwParameterCountError(3);
         }
         //Operand Order o,s,t,d,a,f
-        MipsRegisterFormatter.super.encode(data, new int[]{0,regs, regt, regd, 0, opCode}, assembler);
+        MipsFormatter.encodeRegister(data, new int[]{0,regs, regt, regd, 0, opCode}, assembler);
     }
 }

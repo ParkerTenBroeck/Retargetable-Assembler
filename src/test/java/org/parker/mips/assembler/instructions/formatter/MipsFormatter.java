@@ -3,11 +3,19 @@ package org.parker.mips.assembler.instructions.formatter;
 import org.parker.retargetableassembler.exception.FieldOverflow;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
 import org.parker.retargetableassembler.instruction.InstructionFormatter;
+import org.parker.retargetableassembler.instruction.StandardFormattedInstruction;
 
 public interface MipsFormatter extends InstructionFormatter {
 
+    @Override
+    default int getInstructionSize(StandardFormattedInstruction instruction, BaseAssembler assembler) {
+        return 4;
+    }
 
-    default void encode(byte[] data, int[] fields, int[] fieldSize, BaseAssembler assembler){
+    static void encode(byte[] data, int[] fields, int[] fieldSize, BaseAssembler assembler){
+
+        assert data.length == 4;
+        assert fields.length == fieldSize.length;
 
         int dataI = 0;
 
@@ -34,5 +42,17 @@ public interface MipsFormatter extends InstructionFormatter {
         data[1] = (byte) ((dataI & 0x00FF0000) >> 16);
         data[2] = (byte) ((dataI & 0x0000FF00) >> 8);
         data[3] = (byte) ((dataI & 0x000000FF));
+    }
+
+    static void encodeImmediate(byte[] data, int[] fields, BaseAssembler assembler){
+        encode(data, fields, new int[]{6,5,5,16}, assembler);
+    }
+
+    static void encodeJump(byte[] data, int[] fields, BaseAssembler assembler){
+        encode(data, fields, new int[]{6,26}, assembler);
+    }
+
+    static void encodeRegister(byte[] data, int[] fields, BaseAssembler assembler){
+        encode(data, fields, new int[]{6,5,5,5,5,6}, assembler);
     }
 }

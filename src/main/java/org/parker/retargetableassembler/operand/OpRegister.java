@@ -15,16 +15,7 @@
  */
 package org.parker.retargetableassembler.operand;
 
-public class OpRegister implements Operand {
+public abstract class OpRegister implements Operand {
 
-    private final int regNumber;
 
-    public OpRegister(int regNum){
-        regNumber = regNum;
-    }
-
-    @Override
-    public Integer getValue() {
-        return regNumber;
-    }
 }

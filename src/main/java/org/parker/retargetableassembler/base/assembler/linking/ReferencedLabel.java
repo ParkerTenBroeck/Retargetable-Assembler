@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.util.linking;
+package org.parker.retargetableassembler.base.assembler.linking;
 
 import org.parker.retargetableassembler.exception.linker.IllegalLabelReference;
 import org.parker.retargetableassembler.exception.linker.LinkingException;

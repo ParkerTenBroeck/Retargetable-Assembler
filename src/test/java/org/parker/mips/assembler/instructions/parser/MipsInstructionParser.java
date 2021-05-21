@@ -6,17 +6,15 @@ import org.parker.mips.assembler.instructions.formatter.jump.MipsTrapFormatter;
 import org.parker.mips.assembler.instructions.formatter.register.*;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
 import org.parker.retargetableassembler.exception.assembler.InstructionNotFoundError;
-import org.parker.retargetableassembler.instruction.InstructionFormatter;
-import org.parker.retargetableassembler.instruction.InstructionParser;
-import org.parker.retargetableassembler.instruction.StandardInstruction;
-import org.parker.retargetableassembler.instruction.StandardLinkableInstruction;
+import org.parker.retargetableassembler.instruction.*;
+
 import java.util.HashMap;
 
 public class MipsInstructionParser implements InstructionParser {
 
 
     private static final HashMap<String, InstructionFormatter> formatterSndMnemonicMap = new HashMap<>();
-    private static final HashMap<String, InstructionFormatter> formatterLinkMnemonicMap = new HashMap<>();
+    private static final HashMap<String, LinkableInstructionFormatter> formatterLinkMnemonicMap = new HashMap<>();
 
     static{
 
@@ -64,11 +62,11 @@ public class MipsInstructionParser implements InstructionParser {
     }
 
     @Override
-    public StandardInstruction newInstance(String mnemonic, BaseAssembler assembler) {
+    public StandardFormattedInstruction newInstance(String mnemonic, BaseAssembler assembler) {
         if(formatterSndMnemonicMap.containsKey(mnemonic)){
-            return new StandardInstruction(formatterSndMnemonicMap.get(mnemonic), assembler);
+            return new StandardFormattedInstruction(formatterSndMnemonicMap.get(mnemonic), assembler);
         }else if(formatterLinkMnemonicMap.containsKey(mnemonic)){
-            return new StandardLinkableInstruction(formatterLinkMnemonicMap.get(mnemonic), assembler);
+            return new StandardFormattedLinkableInstruction(formatterLinkMnemonicMap.get(mnemonic), assembler);
         }else{
             throw new InstructionNotFoundError("Instruction: " + mnemonic + " not found", null, 0,0);
         }

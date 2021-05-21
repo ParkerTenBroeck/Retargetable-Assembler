@@ -16,10 +16,9 @@
 package org.parker.retargetableassembler.operand;
 
 import org.parker.retargetableassembler.base.assembler.Assembler;
-import org.parker.retargetableassembler.exception.linker.LabelNotDeclaredError;
 import org.parker.retargetableassembler.exception.linker.LinkingException;
-import org.parker.retargetableassembler.util.linking.Label;
-import org.parker.retargetableassembler.util.linking.LinkType;
+import org.parker.retargetableassembler.base.assembler.linking.Label;
+import org.parker.retargetableassembler.base.assembler.linking.LinkType;
 
 public class OpLabel extends OpLong implements LinkableOperand{
 

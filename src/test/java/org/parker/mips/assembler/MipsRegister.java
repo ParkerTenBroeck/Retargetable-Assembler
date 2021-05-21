@@ -13,14 +13,21 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.util.linking;
+package org.parker.mips.assembler;
 
-@SuppressWarnings("unused")
-public interface LinkType {
+import org.parker.retargetableassembler.util.IntegerRegister;
 
-        long link(long sourceAddr, long destAddr);
+public class MipsRegister extends IntegerRegister {
 
-        LinkType RELATIVE_WORD = (s, d) -> (d >> 2) - ((s >> 2) + 1);
-        LinkType ABSOLUTE_BYTE = (s, d) -> d;
-        LinkType RELATIVE_BYTE = (s, d) -> d - s;
+    public MipsRegister(int value){
+        super(value);
+        if(value > 31 || value < 0){
+            throw new IllegalArgumentException("Incorrect Register Number: " + value);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "$" + this.registerNumber;
+    }
 }

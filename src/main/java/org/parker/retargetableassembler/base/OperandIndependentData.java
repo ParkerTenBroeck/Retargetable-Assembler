@@ -15,7 +15,7 @@
  */
 package org.parker.retargetableassembler.base;
 
-public abstract class OperandIndependentData<ArgType> extends DataStatement<ArgType>{
+public abstract class OperandIndependentData<ArgType> extends StatementAssociatedData<ArgType> {
 
     private byte[] data;
     private final long size;

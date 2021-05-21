@@ -16,7 +16,7 @@
 package org.parker.mips.assembler;
 
 import org.parker.mips.assembler.instructions.parser.MipsInstructionParser;
-import org.parker.retargetableassembler.base.DataStatement;
+import org.parker.retargetableassembler.base.StatementAssociatedData;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
 import org.parker.retargetableassembler.base.preprocessor.BasePreProcessor;
 import org.parker.retargetableassembler.instruction.InstructionParser;
@@ -30,7 +30,7 @@ public class MipsAssembler extends BaseAssembler {
     private static final InstructionParser instructionParser = new MipsInstructionParser();
 
     @Override
-    protected DataStatement getInstruction(String mnemonic) {
+    protected StatementAssociatedData getInstruction(String mnemonic) {
         return instructionParser.newInstance(mnemonic, this);
     }
 

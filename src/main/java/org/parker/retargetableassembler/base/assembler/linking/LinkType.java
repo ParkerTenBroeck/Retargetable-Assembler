@@ -13,23 +13,13 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.util.linking;
+package org.parker.retargetableassembler.base.assembler.linking;
 
-import org.parker.retargetableassembler.base.preprocessor.util.Line;
+@SuppressWarnings("unused")
+public interface LinkType {
 
-public class LocalLabel extends Label{
+        long link(long sourceAddr, long destAddr);
 
-    private final long address;
-    private final AssemblyUnit au;
-
-    public LocalLabel(long address, AssemblyUnit au, String mnemonic, Line line) {
-        super(mnemonic, line);
-        this.address = address;
-        this.au = au;
-    }
-
-    @Override
-    public long getAddress() {
-        return address + au.getStartingAddress();
-    }
+        LinkType ABSOLUTE_BYTE = (s, d) -> d;
+        LinkType RELATIVE_BYTE = (s, d) -> d - s;
 }

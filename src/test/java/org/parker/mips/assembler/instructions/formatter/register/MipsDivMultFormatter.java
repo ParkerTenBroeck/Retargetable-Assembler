@@ -1,11 +1,11 @@
 package org.parker.mips.assembler.instructions.formatter.register;
 
-import org.parker.mips.assembler.instructions.formatter.MipsRegisterFormatter;
+import org.parker.mips.assembler.instructions.formatter.MipsFormatter;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.instruction.StandardInstruction;
+import org.parker.retargetableassembler.instruction.StandardFormattedInstruction;
 import org.parker.retargetableassembler.operand.OpRegister;
 
-public enum MipsDivMultFormatter implements MipsRegisterFormatter {
+public enum MipsDivMultFormatter implements MipsFormatter {
 
     div(0b011010),
     divu(0b011011),
@@ -19,7 +19,7 @@ public enum MipsDivMultFormatter implements MipsRegisterFormatter {
     }
 
     @Override
-    public void encode(byte[] data, StandardInstruction instruction, BaseAssembler assembler){
+    public void encode(byte[] data, StandardFormattedInstruction instruction, BaseAssembler assembler){
         int regs = 0;
         int regt = 0;
         if(instruction.argsLength() == 2){
@@ -34,6 +34,6 @@ public enum MipsDivMultFormatter implements MipsRegisterFormatter {
             instruction.throwParameterCountError(2);
         }
         //Operand Order o,s,t,d,a,f
-        MipsRegisterFormatter.super.encode(data, new int[]{0,regs, regt, 0, 0, opCode}, assembler);
+        MipsFormatter.encodeRegister(data, new int[]{0,regs, regt, 0, 0, opCode}, assembler);
     }
 }

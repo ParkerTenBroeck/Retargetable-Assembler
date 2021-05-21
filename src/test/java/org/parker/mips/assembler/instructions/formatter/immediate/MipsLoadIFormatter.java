@@ -1,12 +1,12 @@
 package org.parker.mips.assembler.instructions.formatter.immediate;
 
-import org.parker.mips.assembler.instructions.formatter.MipsImmediateFormatter;
+import org.parker.mips.assembler.instructions.formatter.MipsFormatter;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.instruction.StandardInstruction;
+import org.parker.retargetableassembler.instruction.StandardFormattedInstruction;
 import org.parker.retargetableassembler.operand.OpImmediate;
 import org.parker.retargetableassembler.operand.OpRegister;
 
-public enum MipsLoadIFormatter implements MipsImmediateFormatter {
+public enum MipsLoadIFormatter implements MipsFormatter {
 
     lhi(0b011001),
     llo(0b011000);
@@ -18,7 +18,7 @@ public enum MipsLoadIFormatter implements MipsImmediateFormatter {
     }
 
     @Override
-    public void encode(byte[] data, StandardInstruction instruction, BaseAssembler assembler){
+    public void encode(byte[] data, StandardFormattedInstruction instruction, BaseAssembler assembler){
         int regt = 0;
         int im = 0;
 
@@ -35,6 +35,6 @@ public enum MipsLoadIFormatter implements MipsImmediateFormatter {
             instruction.throwParameterCountError(2);
         }
         //Operand Order o,s,t,i
-        MipsImmediateFormatter.super.encode(data, new int[]{opCode, 0, regt, im}, assembler);
+        MipsFormatter.encodeImmediate(data, new int[]{opCode, 0, regt, im}, assembler);
     }
 }

@@ -19,7 +19,7 @@ package org.parker.retargetableassembler.base;
  * Data which size depends on the operands present at assembly time
  * Memory Labels that have not been defined yet cannot be used as arguments
  */
-public abstract class OperandDependentData<ArgType> extends DataStatement<ArgType>{
+public abstract class OperandDependentData<ArgType> extends StatementAssociatedData<ArgType> {
     private byte[] data;
 
     public OperandDependentData(){

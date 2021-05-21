@@ -1,11 +1,11 @@
 package org.parker.mips.assembler.instructions.formatter.register;
 
-import org.parker.mips.assembler.instructions.formatter.MipsRegisterFormatter;
+import org.parker.mips.assembler.instructions.formatter.MipsFormatter;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.instruction.StandardInstruction;
+import org.parker.retargetableassembler.instruction.StandardFormattedInstruction;
 import org.parker.retargetableassembler.operand.OpRegister;
 
-public enum MipsMoveFromFormatter implements MipsRegisterFormatter {
+public enum MipsMoveFromFormatter implements MipsFormatter {
 
     mfhi(0b010000),
     mflo(0b010010);
@@ -17,7 +17,7 @@ public enum MipsMoveFromFormatter implements MipsRegisterFormatter {
     }
 
     @Override
-    public void encode(byte[] data, StandardInstruction instruction, BaseAssembler assembler){
+    public void encode(byte[] data, StandardFormattedInstruction instruction, BaseAssembler assembler){
         int regd = 0;
         if(instruction.argsLength() == 1){
                 if(!(instruction.getArg(0) instanceof OpRegister)){
@@ -28,6 +28,6 @@ public enum MipsMoveFromFormatter implements MipsRegisterFormatter {
             instruction.throwParameterCountError(1);
         }
         //Operand Order o,s,t,d,a,f
-        MipsRegisterFormatter.super.encode(data, new int[]{0,0, 0, regd, 0, opCode}, assembler);
+        MipsFormatter.encodeRegister(data, new int[]{0,0, 0, regd, 0, opCode}, assembler);
     }
 }
