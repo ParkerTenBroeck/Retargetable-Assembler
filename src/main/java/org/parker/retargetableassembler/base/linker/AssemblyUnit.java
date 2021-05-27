@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.base.assembler.linking;
+package org.parker.retargetableassembler.base.linker;
 
 import org.parker.retargetableassembler.base.Data;
 import org.parker.retargetableassembler.exception.assembler.LabelRedeclaredError;
@@ -23,6 +23,9 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This represents an object file
+ */
 public class AssemblyUnit implements Serializable {
 
     private long startingAddress = -1;
@@ -48,10 +51,10 @@ public class AssemblyUnit implements Serializable {
     }
 
     public void addLabel(Label label) {
-        if (asuLabelMap.containsKey(label.mnemonic)) {
+        if (asuLabelMap.containsKey(label.symbolMnemonic)) {
             throw new LabelRedeclaredError(label);
         }
-        asuLabelMap.put(label.mnemonic, label);
+        asuLabelMap.put(label.symbolMnemonic, label);
     }
 
     public long getEndingAddress() {

@@ -6,7 +6,7 @@ import org.parker.retargetableassembler.base.assembler.BaseAssembler;
 import org.parker.retargetableassembler.instruction.LinkableInstructionFormatter;
 import org.parker.retargetableassembler.instruction.StandardFormattedInstruction;
 import org.parker.retargetableassembler.operand.OpLong;
-import org.parker.retargetableassembler.base.assembler.linking.LinkType;
+import org.parker.retargetableassembler.base.linker.LinkType;
 
 public enum MipsJumpFormatter implements MipsFormatter, LinkableInstructionFormatter {
 

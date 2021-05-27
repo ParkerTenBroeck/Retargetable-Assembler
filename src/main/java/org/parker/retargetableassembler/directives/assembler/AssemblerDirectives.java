@@ -16,11 +16,11 @@
 package org.parker.retargetableassembler.directives.assembler;
 
 import org.parker.retargetableassembler.util.BitManipulation;
-import org.parker.retargetableassembler.base.assembler.linking.GlobalLabel;
+import org.parker.retargetableassembler.base.linker.GlobalLabel;
 import org.parker.retargetableassembler.util.AssemblerLogLevel;
 import org.parker.retargetableassembler.base.Data;
 import org.parker.retargetableassembler.exception.assembler.ParameterCountError;
-import org.parker.retargetableassembler.base.assembler.linking.ReferencedLabel;
+import org.parker.retargetableassembler.base.linker.ExternalLabel;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -422,7 +422,7 @@ public class AssemblerDirectives {
         assembler.addGlobalLabel(new GlobalLabel(assembler.getCurrentAssemblyUnit(), msg.trim(), line));
     };
 
-    public static final AssemblerDirective REF = (line, args, assembler) -> {
+    public static final AssemblerDirective EXTERN = (line, args, assembler) -> {
         if(args.length != 1){
             throw new IllegalArgumentException("Wrong number of arguments expected: 1 found: " + args.length);
         }
@@ -439,7 +439,7 @@ public class AssemblerDirectives {
         }
         String msg = (String)arg;
 
-        assembler.getCurrentAssemblyUnit().addLabel(new ReferencedLabel(assembler, msg, line));
+        assembler.getCurrentAssemblyUnit().addLabel(new ExternalLabel(assembler, msg, line));
     };
 
     private static final HashMap<String, AssemblerDirective> handlerMap = new HashMap<>();
@@ -465,8 +465,15 @@ public class AssemblerDirectives {
 
         //symbols linkage and visibility
         handlerMap.put("global", GLOBAL);
-        handlerMap.put("def", null);
-        handlerMap.put("ref", REF);
+        handlerMap.put("weak", null);
+        handlerMap.put("extern", EXTERN);
+        handlerMap.put("ref", EXTERN);
+
+        //sections
+        handlerMap.put("section", null);
+        handlerMap.put("text", null);
+        handlerMap.put("data", null);
+        handlerMap.put("absolute", null);
 
         //control diagnostics
         handlerMap.put("emsg", EMSG);

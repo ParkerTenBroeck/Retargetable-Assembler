@@ -15,9 +15,8 @@
  */
 package org.parker.retargetableassembler.base.preprocessor.expressions;
 
+import org.parker.retargetableassembler.base.preprocessor.expressions.scope.ExpressionCompilerScope;
 import org.parker.retargetableassembler.base.preprocessor.util.Line;
-import org.parker.retargetableassembler.exception.preprocessor.expression.ParseFunctionError;
-import org.parker.retargetableassembler.exception.preprocessor.expression.ParseVariableMnemonicError;
 
 import java.io.*;
 import java.math.BigDecimal;
@@ -29,9 +28,34 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ExpressionCompiler implements Serializable{
+public class ExpressionCompiler {
 
     private static final Logger LOGGER = Logger.getLogger(ExpressionCompiler.class.getName());
+
+    private static final Pattern namePattern = Pattern.compile("\\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\\s*");
+    private static final Pattern castPattern = Pattern.compile("\\s*([(][\\s]*([a-zA-Z_$][a-zA-Z_$0-9]*)[\\s]*[)])\\s*[a-zA-Z_$0-9]+");
+    private static final HashMap<String, Class> castMap = new HashMap<>();
+    private static final HashMap<String, Class> primitiveCastMap = new HashMap<>();
+    private ExpressionCompilerScope expressionCompilerScope;
+
+    static{
+        primitiveCastMap.put("Double", Double.class);
+        primitiveCastMap.put("double", Double.class);
+        primitiveCastMap.put("Float", Float.class);
+        primitiveCastMap.put("float", Float.class);
+
+        primitiveCastMap.put("Long", Long.class);
+        primitiveCastMap.put("long", Long.class);
+        primitiveCastMap.put("Integer", Integer.class);
+        primitiveCastMap.put("int", Integer.class);
+        primitiveCastMap.put("Short", Short.class);
+        primitiveCastMap.put("short", Short.class);
+        primitiveCastMap.put("Byte", Byte.class);
+        primitiveCastMap.put("byte", Byte.class);
+
+        primitiveCastMap.put("Character", Character.class);
+        primitiveCastMap.put("char", Character.class);
+    }
 
     public static int countTopLevelExpressions(String expression){
         if(expression.trim().isEmpty())return 0;
@@ -74,43 +98,32 @@ public class ExpressionCompiler implements Serializable{
 
     public synchronized CompiledExpression compileExpression(String str, Line line, int offset) {
         PrivateExpressionCompiler ec = new PrivateExpressionCompiler(str, line, offset);
-        return ec.compileExpression();
+        ec.expressionCompilerScope = this.expressionCompilerScope;
+        CompiledExpression e = ec.compileExpression();
+        ec.expressionCompilerScope = null;
+        return e;
     }
 
     public final synchronized CompiledExpression[] compileExpressionsAsArray(String str, Line line, int offset){
         PrivateExpressionCompiler ec = new PrivateExpressionCompiler(str, line, offset);
-        return ec.compileTopLevelExpressions();
+        ec.expressionCompilerScope = this.expressionCompilerScope;
+        CompiledExpression[] e = ec.compileTopLevelExpressions();
+        ec.expressionCompilerScope = null;
+        return e;
     }
 
-    private static final Pattern namePattern = Pattern.compile("\\s*([a-zA-Z_$][a-zA-Z_$0-9]*)\\s*");
-    private static final Pattern castPattern = Pattern.compile("\\s*([(][\\s]*([a-zA-Z_$][a-zA-Z_$0-9]*)[\\s]*[)])\\s*[a-zA-Z_$0-9]+");
-    private static final HashMap<String, Class> castMap = new HashMap<>();
-    private static final HashMap<String, Class> primitiveCastMap = new HashMap<>();
-
-    static{
-        primitiveCastMap.put("Double", Double.class);
-        primitiveCastMap.put("double", Double.class);
-        primitiveCastMap.put("Float", Float.class);
-        primitiveCastMap.put("float", Float.class);
-
-        primitiveCastMap.put("Long", Long.class);
-        primitiveCastMap.put("long", Long.class);
-        primitiveCastMap.put("Integer", Integer.class);
-        primitiveCastMap.put("int", Integer.class);
-        primitiveCastMap.put("Short", Short.class);
-        primitiveCastMap.put("short", Short.class);
-        primitiveCastMap.put("Byte", Byte.class);
-        primitiveCastMap.put("byte", Byte.class);
-
-        primitiveCastMap.put("Character", Character.class);
-        primitiveCastMap.put("char", Character.class);
+    public void setExpressionCompilerScope(ExpressionCompilerScope ecs){
+        this.expressionCompilerScope = ecs;
     }
 
     private interface Expression extends Serializable{
         Object evaluate();
     }
 
-    private class PrivateExpressionCompiler implements Serializable{
+    /**
+     *  this is really only for something thats for sure
+     */
+    private static class PrivateExpressionCompiler implements Serializable{
 
         class CompilationError extends org.parker.retargetableassembler.exception.preprocessor.expression.ExpressionError {
 
@@ -150,10 +163,13 @@ public class ExpressionCompiler implements Serializable{
             this.expressionLineIndexOffset = offset;
         }
 
+        private transient ExpressionCompilerScope expressionCompilerScope;
+        private CompiledExpression compiledExpression;
         private final Line expressionLine;
         private final int expressionLineIndexOffset;
         private final String str;
-        private int pos = -1, ch;
+        private transient int pos = -1, ch;
+        private transient boolean isInPreProcess = false;
 
         private void nextChar() {
             ch = (++pos < str.length()) ? str.charAt(pos) : -1;
@@ -195,10 +211,9 @@ public class ExpressionCompiler implements Serializable{
             pos = -1;
             ch = 0;
             nextChar();
-            CompiledExpression x;
             try {
                 Expression e = parseLevel15();
-                x = new CompiledExpression(expressionLine,  expressionLineIndexOffset, pos + expressionLineIndexOffset) {
+                compiledExpression = new CompiledExpression(expressionLine,  expressionLineIndexOffset, pos + expressionLineIndexOffset) {
                     @Override
                     public Object evaluate() {
                         return e.evaluate();
@@ -213,7 +228,7 @@ public class ExpressionCompiler implements Serializable{
             }
 
             if (pos < str.length()) throw new CompilationError("Unexpected: " + (char) ch, pos + expressionLineIndexOffset);
-            return x;
+            return compiledExpression;
         }
 
         public CompiledExpression[] compileTopLevelExpressions() {
@@ -230,13 +245,25 @@ public class ExpressionCompiler implements Serializable{
         }
 
         private synchronized CompiledExpression[] parseTopLevel15() {
-            int start = removeWhiteSpace();
-            Expression xEM = parseLevel14();
-            int end = pos;
 
             final List<CompiledExpression> list = new ArrayList<>();
+            PrivateExpressionCompiler pec;
 
-            list.add(new CompiledExpression(expressionLine, start + expressionLineIndexOffset, end + expressionLineIndexOffset) {
+            final PrivateExpressionCompiler pecf1 = new PrivateExpressionCompiler(this.str, this.expressionLine, this.expressionLineIndexOffset);
+            pec = pecf1;
+            pecf1.pos = this.pos;
+            pecf1.ch = this.ch;
+            pecf1.expressionCompilerScope = this.expressionCompilerScope;
+
+            int start = pecf1.removeWhiteSpace();
+            Expression xEM = pecf1.parseLevel14();
+            int end = pos;
+
+            CompiledExpression why = new CompiledExpression(expressionLine, start + expressionLineIndexOffset, end + expressionLineIndexOffset) {
+                {
+                    pecf1.compiledExpression = this;
+                }
+
                 @Override
                 public Object evaluate() {
                     return xEM.evaluate();
@@ -246,14 +273,27 @@ public class ExpressionCompiler implements Serializable{
                 public String toString() {
                     return xEM.toString();
                 }
-            });
+            };
+            list.add(why);
+
 
             for (; ; ) {
+                this.pos = pec.pos;
+                this.ch = pec.ch;
                 //start = removeWhiteSpace();
                 if (eat(",")) {
-                    Expression xEMT = parseLevel14();
+                    final PrivateExpressionCompiler pecf = new PrivateExpressionCompiler(this.str, this.expressionLine, this.expressionLineIndexOffset);
+                    pecf.expressionCompilerScope = this.expressionCompilerScope;
+                    pec = pecf;
+                    pec.pos = this.pos;
+                    pec.ch = this.ch;
+
+                    Expression xEMT = pec.parseLevel14();
                     end = pos;
-                    list.add(new CompiledExpression(expressionLine, start + expressionLineIndexOffset + 1, end + expressionLineIndexOffset) {
+                    why = new CompiledExpression(expressionLine, start + expressionLineIndexOffset + 1, end + expressionLineIndexOffset) {
+                        {
+                            pecf.compiledExpression = this;
+                        }
                         @Override
                         public Object evaluate() {
                             return xEMT.evaluate();
@@ -263,7 +303,8 @@ public class ExpressionCompiler implements Serializable{
                         public String toString() {
                             return xEMT.toString();
                         }
-                    });
+                    };
+                    list.add(why);
                 } else {
                     return list.toArray(new CompiledExpression[0]);
                 }
@@ -1030,6 +1071,7 @@ public class ExpressionCompiler implements Serializable{
 
             final Expression xEM;
             final int startPos = this.pos;
+            first:
             if (eat('(')) { // parentheses
                 Expression internal = parseLevel15();
                 xEM = new Expression() {
@@ -1094,7 +1136,7 @@ public class ExpressionCompiler implements Serializable{
                 switch (token) {
                     case "true":
                     case "TRUE":
-                        return new Expression() {
+                        xEM = new Expression() {
                             @Override
                             public Object evaluate() {
                                 return true;
@@ -1105,9 +1147,10 @@ public class ExpressionCompiler implements Serializable{
                                 return "true";
                             }
                         };
+                        break first;
                     case "false":
                     case "FALSE":
-                        return new Expression() {
+                        xEM = new Expression() {
                             @Override
                             public Object evaluate() {
                                 return false;
@@ -1118,9 +1161,10 @@ public class ExpressionCompiler implements Serializable{
                                 return "false";
                             }
                         };
+                        break first;
                     case "pi":
                     case "PI":
-                        return new Expression() {
+                        xEM = new Expression() {
                             @Override
                             public Object evaluate() {
                                 return Math.PI;
@@ -1131,6 +1175,8 @@ public class ExpressionCompiler implements Serializable{
                                 return "pi";
                             }
                         };
+                        break first;
+                    default:
                 }
 
                 if (next("(")) {
@@ -1141,7 +1187,10 @@ public class ExpressionCompiler implements Serializable{
                         @Override
                         public Object evaluate() {
                             try {
-                                return parseFunction(token, args.evaluate());
+                                if(compiledExpression.getExpressionScope() == null){
+                                    throw new ExpressionError("Failed to parse function no valid scope given",s,e);
+                                }
+                                return compiledExpression.getExpressionScope().parseFunction(token, args.evaluate());
                             } catch (Exception ex) {
                                 throw new ExpressionError("Failed to parse function: " + token, s, endFunc, ex);
                             }
@@ -1153,66 +1202,31 @@ public class ExpressionCompiler implements Serializable{
                         }
                     };
                 } else {
-                    final String ppToken = preProcessVariableMnemonic(token);
-                    if(namePattern.matcher(ppToken).matches()){
 
-
-                        removeWhiteSpace();
-                        if(eat(".")){
-
-                            final int memberAccessStart = pos;
-                            if (Character.isAlphabetic(ch) || ch == '_' || ch == '$') { // functions
-                                while (Character.isAlphabetic(ch) || Character.isDigit(ch) || ch == '_' || ch == '$')
-                                    nextChar();
-                            }
-                            final int memberAccessEnd = pos;
-                            final String memberAccess = str.substring(memberAccessStart, memberAccessEnd);
-
-                            xEM = new Expression() {
-                                @Override
-                                public Object evaluate() {
-                                    try {
-                                        return parseMemberAccess(parseVariable(ppToken), memberAccess);
-                                    } catch (Exception ex) {
-                                        throw new ExpressionError("Failed to parse symbol", s, memberAccessEnd, ex);
-                                    }
-                                }
-
-                                @Override
-                                public String toString() {
-                                    return ppToken + "." + memberAccess;
-                                }
-                            };
-
-                        }else {
-                            xEM = new Expression() {
-                                @Override
-                                public Object evaluate() {
-                                    try {
-                                        return parseVariable(ppToken);
-                                    } catch (Exception ex) {
-                                        throw new ExpressionError("Failed to parse symbol", s, e, ex);
-                                    }
-                                }
-
-                                @Override
-                                public String toString() {
-                                    return ppToken;
-                                }
-                            };
-                        }
+                    final String preProcessedToken;
+                    if(expressionCompilerScope != null){
+                        preProcessedToken = expressionCompilerScope.preProcessVariableMnemonic(token);
                     }else{
+                        preProcessedToken = token;
+                    }
+                    if(!isInPreProcess && expressionCompilerScope != null && !token.equals(preProcessedToken)) {
+
+                        isInPreProcess = true;
                         xEM = new Expression() {
                             private CompiledExpression pp;
                             {
-                                pp = new PrivateExpressionCompiler(ppToken).compileExpression();
+                                PrivateExpressionCompiler pec = new PrivateExpressionCompiler(preProcessedToken);
+                                pec.isInPreProcess = true;
+                                pp = pec.compileExpression();
+                                pec.compiledExpression = compiledExpression;
+
                             }
                             @Override
                             public Object evaluate() {
                                 try {
                                     return pp.evaluate();
                                 } catch (Exception error) {
-                                    throw new ExpressionError("Failed to parse: " + ppToken + " from value: " + token, s, e, error);
+                                    throw new ExpressionError("Failed to parse: " + pp.toString() + " from value: " + token, s, e, error);
                                 }
                             }
 
@@ -1221,8 +1235,29 @@ public class ExpressionCompiler implements Serializable{
                                 return pp.toString();
                             }
                         };
+                        isInPreProcess = false;
+                    }else{
+                        xEM = new Expression() {
+                            @Override
+                            public Object evaluate() {
+                                if (compiledExpression.getExpressionScope() == null) {
+                                    throw new ExpressionError("Failed to parse symbol no valid scope given", s, e);
+                                }
+                                try {
+                                    return compiledExpression.getExpressionScope().parseVariable(token);
+                                } catch (Exception ex) {
+                                    throw new ExpressionError("Failed to parse symbol", s, e, ex);
+                                }
+                            }
+
+                            @Override
+                            public String toString() {
+                                return token;
+                            }
+                        };
                     }
                 }
+
             } else if (ch == '"') {
                 nextChar();
                 while (ch != '"') {
@@ -1250,129 +1285,47 @@ public class ExpressionCompiler implements Serializable{
                         return '"' + string.substring(start, end) + '"';
                     }
                 };
-            } else {
+            }else{
                 throw new CompilationError("Unexpected: " + (char) ch, s, s);
             }
 
-            return xEM;
-        }
-    }
+            //access stuff
+            Expression access = xEM;
+            for(;;) {
+                final int start = removeWhiteSpace();
+                final Expression accessf = access;
+                if (eat(".")) {
 
-    protected Object parseMemberAccess(Object parseVariable, String memberAccess) {
-        throw new IllegalArgumentException("Cannot access member: " + memberAccess + " on: " + parseVariable.getClass().getSimpleName());
-    }
-
-    protected String preProcessVariableMnemonic(String token) {
-        return token;
-    }
-
-    protected Object parseVariable(String token){
-        throw new ParseVariableMnemonicError("Variable: " + token + " not found");
-    }
-
-    protected Object parseFunction(String token, Object parms) {
-
-        if (FUNCTION_MAP.containsKey(token)) {
-            return FUNCTION_MAP.get(token).parse(parms);
-        } else {
-            throw new ParseFunctionError("Function: " + token + " is not defined");
-        }
-    }
-
-    private static final HashMap<String, ExpressionCompiler.FunctionParser> FUNCTION_MAP = new HashMap<>();
-
-    private static abstract class FunctionParser implements Serializable{
-        abstract public Object parse(Object parms);
-    }
-
-    static {
-        FUNCTION_MAP.put("sqrt", new ExpressionCompiler.FunctionParser() {
-            @Override
-            public Object parse(Object parms) {
-                if (parms instanceof Number) {
-                    return Math.sqrt(((Number) parms).doubleValue());
-                } else {
-                    throw new IllegalArgumentException("Sqrt function cannot take: " + parms.getClass().getSimpleName());
-                }
-            }
-        });
-
-        FUNCTION_MAP.put("sin", new ExpressionCompiler.FunctionParser() {
-            @Override
-            public Object parse(Object parms) {
-                if (parms instanceof Number) {
-                    return Math.sin(((Number) parms).doubleValue());
-                } else {
-                    throw new IllegalArgumentException("sin function cannot take: " + parms.getClass().getSimpleName());
-                }
-            }
-        });
-
-        FUNCTION_MAP.put("cos", new ExpressionCompiler.FunctionParser() {
-            @Override
-            public Object parse(Object parms) {
-                if (parms instanceof Number) {
-                    return Math.cos(((Number) parms).doubleValue());
-                } else {
-                    throw new IllegalArgumentException("cos function cannot take: " + parms.getClass().getSimpleName());
-                }
-            }
-        });
-
-        FUNCTION_MAP.put("tan", new ExpressionCompiler.FunctionParser() {
-            @Override
-            public Object parse(Object parms) {
-                if (parms instanceof Number) {
-                    return Math.tan(((Number) parms).doubleValue());
-                } else {
-                    throw new IllegalArgumentException("tan function cannot take: " + parms.getClass().getSimpleName());
-                }
-            }
-        });
-
-        FUNCTION_MAP.put("toRadians", new ExpressionCompiler.FunctionParser() {
-            @Override
-            public Object parse(Object parms) {
-                if (parms instanceof Number) {
-                    return Math.toRadians(((Number) parms).doubleValue());
-                } else {
-                    throw new IllegalArgumentException("toRadians function cannot take: " + parms.getClass().getSimpleName());
-                }
-            }
-        });
-
-        FUNCTION_MAP.put("toDegrees", new ExpressionCompiler.FunctionParser() {
-            @Override
-            public Object parse(Object parms) {
-                if (parms instanceof Number) {
-                    return Math.toDegrees(((Number) parms).doubleValue());
-                } else {
-                    throw new IllegalArgumentException("toDegrees function cannot take: " + parms.getClass().getSimpleName());
-                }
-            }
-        });
-
-        FUNCTION_MAP.put("pow", new ExpressionCompiler.FunctionParser() {
-            @Override
-            public Object parse(Object parms) {
-                if (parms instanceof Object[]) {
-                    Object[] newParms = (Object[]) parms;
-                    if (newParms.length == 2) {
-                        if (newParms[0] instanceof Number || newParms[1] instanceof Number) {
-                            return Math.pow(((Number) newParms[0]).doubleValue(), ((Number) newParms[1]).doubleValue());
-                        } else {
-                            throw new IllegalArgumentException("Invalid parameters for function Pow found: " + newParms.getClass().getSimpleName() + " and " + newParms.getClass().getSimpleName() + " but not Number and Number");
-                        }
-                    } else {
-                        throw new IllegalArgumentException("Invalid number of parameters for function Pow requires 2 found: " + newParms.length);
+                    final int memberAccessStart = pos;
+                    if (Character.isAlphabetic(ch) || ch == '_' || ch == '$') { // functions
+                        while (Character.isAlphabetic(ch) || Character.isDigit(ch) || ch == '_' || ch == '$')
+                            nextChar();
                     }
+                    final int memberAccessEnd = pos;
+                    final String memberAccess = str.substring(memberAccessStart, memberAccessEnd);
+
+                    access = new Expression() {
+                        @Override
+                        public Object evaluate() {
+                            try {
+                                return compiledExpression.getExpressionScope().parseMemberAccess(
+                                        accessf.evaluate(), memberAccess);
+                            } catch (Exception ex) {
+                                throw new ExpressionError("Failed evaluate member access", start, memberAccessEnd, ex);
+                            }
+                        }
+
+                        @Override
+                        public String toString() {
+                            return accessf.toString() + "." + memberAccess;
+                        }
+                    };
                 } else {
-                    throw new IllegalArgumentException("Pow function cannot take: " + parms.getClass().getSimpleName());
+                    return access;
                 }
             }
-        });
+        }
     }
-
 
     public static Number add(Number a, Number b) {
         if (a instanceof Double || b instanceof Double) {

@@ -20,7 +20,7 @@ import org.parker.retargetableassembler.operand.*;
 import org.parker.retargetableassembler.util.IntegerRegister;
 import org.parker.retargetableassembler.util.Register;
 import org.parker.retargetableassembler.util.StringRegister;
-import org.parker.retargetableassembler.base.assembler.linking.Label;
+import org.parker.retargetableassembler.base.linker.Label;
 
 public interface InstructionFormatter {
 

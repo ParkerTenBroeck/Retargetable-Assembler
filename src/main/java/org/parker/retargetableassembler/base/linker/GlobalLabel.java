@@ -13,7 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.base.assembler.linking;
+package org.parker.retargetableassembler.base.linker;
 
 import org.parker.retargetableassembler.exception.linker.LinkingException;
 import org.parker.retargetableassembler.base.preprocessor.util.Line;
@@ -34,9 +34,9 @@ public class GlobalLabel extends Label{
 
     @Override
     public long getAddress() throws LinkingException {
-        if(!(parentAssemblyUnit.getAsuLabelMap().containsKey(this.mnemonic))){
+        if(!(parentAssemblyUnit.getAsuLabelMap().containsKey(this.symbolMnemonic))){
             throw new LabelNotDeclaredError(this);
         }
-        return parentAssemblyUnit.getAsuLabelMap().get(this.mnemonic).getAddress();
+        return parentAssemblyUnit.getAsuLabelMap().get(this.symbolMnemonic).getAddress();
     }
 }

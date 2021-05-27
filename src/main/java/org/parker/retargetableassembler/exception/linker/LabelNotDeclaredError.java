@@ -15,7 +15,7 @@
  */
 package org.parker.retargetableassembler.exception.linker;
 
-import org.parker.retargetableassembler.base.assembler.linking.Label;
+import org.parker.retargetableassembler.base.linker.Label;
 
 public class LabelNotDeclaredError extends LinkingException {
 
@@ -29,6 +29,6 @@ public class LabelNotDeclaredError extends LinkingException {
 
     @Override
     public String toString() {
-        return "Label: " + label.mnemonic + " was not declared";
+        return "Label: " + label.symbolMnemonic + " was not declared";
     }
 }

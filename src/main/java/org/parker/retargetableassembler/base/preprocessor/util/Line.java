@@ -69,6 +69,9 @@ public class Line implements Serializable {
     }
 
     public void setParent(Line line){
+        if(line == this){
+            return;
+        }
         this.parentLine = line;
     }
 

@@ -45,11 +45,11 @@ public class MipsPreProcessorTest {
             List<PreProcessedStatement> s = pp.preprocess(c.getValue().s);
             Assert.assertEquals("Not same size: ", a.size(), s.size());
             for(int i =0; i < a.size(); i ++){
-                Assert.assertEquals("Line on a: " +
+                Assert.assertEquals("Line on "+c.getValue().a.getAbsolutePath()+": " +
                         a.get(i).getLine().getLineNumber() +
-                        " and line on s: " +
+                        "\nline on "+c.getValue().s.getAbsolutePath()+": " +
                         s.get(i).getLine().getLineNumber()
-                        +" does not match", a.get(i).toString(), s.get(i).toString());
+                        +"\ndoes not match", s.get(i).toString(), a.get(i).toString());
             }
         }
     }

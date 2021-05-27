@@ -15,7 +15,6 @@
  */
 package org.parker.mips.assembler;
 
-import org.parker.retargetableassembler.base.preprocessor.expressions.BaseExpressionCompiler;
 import org.parker.retargetableassembler.base.preprocessor.BasePreProcessor;
 import org.parker.retargetableassembler.base.preprocessor.expressions.ExpressionCompiler;
 
@@ -34,11 +33,6 @@ public class MipsPreProcessor extends BasePreProcessor<MipsAssembler> {
         //preDefinedValues.putAll(definedValues);
         //preprocess(new File(SystemResources.SYS_CALL_DEF_HEADER_FILE));
         //preDefinedValues.putAll(definedValues);
-    }
-
-    @Override
-    protected BaseExpressionCompiler getExpressionCompiler() {
-        return new MipsExpressionCompiler();
     }
 
     private static final Set<String> memoryAccessFormattedInstructionMnemonics = new HashSet<>();

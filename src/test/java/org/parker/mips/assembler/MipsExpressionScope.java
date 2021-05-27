@@ -15,11 +15,11 @@
  */
 package org.parker.mips.assembler;
 
-import org.parker.retargetableassembler.base.preprocessor.expressions.BaseExpressionCompiler;
+import org.parker.retargetableassembler.base.preprocessor.expressions.scope.BaseAssemblerExpressionScope;
 
 import java.util.HashMap;
 
-public class MipsExpressionCompiler extends BaseExpressionCompiler<MipsAssembler, MipsPreProcessor> {
+public class MipsExpressionScope extends BaseAssemblerExpressionScope<MipsAssembler> {
 
     private static final HashMap<String, MipsRegister> regMap = new HashMap<>();
 
@@ -59,7 +59,7 @@ public class MipsExpressionCompiler extends BaseExpressionCompiler<MipsAssembler
     }
 
     @Override
-    protected Object parseVariable(String token) {
+    public Object parseVariable(String token) {
         if(regMap.containsKey(token)){
             return regMap.get(token);
         }else{

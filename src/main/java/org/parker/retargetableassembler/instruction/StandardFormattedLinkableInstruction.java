@@ -16,12 +16,12 @@
 package org.parker.retargetableassembler.instruction;
 
 import org.parker.retargetableassembler.operand.LinkableOperand;
-import org.parker.retargetableassembler.base.LinkableData;
+import org.parker.retargetableassembler.base.Linkable;
 import org.parker.retargetableassembler.base.assembler.Assembler;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.base.assembler.linking.LinkType;
+import org.parker.retargetableassembler.base.linker.LinkType;
 
-public class StandardFormattedLinkableInstruction extends StandardFormattedInstruction implements LinkableData {
+public class StandardFormattedLinkableInstruction extends StandardFormattedInstruction implements Linkable {
 
     public StandardFormattedLinkableInstruction(LinkableInstructionFormatter isf, BaseAssembler assembler) {
         super(isf, assembler);

@@ -16,7 +16,9 @@
 package org.parker.retargetableassembler.base.preprocessor;
 
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.base.preprocessor.expressions.BaseExpressionCompiler;
+import org.parker.retargetableassembler.base.preprocessor.expressions.ExpressionCompiler;
+import org.parker.retargetableassembler.base.preprocessor.expressions.scope.BasePreProcessorExpressionCompilerScope;
+import org.parker.retargetableassembler.base.preprocessor.expressions.scope.ExpressionCompilerScope;
 import org.parker.retargetableassembler.base.preprocessor.statements.*;
 import org.parker.retargetableassembler.directives.preprocessor.PreProcessorDirectives;
 import org.parker.retargetableassembler.base.preprocessor.util.Line;
@@ -43,23 +45,22 @@ public abstract class BasePreProcessor<A extends BaseAssembler> implements PrePr
     public static final Pattern labelPattern = Pattern.compile("\\s*([a-zA-Z_$][a-zA-Z_$0-9]*):\\s*");
 
     protected Map<String, String> definedValues = new HashMap<>();
-
-    protected final Map<String, String> preDefinedValues = new HashMap<>();
+    //protected final Map<String, String> preDefinedValues = new HashMap<>();
 
     protected Number n;
     protected final A assembler;
-    protected final BaseExpressionCompiler ec;
+    protected final ExpressionCompiler ec = new ExpressionCompiler();
+    protected final ExpressionCompilerScope ecs;
 
     public BasePreProcessor(A assembler){
         this.assembler = assembler;
-        ec = getExpressionCompiler();
-        ec.setAssembler(assembler);
-        ec.setPreProcessor(this);
+        ecs = createExpressionCompilerScope();
+        ec.setExpressionCompilerScope(ecs);
     }
 
     public List<PreProcessedStatement> preprocess(File file){
         definedValues = new HashMap<>();
-        definedValues.putAll(preDefinedValues);
+        //definedValues.putAll(preDefinedValues);
         return preProcessStage3(preProcessToIntermediate(file));
     }
 
@@ -268,10 +269,19 @@ public abstract class BasePreProcessor<A extends BaseAssembler> implements PrePr
         }
     }
 
-    protected BaseExpressionCompiler<A, BasePreProcessor> getExpressionCompiler(){
-        return new BaseExpressionCompiler();
+    protected ExpressionCompilerScope createExpressionCompilerScope(){
+        BasePreProcessorExpressionCompilerScope<BasePreProcessor> ecs = new BasePreProcessorExpressionCompilerScope<>();
+        ecs.setPreProcessor(this);
+        return ecs;
     }
 
+    /**
+     * This is to ensure all arguments are provided in a comma
+     *
+     * @param instructionMnemonic the current mnemonic that is being preprocessed
+     * @param arguments the actual arguments
+     * @return
+     */
     protected abstract String preProcessAssemblyArguments(String instructionMnemonic, String arguments);
 
     public void define(String token){

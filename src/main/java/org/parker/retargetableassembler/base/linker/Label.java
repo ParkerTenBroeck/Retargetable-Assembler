@@ -13,19 +13,18 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.base.assembler.linking;
+package org.parker.retargetableassembler.base.linker;
 
 import org.parker.retargetableassembler.exception.linker.LabelNotDeclaredError;
 import org.parker.retargetableassembler.exception.linker.LinkingException;
 import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
-public abstract class Label {
+public abstract class Label extends Symbol {
 
-    public final String mnemonic;
     public final Line line;
 
     public Label(String mnemonic, Line line){
-        this.mnemonic = mnemonic;
+        super(mnemonic);
         this.line = line;
     }
 
@@ -38,6 +37,6 @@ public abstract class Label {
 
     @Override
     public String toString() {
-        return "Label: " + mnemonic + " on line: " + line.getHumanLineNumber() + " from: " + line.getFile().getAbsolutePath();
+        return "Label: " + symbolMnemonic + " on line: " + line.getHumanLineNumber() + " from: " + line.getFile().getAbsolutePath();
     }
 }

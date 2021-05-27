@@ -3,11 +3,41 @@ package org.parker.retargetableassembler.base.preprocessor.expressions;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.parker.retargetableassembler.base.preprocessor.expressions.scope.ExpressionScope;
 import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ExpressionCompilerTest {
+
+    @Test
+    public void parse(){
+
+        ExpressionScope es = new TestExpressionScope();
+
+        HashMap<Object, String> resultToExpressionStringMap= Expressions.resultExpressionMap;
+        HashMap<Object, CompiledExpression> resultToExpressionMap= new HashMap<>();
+
+        ExpressionCompiler ec = new ExpressionCompiler();
+
+        for(Map.Entry<Object, String> ex: resultToExpressionStringMap.entrySet()){
+            CompiledExpression compiled = ec.compileExpression(ex.getValue(), null, 0);
+            compiled.setExpressionScope(es);
+            CompiledExpression toStringAndBack = ec.compileExpression(compiled.toString(), null, 0);
+            toStringAndBack.setExpressionScope(es);
+            Assert.assertEquals(compiled.evaluate(), toStringAndBack.evaluate());
+            resultToExpressionMap.put(ex.getKey(), compiled);
+        }
+
+        for(Map.Entry<Object, CompiledExpression> ex: resultToExpressionMap.entrySet()){
+            Object val = ex.getValue().evaluate();
+            Assert.assertEquals(ex.getKey(), val);
+        }
+
+
+    }
 
     @Test
     public void ExpressionCompilerSerializationTest(){

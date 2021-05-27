@@ -1,6 +1,6 @@
 package org.parker.mips.assembler;
 
-import org.parker.retargetableassembler.base.assembler.linking.LinkType;
+import org.parker.retargetableassembler.base.linker.LinkType;
 
 public interface MipsLinkType extends LinkType {
 

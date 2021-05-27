@@ -1,6 +1,6 @@
 package org.parker.retargetableassembler.instruction;
 
-import org.parker.retargetableassembler.base.assembler.linking.LinkType;
+import org.parker.retargetableassembler.base.linker.LinkType;
 
 public interface LinkableInstructionFormatter extends InstructionFormatter{
 

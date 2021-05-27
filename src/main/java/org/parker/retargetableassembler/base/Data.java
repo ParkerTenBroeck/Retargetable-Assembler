@@ -15,10 +15,12 @@
  */
 package org.parker.retargetableassembler.base;
 
+import java.io.Serializable;
+
 /**
  * Any statement that will become part of the assembled binary
  */
-public interface Data {
+public interface Data extends Serializable {
     byte[] toBinary();
     default long getSize(){
         return toBinary().length;

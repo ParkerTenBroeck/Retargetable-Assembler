@@ -17,7 +17,7 @@ package org.parker.retargetableassembler.base.assembler;
 
 import org.parker.retargetableassembler.base.Data;
 import org.parker.retargetableassembler.base.StatementAssociatedData;
-import org.parker.retargetableassembler.base.LinkableData;
+import org.parker.retargetableassembler.base.Linkable;
 import org.parker.retargetableassembler.base.preprocessor.*;
 import org.parker.retargetableassembler.base.preprocessor.statements.PreProcessedAssemblyDirective;
 import org.parker.retargetableassembler.base.preprocessor.statements.PreProcessedAssemblyStatement;
@@ -28,9 +28,9 @@ import org.parker.retargetableassembler.debugger.FinalizedLabel;
 import org.parker.retargetableassembler.directives.assembler.AssemblerDirectives;
 import org.parker.retargetableassembler.exception.assembler.AssemblerError;
 import org.parker.retargetableassembler.base.preprocessor.expressions.CompiledExpression;
-import org.parker.retargetableassembler.base.assembler.linking.AssemblyUnit;
-import org.parker.retargetableassembler.base.assembler.linking.Label;
-import org.parker.retargetableassembler.base.assembler.linking.LocalLabel;
+import org.parker.retargetableassembler.base.linker.AssemblyUnit;
+import org.parker.retargetableassembler.base.linker.Label;
+import org.parker.retargetableassembler.base.linker.LocalLabel;
 import org.parker.retargetableassembler.util.AssemblerLogLevel;
 import org.parker.retargetableassembler.util.Memory;
 import org.parker.retargetableassembler.util.PagedMemory;
@@ -202,9 +202,9 @@ public abstract class BaseAssembler<P extends PreProcessor> implements Assembler
             long size = 0;
 
                 for(Data d:au.data){
-                    if(d instanceof LinkableData){
+                    if(d instanceof Linkable){
                         try {
-                            ((LinkableData) d).link(this, address);
+                            ((Linkable) d).link(this, address);
                         }catch (Exception e){
                             LINKER_LOGGER.log(AssemblerLogLevel.ASSEMBLER_ERROR, ": Failed to link data", e);
                             try {
@@ -241,7 +241,7 @@ public abstract class BaseAssembler<P extends PreProcessor> implements Assembler
         for(AssemblyUnit au: assemblyUnits){
             for(Map.Entry<String, Label> s:au.asuLabelMap.entrySet()){
                 try {
-                    debugger.addLabel(new FinalizedLabel(s.getValue().mnemonic, s.getValue().line, s.getValue().getAddress()));
+                    debugger.addLabel(new FinalizedLabel(s.getValue().symbolMnemonic, s.getValue().line, s.getValue().getAddress()));
                 }catch (Exception ignored){
 
                 }
@@ -301,7 +301,7 @@ public abstract class BaseAssembler<P extends PreProcessor> implements Assembler
     }
 
     public void addGlobalLabel(Label label) {
-        this.globalLabelMap.put(label.mnemonic, label);
+        this.globalLabelMap.put(label.symbolMnemonic, label);
     }
 
     public boolean isBigEndian(){

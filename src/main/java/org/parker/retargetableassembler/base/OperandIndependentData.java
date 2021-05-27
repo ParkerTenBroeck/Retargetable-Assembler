@@ -15,6 +15,7 @@
  */
 package org.parker.retargetableassembler.base;
 
+@Deprecated
 public abstract class OperandIndependentData<ArgType> extends StatementAssociatedData<ArgType> {
 
     private byte[] data;

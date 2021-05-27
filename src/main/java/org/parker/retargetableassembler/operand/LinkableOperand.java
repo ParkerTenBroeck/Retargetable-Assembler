@@ -17,7 +17,7 @@ package org.parker.retargetableassembler.operand;
 
 import org.parker.retargetableassembler.exception.linker.LinkingException;
 import org.parker.retargetableassembler.base.assembler.Assembler;
-import org.parker.retargetableassembler.base.assembler.linking.LinkType;
+import org.parker.retargetableassembler.base.linker.LinkType;
 
 
 public interface LinkableOperand extends Operand {

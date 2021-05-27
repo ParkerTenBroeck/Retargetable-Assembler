@@ -15,19 +15,21 @@
  */
 package org.parker.retargetableassembler.base;
 
+import org.parker.retargetableassembler.base.preprocessor.expressions.scope.ExpressionScope;
 import org.parker.retargetableassembler.exception.assembler.AssemblerError;
 import org.parker.retargetableassembler.exception.assembler.ParameterCountError;
 import org.parker.retargetableassembler.exception.assembler.ParameterTypeError;
 import org.parker.retargetableassembler.base.preprocessor.expressions.CompiledExpression;
 import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * Any Line in assembly source that is not a comment
  */
 @SuppressWarnings("unused")
-public abstract class Statement<ArgType> {
+public abstract class Statement<ArgType> implements Serializable {
 
     private CompiledExpression[] argExpressions = null;
     private ArgType[] args = null;
@@ -46,11 +48,12 @@ public abstract class Statement<ArgType> {
                 throw new AssemblerError("Failed to evaluate operand: " + (index + 1), argExpressions[index].line, argExpressions[index].startingAddress, argExpressions[index].endingAddress, e);
             }
             evaluated[index] = true;
+            argExpressions[index] = null;
         }
         return args[index];
     }
 
-    public Line getLine(){
+    public final Line getLine(){
         return this.line;
     }
 
@@ -69,6 +72,14 @@ public abstract class Statement<ArgType> {
         Arrays.fill(evaluated, false);
         args = (ArgType[]) new Object[expressions.length];
         this.line = line;
+    }
+
+    public final void setExpressionScope(ExpressionScope scope){
+        for(int i = 0; i < argExpressions.length; i ++){
+            if(argExpressions[i] != null){
+                argExpressions[i].setExpressionScope(scope);
+            }
+        }
     }
 
 

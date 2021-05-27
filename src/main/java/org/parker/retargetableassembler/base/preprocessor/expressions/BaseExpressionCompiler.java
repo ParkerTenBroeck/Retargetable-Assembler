@@ -17,9 +17,8 @@ package org.parker.retargetableassembler.base.preprocessor.expressions;
 
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
 import org.parker.retargetableassembler.base.preprocessor.BasePreProcessor;
-import org.parker.retargetableassembler.exception.preprocessor.expression.ParseMemberAccessError;
-import org.parker.retargetableassembler.base.assembler.linking.Label;
 
+@Deprecated
 public class BaseExpressionCompiler<A extends BaseAssembler, P extends BasePreProcessor> extends ExpressionCompiler {
 
     protected A assembler;
@@ -35,15 +34,7 @@ public class BaseExpressionCompiler<A extends BaseAssembler, P extends BasePrePr
         this.assembler = assembler;
     }
 
-    @Override
-    protected Object parseVariable(String token) {
-        if(true){
-            return assembler.getLabel(token);
-        }else {
-            return super.parseVariable(token);
-        }
-    }
-
+    /*
     @Override
     protected String preProcessVariableMnemonic(String token) {
         if(preProcessor.isDefinedValue(token)){
@@ -57,18 +48,5 @@ public class BaseExpressionCompiler<A extends BaseAssembler, P extends BasePrePr
             return super.preProcessVariableMnemonic(token);
         }
     }
-
-    @Override
-    protected Object parseMemberAccess(Object variable, String memberAccess) {
-        if(variable instanceof Label){
-            if(memberAccess.equals("byteAddress")){
-                try {
-                    return ((Label) variable).getAddress();
-                }catch (Exception e){
-                    throw new ParseMemberAccessError("Cannot parse byteAddress for label", e);
-                }
-            }
-        }
-        return super.parseMemberAccess(variable, memberAccess);
-    }
+     */
 }

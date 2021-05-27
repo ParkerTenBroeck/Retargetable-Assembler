@@ -17,8 +17,8 @@ package org.parker.retargetableassembler.operand;
 
 import org.parker.retargetableassembler.base.assembler.Assembler;
 import org.parker.retargetableassembler.exception.linker.LinkingException;
-import org.parker.retargetableassembler.base.assembler.linking.Label;
-import org.parker.retargetableassembler.base.assembler.linking.LinkType;
+import org.parker.retargetableassembler.base.linker.Label;
+import org.parker.retargetableassembler.base.linker.LinkType;
 
 public class OpLabel extends OpLong implements LinkableOperand{
 
@@ -34,7 +34,7 @@ public class OpLabel extends OpLong implements LinkableOperand{
         if(linked) {
             return super.getValue();
         }else{
-            throw new RuntimeException("Im not Linked yet!!");
+            throw new RuntimeException("Label: not linked yet" + label.symbolMnemonic);
         }
     }
 

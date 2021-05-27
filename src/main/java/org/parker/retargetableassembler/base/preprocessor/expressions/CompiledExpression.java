@@ -15,6 +15,7 @@
  */
 package org.parker.retargetableassembler.base.preprocessor.expressions;
 
+import org.parker.retargetableassembler.base.preprocessor.expressions.scope.ExpressionScope;
 import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
 import java.io.Serializable;
@@ -23,6 +24,8 @@ public abstract class CompiledExpression implements Serializable {
     public final int startingAddress;
     public final int endingAddress;
     public final Line line;
+    //no scope should be saved when serializing
+    private transient ExpressionScope expressionScope;
 
     public CompiledExpression(Line line, int s, int e){
         this.line = line;
@@ -31,4 +34,12 @@ public abstract class CompiledExpression implements Serializable {
     }
 
     public abstract Object evaluate();
+
+    public ExpressionScope getExpressionScope(){
+        return this.expressionScope;
+    }
+
+    public void setExpressionScope(ExpressionScope es){
+        this.expressionScope = es;
+    }
 }

@@ -13,11 +13,23 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
-package org.parker.retargetableassembler.base;
+package org.parker.retargetableassembler.base.linker;
 
-import org.parker.retargetableassembler.base.assembler.Assembler;
-import org.parker.retargetableassembler.exception.linker.LinkingException;
+import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
-public interface LinkableData{
-    void link(Assembler assembler, long sourceAddress) throws LinkingException;
+public class LocalLabel extends Label{
+
+    private final long address;
+    private final AssemblyUnit au;
+
+    public LocalLabel(long address, AssemblyUnit au, String mnemonic, Line line) {
+        super(mnemonic, line);
+        this.address = address;
+        this.au = au;
+    }
+
+    @Override
+    public long getAddress() {
+        return address + au.getStartingAddress();
+    }
 }

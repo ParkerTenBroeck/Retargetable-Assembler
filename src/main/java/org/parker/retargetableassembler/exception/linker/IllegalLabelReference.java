@@ -15,7 +15,7 @@
  */
 package org.parker.retargetableassembler.exception.linker;
 
-import org.parker.retargetableassembler.base.assembler.linking.Label;
+import org.parker.retargetableassembler.base.linker.Label;
 
 public class IllegalLabelReference extends LinkingException {
 
