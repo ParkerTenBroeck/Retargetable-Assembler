@@ -1,11 +1,27 @@
 plugins{
 	id 'java'
+    id "cup.gradle.cup-gradle-plugin" version "1.2"
+    id "org.xbib.gradle.plugin.jflex" version "1.4.0"
 }
 
 sourceCompatibility = '1.8'
 
 repositories {
     mavenCentral()
+}
+
+cup {
+    sourceDir = "src/main/java"
+    generateDir = "src/main/java"
+    args = ["-interface"]
+}
+
+sourceSets{
+    main{
+        jflex{
+            srcDir "src/main/java"
+        }
+    }
 }
 
 dependencies {

@@ -18,7 +18,7 @@ public class SymbolBinding implements Serializable {
      @Override
      public boolean equals(Object obj) {
           if(obj instanceof SymbolBinding){
-               return this.name.equals(((SymbolType) obj).name);
+               return this.name.equals(((SymbolBinding) obj).name);
           }else{
                return false;
           }

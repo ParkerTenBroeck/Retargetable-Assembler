@@ -15,11 +15,11 @@
  */
 package org.parker.retargetableassembler.operand;
 
+import org.parker.retargetableassembler.base.linker.Linker;
 import org.parker.retargetableassembler.exception.linker.LinkingException;
-import org.parker.retargetableassembler.base.assembler.Assembler;
 import org.parker.retargetableassembler.base.linker.LinkType;
 
 
 public interface LinkableOperand extends Operand {
-    void link(Assembler assembler, long sourceAddr, LinkType linkType) throws LinkingException;
+    void link(Linker linker, long sourceAddr, LinkType linkType) throws LinkingException;
 }

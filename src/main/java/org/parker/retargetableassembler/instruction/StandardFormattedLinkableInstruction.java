@@ -15,9 +15,9 @@
  */
 package org.parker.retargetableassembler.instruction;
 
+import org.parker.retargetableassembler.base.linker.Linker;
 import org.parker.retargetableassembler.operand.LinkableOperand;
 import org.parker.retargetableassembler.base.Linkable;
-import org.parker.retargetableassembler.base.assembler.Assembler;
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
 import org.parker.retargetableassembler.base.linker.LinkType;
 
@@ -28,7 +28,7 @@ public class StandardFormattedLinkableInstruction extends StandardFormattedInstr
     }
 
     @Override
-    public void link(Assembler assembler, long sourceAddress) {
+    public void link(Linker linker, long sourceAddress) {
 
         LinkType[] linkTypes = null;
         if(isf instanceof LinkableInstructionFormatter) {
@@ -43,7 +43,7 @@ public class StandardFormattedLinkableInstruction extends StandardFormattedInstr
 
             if(getArg(i) instanceof LinkableOperand){
                 try {
-                    ((LinkableOperand) getArg(i)).link(assembler, sourceAddress, linkTypes[i]);
+                    ((LinkableOperand) getArg(i)).link(linker, sourceAddress, linkTypes[i]);
                 }catch(Exception e){
                     this.throwParameterLinkingException(i, e);
                 }

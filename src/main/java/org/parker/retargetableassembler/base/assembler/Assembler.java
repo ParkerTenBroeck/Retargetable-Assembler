@@ -15,11 +15,9 @@
  */
 package org.parker.retargetableassembler.base.assembler;
 
-import org.parker.retargetableassembler.util.Memory;
-
 import java.io.File;
 
 public interface Assembler {
 
-    Memory assemble(File[] files);
+    File assemble(File file);
 }

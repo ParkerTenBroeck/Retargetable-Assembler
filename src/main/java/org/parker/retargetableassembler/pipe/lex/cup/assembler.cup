@@ -1,0 +1,42 @@
+package org.parker.retargetableassembler.pipe.lex.cup;
+
+class Assembler;
+
+terminal LINE_TERMINATOR;
+
+terminal BOOLEAN; // primitive_type
+terminal BYTE, SHORT, INT, LONG, CHAR; // integral_type
+terminal FLOAT, DOUBLE; // floating_point_type
+
+terminal LBRACK, RBRACK; // array_type
+terminal DOT; // qualified_name
+terminal SEMICOLON, MULT, COMMA, LBRACE, RBRACE, EQ, LPAREN, RPAREN, COLON;
+
+terminal PLUSPLUS; // postincrement_expression
+terminal MINUSMINUS; // postdecrement_expression
+terminal PLUS, MINUS, COMP, NOT, DIV, MOD;
+terminal LSHIFT, RSHIFT, URSHIFT; // shift_expression
+terminal LT, GT, LTEQ, GTEQ, INSTANCEOF; // relational_expression
+terminal EQEQ, NOTEQ; // equality_expression
+terminal AND; // and_expression
+terminal XOR; // exclusive_or_expression
+terminal OR;  // inclusive_or_expression
+terminal ANDAND; // conditional_and_expression
+terminal OROR; // conditional_or_expression
+terminal QUESTION; // conditional_expression
+terminal MULTEQ, DIVEQ, MODEQ, PLUSEQ, MINUSEQ; // assignment_operator
+terminal LSHIFTEQ, RSHIFTEQ, URSHIFTEQ; // assignment_operator
+terminal ANDEQ, XOREQ, OREQ; // assignment_operator
+
+terminal java.lang.Number INTEGER_LITERAL;
+terminal java.lang.Number FLOATING_POINT_LITERAL;
+terminal java.lang.Boolean BOOLEAN_LITERAL;
+terminal java.lang.Character CHARACTER_LITERAL;
+terminal java.lang.String STRING_LITERAL;
+terminal java.lang.String IDENTIFIER; // name
+
+
+non terminal goal;
+
+// 19.2) The Syntactic Grammar
+goal ::= LINE_TERMINATOR;

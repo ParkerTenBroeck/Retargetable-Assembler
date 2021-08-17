@@ -96,6 +96,10 @@ public abstract class Statement<ArgType> implements Serializable {
 
     }
 
+    public final void throwParameterError(int i, Exception e) {
+        throw new AssemblerError("Unexpected exception thrown from parameter:" + i + 1,argExpressions[i].line, argExpressions[i].startingAddress, argExpressions[i].endingAddress, e);
+    }
+
     public final void throwUnexpectedParameterTypeException(int index, Class<?> got) {
         throw new ParameterTypeError("Unexpected type for parameter: " + (index + 1) + " got: " + got.getSimpleName(), argExpressions[index].line, argExpressions[index].startingAddress, argExpressions[index].endingAddress);
     }

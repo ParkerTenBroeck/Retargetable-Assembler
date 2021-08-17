@@ -7,6 +7,7 @@ import org.parker.retargetableassembler.base.preprocessor.expressions.scope.Expr
 import org.parker.retargetableassembler.base.preprocessor.util.Line;
 
 import java.io.*;
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,4 +79,14 @@ public class ExpressionCompilerTest {
         Assert.assertEquals(en.evaluate(), e.evaluate());
     }
 
+    @Test
+    public void parseNumber() {
+        //ExpressionCompiler.parseNumber();
+        Assert.assertEquals(0xFFa, ExpressionCompiler.parseNumber("0xFFa"));
+        Assert.assertEquals(12.34123, ExpressionCompiler.parseNumber("12.34123"));
+        Assert.assertEquals(12.34123f, ExpressionCompiler.parseNumber("12.34123f"));
+        Assert.assertEquals(33L, ExpressionCompiler.parseNumber("33L"));
+        Assert.assertEquals(034, ExpressionCompiler.parseNumber("034"));
+        //NumberFormat.getInstance().parse()
+    }
 }

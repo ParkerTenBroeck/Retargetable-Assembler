@@ -8,9 +8,12 @@ public class Symbol implements Serializable{
 
     //these are transient only to allow for custom serialization
     public transient final String symbolMnemonic;
-    public transient long sectionOffset;
+    public transient long sectionAddress;
+    public transient String section;
     public transient SymbolType type;
     public transient SymbolBinding binding;
+    //cant see this being used
+    public transient SymbolVisibility visibility;
 
     public Symbol(String symbolMnemonic){
         this.symbolMnemonic = symbolMnemonic;

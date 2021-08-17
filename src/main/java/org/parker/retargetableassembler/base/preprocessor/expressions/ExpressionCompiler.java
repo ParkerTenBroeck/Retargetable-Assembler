@@ -1116,7 +1116,7 @@ public class ExpressionCompiler {
                         @Override
                         public Object evaluate() {
                             try {
-                                return parseInt(string.substring(startPos, end));
+                                return parseNumber(string.substring(startPos, end));
                             } catch (Exception ex) {
                                 throw new ExpressionError("Failed to parse int: " + string.substring(startPos, end), s, e, ex);
                             }
@@ -1501,19 +1501,42 @@ public class ExpressionCompiler {
         }
     }
 
-    public static int parseInt(String string) {
+    public static Number parseNumber(String string) {
 
-        int temp;
+        String number = string.toLowerCase();
 
-        if (string.startsWith("0b")) {
-            temp = (int) Long.parseLong(string.split("b")[1], 2);
-        } else if (string.startsWith("0x")) {
-            temp = (int) Long.parseLong(string.split("x")[1], 16);
-        } else if (string.contains("x")) {
-            temp = (int) Long.parseLong(string.split("x")[1], Integer.parseInt(string.split("x")[0]));
+
+        if (number.contains(".")) {
+
+            if(number.endsWith("f")){
+                number = number.substring(0, number.length() - 1);
+                return Float.parseFloat(number);
+            }else{
+                return Double.parseDouble(number);
+            }
+
         } else {
-            temp = (int) Long.parseLong(string.trim());
+            int radix;
+
+            if (number.startsWith("0b")) {
+                number = number.substring(2);
+                radix = 2;
+            } else if (number.startsWith("0x")) {
+                number = number.substring(2);
+                radix = 16;
+            } else if (number.startsWith("0")) {
+                number = number.substring(1);
+                radix = 8;
+            } else {
+                radix = 10;
+            }
+
+            if (number.endsWith("l")) {
+                number = number.substring(0, number.length() - 1);
+                return Long.parseLong(number, radix);
+            } else {
+                return Integer.parseInt(number, radix);
+            }
         }
-        return temp;
     }
 }

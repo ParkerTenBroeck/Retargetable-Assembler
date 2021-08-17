@@ -15,12 +15,12 @@
  */
 package org.parker.retargetableassembler.directives.assembler;
 
+import org.parker.retargetableassembler.base.linker.Symbol;
+import org.parker.retargetableassembler.base.linker.SymbolBinding;
 import org.parker.retargetableassembler.util.BitManipulation;
-import org.parker.retargetableassembler.base.linker.GlobalLabel;
 import org.parker.retargetableassembler.util.AssemblerLogLevel;
 import org.parker.retargetableassembler.base.Data;
 import org.parker.retargetableassembler.exception.assembler.ParameterCountError;
-import org.parker.retargetableassembler.base.linker.ExternalLabel;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -286,9 +286,9 @@ public class AssemblerDirectives {
             throw new IllegalArgumentException("Alignment must be a positive power of two from 1 to 32,768");
         }
 
-        long offset = BitManipulation.getAlignmentOffset(assembler.getCurrentAssemblyUnitAddress(), i);
+        long offset = BitManipulation.getAlignmentOffset(assembler.getCurrentSectionProgramCounter(), i);
 
-        assembler.setCurrentAssemblyUnitAlignment(i);
+        assembler.setCurrentSectionAlignment(i);
 
         assembler.addDataToCurrent(new Data(){
             @Override
@@ -378,12 +378,12 @@ public class AssemblerDirectives {
             throw new IllegalArgumentException("value cannot be negative");
         }
 
-        if(assembler.getCurrentAssemblyUnitAddress() == 0){
-            assembler.getCurrentAssemblyUnit().setStartingAddress(i);
+        if(assembler.getCurrentSectionProgramCounter() == 0){
+            //assembler.getCurrentAssemblyUnit().setStartingAddress(i);
         }else{
-            long off =  i - assembler.getCurrentAssemblyUnitAddress();
+            long off =  i - assembler.getCurrentSectionProgramCounter();
             if(off < 0){
-                throw new IllegalArgumentException("Cannot move assembly unit memory pointer backwards current address: " + assembler.getCurrentAssemblyUnitAddress() + " wanted: " + i);
+                throw new IllegalArgumentException("Cannot move assembly unit memory pointer backwards current address: " + assembler.getCurrentSectionProgramCounter() + " wanted: " + i);
             }else if(off == 0){
                 return;
             }else{
@@ -419,7 +419,7 @@ public class AssemblerDirectives {
         }
         String msg = (String)arg;
 
-        assembler.addGlobalLabel(new GlobalLabel(assembler.getCurrentAssemblyUnit(), msg.trim(), line));
+        //assembler.addGlobalLabel(new GlobalLabel(assembler.getCurrentAssemblyUnit(), msg.trim(), line));
     };
 
     public static final AssemblerDirective EXTERN = (line, args, assembler) -> {
@@ -437,9 +437,15 @@ public class AssemblerDirectives {
         if(!(arg instanceof String)){
             throw new IllegalArgumentException("Failed to evaluate ref, expected arguments are String");
         }
-        String msg = (String)arg;
+        String mnemonic = (String)arg;
 
-        assembler.getCurrentAssemblyUnit().addLabel(new ExternalLabel(assembler, msg, line));
+        Symbol symbol = assembler.getSymbol(mnemonic);
+        if(symbol.binding.equals(SymbolBinding.LOCAL)){
+            symbol.binding = SymbolBinding.GLOBAL;
+        }else{
+
+        }
+        //assembler.getCurrentAssemblyUnit().addLabel(new ExternalLabel(assembler, msg, line));
     };
 
     private static final HashMap<String, AssemblerDirective> handlerMap = new HashMap<>();

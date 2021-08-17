@@ -21,9 +21,9 @@ public class MipsAssemblerTest {
 
         for(int i = 0; i < files.length; i ++ ) {
             if(files[i].isFile()){
-                a.assemble(new File[]{files[i]});
+                //a.assemble(new File[]{files[i]});
             }else if(files[i].isDirectory()){
-                a.assemble(files[i].listFiles());
+                //a.assemble(files[i].listFiles());
             }
         }
     }

@@ -15,10 +15,6 @@
  */
 package org.parker.retargetableassembler.base.linker;
 
-import org.parker.retargetableassembler.base.Data;
-import org.parker.retargetableassembler.exception.assembler.LabelRedeclaredError;
-import org.parker.retargetableassembler.util.BitManipulation;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -28,52 +24,9 @@ import java.util.Map;
  */
 public class AssemblyUnit implements Serializable {
 
-    private long startingAddress = -1;
-    private long size;
-    private long alignment = 1;
-    public final Map<String, Label> asuLabelMap;
-    public final List<Data> data;
+    public String architecture;
+    public String version;
+    public Map<String, Symbol> symbolTable;
+    public List<Section> sections;
 
-    public AssemblyUnit(List<Data> data, Map<String, Label> asuLabelMap) {
-        this.data = data;
-        this.asuLabelMap = asuLabelMap;
-    }
-
-    public long getStartingAddress() {
-        if (this.startingAddress == -1) {
-            return this.startingAddress;
-        }
-        return BitManipulation.align(this.startingAddress, alignment);
-    }
-
-    public Map<String, Label> getAsuLabelMap() {
-        return asuLabelMap;
-    }
-
-    public void addLabel(Label label) {
-        if (asuLabelMap.containsKey(label.symbolMnemonic)) {
-            throw new LabelRedeclaredError(label);
-        }
-        asuLabelMap.put(label.symbolMnemonic, label);
-    }
-
-    public long getEndingAddress() {
-        return getStartingAddress() + getSize();
-    }
-
-    public void setStartingAddress(long startingAddress) {
-        this.startingAddress = startingAddress;
-    }
-
-    public void setSize(long size) {
-        this.size = size;
-    }
-
-    public long getSize() {
-        return this.size;
-    }
-
-    public void setAlignment(long alignment) {
-        this.alignment = alignment;
-    }
 }

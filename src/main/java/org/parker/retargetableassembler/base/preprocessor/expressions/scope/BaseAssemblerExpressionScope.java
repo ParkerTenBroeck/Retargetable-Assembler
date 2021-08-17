@@ -1,7 +1,6 @@
 package org.parker.retargetableassembler.base.preprocessor.expressions.scope;
 
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
-import org.parker.retargetableassembler.base.linker.Label;
 import org.parker.retargetableassembler.exception.preprocessor.expression.ParseMemberAccessError;
 
 public class BaseAssemblerExpressionScope<A extends BaseAssembler> extends BaseExpressionScope {
@@ -14,7 +13,7 @@ public class BaseAssemblerExpressionScope<A extends BaseAssembler> extends BaseE
     @Override
     public Object parseVariable(String token) {
         if(true){
-            return assembler.getLabel(token);
+            return null;//assembler.getLabel(token);
         }else {
             return super.parseVariable(token);
         }
@@ -22,15 +21,15 @@ public class BaseAssemblerExpressionScope<A extends BaseAssembler> extends BaseE
 
     @Override
     public Object parseMemberAccess(Object variable, String memberAccess) {
-        if(variable instanceof Label){
-            if(memberAccess.equals("byteAddress")){
-                try {
-                    return ((Label) variable).getAddress();
-                }catch (Exception e){
-                    throw new ParseMemberAccessError("Cannot parse byteAddress for label", e);
-                }
-            }
-        }
+        //if(variable instanceof Label){
+        //    if(memberAccess.equals("byteAddress")){
+        //        try {
+        //            return ((Label) variable).getAddress();
+        //        }catch (Exception e){
+        //            throw new ParseMemberAccessError("Cannot parse byteAddress for label", e);
+        //        }
+        //    }
+        //}
         return super.parseMemberAccess(variable, memberAccess);
     }
 

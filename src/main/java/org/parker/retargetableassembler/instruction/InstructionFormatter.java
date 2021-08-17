@@ -16,11 +16,11 @@
 package org.parker.retargetableassembler.instruction;
 
 import org.parker.retargetableassembler.base.assembler.BaseAssembler;
+import org.parker.retargetableassembler.base.linker.Symbol;
 import org.parker.retargetableassembler.operand.*;
 import org.parker.retargetableassembler.util.IntegerRegister;
 import org.parker.retargetableassembler.util.Register;
 import org.parker.retargetableassembler.util.StringRegister;
-import org.parker.retargetableassembler.base.linker.Label;
 
 public interface InstructionFormatter {
 
@@ -42,8 +42,8 @@ public interface InstructionFormatter {
         }else if(result instanceof Integer || result instanceof Long || result instanceof Byte || result instanceof Short){
             return new OpImmediate(((Number) result).longValue());
             //labels
-        }else if(result instanceof Label){
-            return new OpLabel(((Label) result));
+        }else if(result instanceof Symbol){
+            return new OpSymbol(((Symbol) result));
         }else{
             instruction.throwUnexpectedParameterTypeException(index, result.getClass());
         }

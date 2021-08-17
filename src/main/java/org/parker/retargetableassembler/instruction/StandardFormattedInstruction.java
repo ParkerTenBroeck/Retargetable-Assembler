@@ -31,6 +31,17 @@ public class StandardFormattedInstruction extends StatementAssociatedData<Operan
         this.assembler = assembler;
     }
 
+    public final Object getArgumentValue(int index){
+        Operand op = getArg(index);
+        try{
+            return op.getValue();
+        }catch (Exception e){
+            this.throwParameterError(index, e);
+            //this is allowed because a parameter error will be thrown
+            return null;
+        }
+    }
+
     @Override
     protected Operand evaluateArgument(int index, Object result) {
         return isf.evaluateOperand(index, result, this, assembler);
