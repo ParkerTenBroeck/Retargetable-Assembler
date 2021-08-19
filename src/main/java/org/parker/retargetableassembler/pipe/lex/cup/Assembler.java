@@ -38,7 +38,7 @@ public class Assembler extends java_cup.runtime.lr_parser {
   /** Parse-action table. */
   protected static final short[][] _action_table = 
     unpackFromStrings(new String[] {
-    "\000\004\000\004\004\005\001\002\000\004\002\006\001" +
+    "\000\004\000\004\011\005\001\002\000\004\002\006\001" +
     "\002\000\004\002\001\001\002\000\004\002\000\001\002" +
     "" });
 

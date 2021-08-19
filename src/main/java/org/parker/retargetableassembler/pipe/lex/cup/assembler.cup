@@ -2,6 +2,14 @@ package org.parker.retargetableassembler.pipe.lex.cup;
 
 class Assembler;
 
+terminal DIRECTIVE;
+terminal INSTRUCTION;
+terminal LABEL;
+
+terminal WHITESPACE;
+
+terminal RESERVE_WORD;
+
 terminal LINE_TERMINATOR;
 
 terminal BOOLEAN; // primitive_type
@@ -34,7 +42,6 @@ terminal java.lang.Boolean BOOLEAN_LITERAL;
 terminal java.lang.Character CHARACTER_LITERAL;
 terminal java.lang.String STRING_LITERAL;
 terminal java.lang.String IDENTIFIER; // name
-
 
 non terminal goal;
 

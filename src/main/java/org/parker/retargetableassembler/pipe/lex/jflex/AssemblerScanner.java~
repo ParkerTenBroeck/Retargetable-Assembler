@@ -713,7 +713,7 @@ public class AssemblerScanner implements AssemblerSym, Iterator<LexSymbol> {
   }
 
   public boolean hasNext(){
-      return yyatEOF();
+      return !yyatEOF();
   }
 
   private LexSymbol symbol(int type, Object value) {

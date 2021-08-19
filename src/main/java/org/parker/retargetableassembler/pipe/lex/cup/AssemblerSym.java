@@ -8,73 +8,83 @@ package org.parker.retargetableassembler.pipe.lex.cup;
 /** CUP generated interface containing symbol constants. */
 public interface AssemblerSym {
   /* terminals */
-  public static final int DIVEQ = 48;
-  public static final int PLUSPLUS = 23;
-  public static final int STRING_LITERAL = 62;
-  public static final int GTEQ = 37;
-  public static final int SHORT = 5;
-  public static final int MULT = 15;
-  public static final int CHAR = 8;
-  public static final int LTEQ = 36;
-  public static final int MODEQ = 49;
-  public static final int LINE_TERMINATOR = 2;
-  public static final int XOR = 42;
-  public static final int DOUBLE = 10;
-  public static final int LPAREN = 20;
-  public static final int URSHIFT = 33;
-  public static final int INT = 6;
-  public static final int MINUS = 26;
-  public static final int INSTANCEOF = 38;
-  public static final int RPAREN = 21;
-  public static final int BOOLEAN_LITERAL = 60;
-  public static final int OROR = 45;
-  public static final int CHARACTER_LITERAL = 61;
-  public static final int AND = 41;
-  public static final int NOT = 28;
-  public static final int SEMICOLON = 14;
-  public static final int LT = 34;
-  public static final int OR = 43;
-  public static final int COMMA = 16;
-  public static final int COMP = 27;
-  public static final int ANDAND = 44;
-  public static final int DIV = 29;
-  public static final int PLUSEQ = 50;
-  public static final int MINUSEQ = 51;
-  public static final int RSHIFTEQ = 53;
-  public static final int PLUS = 25;
-  public static final int DOT = 13;
-  public static final int XOREQ = 56;
+  public static final int DIVEQ = 53;
+  public static final int PLUSPLUS = 28;
+  public static final int STRING_LITERAL = 67;
+  public static final int GTEQ = 42;
+  public static final int SHORT = 10;
+  public static final int MULT = 20;
+  public static final int CHAR = 13;
+  public static final int LTEQ = 41;
+  public static final int MODEQ = 54;
+  public static final int LINE_TERMINATOR = 7;
+  public static final int XOR = 47;
+  public static final int DOUBLE = 15;
+  public static final int INSTRUCTION = 3;
+  public static final int LPAREN = 25;
+  public static final int URSHIFT = 38;
+  public static final int INT = 11;
+  public static final int MINUS = 31;
+  public static final int RESERVE_WORD = 6;
+  public static final int INSTANCEOF = 43;
+  public static final int WHITESPACE = 5;
+  public static final int RPAREN = 26;
+  public static final int BOOLEAN_LITERAL = 65;
+  public static final int OROR = 50;
+  public static final int CHARACTER_LITERAL = 66;
+  public static final int AND = 46;
+  public static final int NOT = 33;
+  public static final int SEMICOLON = 19;
+  public static final int LT = 39;
+  public static final int OR = 48;
+  public static final int COMMA = 21;
+  public static final int DIRECTIVE = 2;
+  public static final int COMP = 32;
+  public static final int ANDAND = 49;
+  public static final int DIV = 34;
+  public static final int PLUSEQ = 55;
+  public static final int MINUSEQ = 56;
+  public static final int RSHIFTEQ = 58;
+  public static final int PLUS = 30;
+  public static final int DOT = 18;
+  public static final int XOREQ = 61;
   public static final int EOF = 0;
-  public static final int BOOLEAN = 3;
-  public static final int MINUSMINUS = 24;
+  public static final int BOOLEAN = 8;
+  public static final int MINUSMINUS = 29;
   public static final int error = 1;
-  public static final int OREQ = 57;
-  public static final int EQEQ = 39;
-  public static final int MULTEQ = 47;
-  public static final int MOD = 30;
-  public static final int EQ = 19;
-  public static final int LBRACK = 11;
-  public static final int BYTE = 4;
-  public static final int URSHIFTEQ = 54;
-  public static final int COLON = 22;
-  public static final int FLOATING_POINT_LITERAL = 59;
-  public static final int LBRACE = 17;
-  public static final int RBRACK = 12;
-  public static final int FLOAT = 9;
-  public static final int RBRACE = 18;
-  public static final int LONG = 7;
-  public static final int QUESTION = 46;
-  public static final int LSHIFT = 31;
-  public static final int GT = 35;
-  public static final int LSHIFTEQ = 52;
-  public static final int ANDEQ = 55;
-  public static final int NOTEQ = 40;
-  public static final int RSHIFT = 32;
-  public static final int IDENTIFIER = 63;
-  public static final int INTEGER_LITERAL = 58;
+  public static final int OREQ = 62;
+  public static final int EQEQ = 44;
+  public static final int MULTEQ = 52;
+  public static final int MOD = 35;
+  public static final int EQ = 24;
+  public static final int LBRACK = 16;
+  public static final int BYTE = 9;
+  public static final int URSHIFTEQ = 59;
+  public static final int COLON = 27;
+  public static final int FLOATING_POINT_LITERAL = 64;
+  public static final int LBRACE = 22;
+  public static final int RBRACK = 17;
+  public static final int FLOAT = 14;
+  public static final int RBRACE = 23;
+  public static final int LONG = 12;
+  public static final int QUESTION = 51;
+  public static final int LSHIFT = 36;
+  public static final int LABEL = 4;
+  public static final int GT = 40;
+  public static final int LSHIFTEQ = 57;
+  public static final int ANDEQ = 60;
+  public static final int NOTEQ = 45;
+  public static final int RSHIFT = 37;
+  public static final int IDENTIFIER = 68;
+  public static final int INTEGER_LITERAL = 63;
   public static final String[] terminalNames = new String[] {
   "EOF",
   "error",
+  "DIRECTIVE",
+  "INSTRUCTION",
+  "LABEL",
+  "WHITESPACE",
+  "RESERVE_WORD",
   "LINE_TERMINATOR",
   "BOOLEAN",
   "BYTE",

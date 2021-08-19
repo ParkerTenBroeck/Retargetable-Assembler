@@ -59,6 +59,10 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
         return size;
     }
 
+    public long getCharPos() {
+        return charPos;
+    }
+
     public File getFile() {
         return file;
     }
@@ -83,4 +87,10 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
                 + "\n";
 
     }
+
+    public static LexSymbol combine(int newType, Object newVal, LexSymbol sym1, LexSymbol sym2){
+        return new LexSymbol(sym1.file, newType, sym1.line, sym1.column, sym1.charPos,
+                sym1.size + sym2.size, sym1.left, sym2.right, newVal);
+    }
+
 }

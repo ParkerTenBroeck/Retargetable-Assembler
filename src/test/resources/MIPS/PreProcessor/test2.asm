@@ -1,3 +1,45 @@
+.rep 5
+
+    .if true
+        .exitrep
+    .endif
+
+    .mmsg "wewe"
+
+.endrep
+
+.rep 5
+
+    .if false
+        .exitrep
+    .endif
+
+    .notDir "butThisis2"
+
+.endrep
+
+.rep 5
+
+    .thisnotDir "3 baby"
+
+    .if true
+        .exitrep
+    .endif
+
+.endrep
+
+.rep 2
+
+.rep 2
+
+nestedRep(25)
+
+.endrep
+
+.endrep
+
+
+
 .bruh 012 't' '\f'
 .include "test2i.asm"
 

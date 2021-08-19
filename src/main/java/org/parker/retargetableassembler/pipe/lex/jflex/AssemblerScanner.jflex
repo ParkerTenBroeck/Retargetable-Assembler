@@ -142,8 +142,8 @@ SingleCharacter = [^\r\n\'\\]
   "false"                        { return symbol(BOOLEAN_LITERAL, false); }
   "FALSE"                        { return symbol(BOOLEAN_LITERAL, false); }
   /* number literals */
-  "pi"                           { return symbol(FLOATING_POINT_LITERAL, Math.PI); }
-  "PI"                           { return symbol(FLOATING_POINT_LITERAL, Math.PI); }
+//  "pi"                           { return symbol(FLOATING_POINT_LITERAL, Math.PI); }
+//  "PI"                           { return symbol(FLOATING_POINT_LITERAL, Math.PI); }
 
   /* null literal */
   //"null"                         { return symbol(NULL_LITERAL); }
@@ -230,7 +230,7 @@ SingleCharacter = [^\r\n\'\\]
   {Comment}                      { /* ignore */ }
 
   /* whitespace */
-  {WhiteSpace}                   { /* ignore */ }
+  {WhiteSpace}                   { return symbol(WHITESPACE); }
 
   /* identifiers */
   {Identifier}                   { return symbol(IDENTIFIER, yytext()); }
