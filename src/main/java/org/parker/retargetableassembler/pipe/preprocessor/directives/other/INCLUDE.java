@@ -20,6 +20,7 @@ public final class INCLUDE implements PreProcessorDirective {
 
         if(iterator.peek_ahead().sym == AssemblerSym.STRING_LITERAL){
             LexSymbol s = iterator.next();
+            iterator.next();
             String path = (String) s.value;
             File f = s.getFile();
             f = new File(f.getParent(), path);

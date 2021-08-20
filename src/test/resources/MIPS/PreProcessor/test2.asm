@@ -32,7 +32,7 @@
 
 .rep 2
 
-nestedRep(25)
+.mmsg "nested", "rep"
 
 .endrep
 

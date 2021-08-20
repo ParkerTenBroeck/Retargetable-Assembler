@@ -4,6 +4,7 @@ import org.parker.retargetableassembler.pipe.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.control.IF;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.control.REP;
+import org.parker.retargetableassembler.pipe.preprocessor.directives.message.MSG;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.other.INCLUDE;
 import org.parker.retargetableassembler.pipe.util.iterators.IteratorStack;
 
@@ -26,9 +27,9 @@ public class Directives {
         directiveAtlasMap.put("macro", new DirectiveStranglerError("macro is not implemented yet"));
         directiveAtlasMap.put("endm", new DirectiveStranglerError("found endmacro without macro"));
 
-        directiveAtlasMap.put("emsg", new DirectiveStranglerError("emsg is not implemented yet"));
-        directiveAtlasMap.put("wmsg", new DirectiveStranglerError("wmsg is not implemented yet"));
-        directiveAtlasMap.put("mmsg", new DirectiveStranglerError("mmsg is not implemented yet"));
+        directiveAtlasMap.put("emsg", new MSG.EMSG());
+        directiveAtlasMap.put("wmsg", new MSG.WMSG());
+        directiveAtlasMap.put("mmsg", new MSG.MMSG());
 
         directiveAtlasMap.put("define", new DirectiveStranglerError("define is not implemented yet"));
         directiveAtlasMap.put("asg", new DirectiveStranglerError("asg is not implemented yet"));

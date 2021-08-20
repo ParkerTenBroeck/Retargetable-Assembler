@@ -10,6 +10,9 @@ public class AssemblerScannerPreProcessor extends PeekEverywhereIteratorAbstract
 
     private PeekEverywhereIterator<LexSymbol> iterator;
     private boolean atBOL = true;
+    private LexSymbol last = null;
+    private boolean atEOF = false;
+    private boolean hasNext = true;
 
     public AssemblerScannerPreProcessor(Iterator<LexSymbol> iterator){
         super(new LexSymbol());
@@ -23,12 +26,24 @@ public class AssemblerScannerPreProcessor extends PeekEverywhereIteratorAbstract
 
     @Override
     public boolean hasNext() {
-        return iterator.hasNext();
+        return hasNext;
     }
 
     @Override
     protected LexSymbol next_peekless() {
-        LexSymbol s = iterator.next();
+        LexSymbol s;
+        if(atEOF){
+            hasNext = false;
+            return last;
+        }else{
+            s = iterator.next();
+        }
+
+        if(s.sym == LexSymbol.EOF){
+            atEOF = true;
+            last = s;
+            s = new LexSymbol(s.getFile(), LexSymbol.LINE_TERMINATOR, s.getLine(), s.getColumn(), s.getCharPos(), s.getSize(),s.left, s.right, s.value);
+        }
 
         while(s.sym == LexSymbol.WHITESPACE){
             s = iterator.next();
