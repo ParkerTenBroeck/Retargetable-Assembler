@@ -6,6 +6,7 @@ import org.parker.retargetableassembler.pipe.preprocessor.directives.control.IF;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.control.REP;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.message.MSG;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.other.INCLUDE;
+import org.parker.retargetableassembler.pipe.preprocessor.directives.other.MACRO;
 import org.parker.retargetableassembler.pipe.util.iterators.IteratorStack;
 
 import java.util.HashMap;
@@ -24,8 +25,9 @@ public class Directives {
         directiveAtlasMap.put("exitrep", new DirectiveStranglerError("found exitrep without rep"));
         directiveAtlasMap.put("endrep", new DirectiveStranglerError("found endrep without rep"));
 
-        directiveAtlasMap.put("macro", new DirectiveStranglerError("macro is not implemented yet"));
-        directiveAtlasMap.put("endm", new DirectiveStranglerError("found endmacro without macro"));
+        directiveAtlasMap.put("macro", new MACRO.DEFINITION());
+        directiveAtlasMap.put("unmacro", new MACRO.UNDEFINITION());
+        directiveAtlasMap.put("endmacro", new DirectiveStranglerError("found endmacro without macro"));
 
         directiveAtlasMap.put("emsg", new MSG.EMSG());
         directiveAtlasMap.put("wmsg", new MSG.WMSG());

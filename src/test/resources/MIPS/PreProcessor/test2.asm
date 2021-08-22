@@ -1,3 +1,7 @@
+this is a test \
+to see if this works \
+
+
 .rep 5
 
     .if true
@@ -43,15 +47,23 @@
 .bruh 012 't' '\f'
 .include "test2i.asm"
 
+.macro $_12test 2-5+
+    .rep 2
+        .rep 2
+            .mmsg "nested", "rep"
+        .endrep
+    .endrep
+.endmacro
+
 .macro _tes22t
-
-.endm
-
-.macro $_12test
-
-.endm
-
-
+    .macro $_12test 2-5+
+        .rep 2
+            .rep 2
+                .mmsg "nested", "rep"
+            .endrep
+        .endrep
+    .endmacro
+.endmacro
 
 add $4, $4, $4
 test

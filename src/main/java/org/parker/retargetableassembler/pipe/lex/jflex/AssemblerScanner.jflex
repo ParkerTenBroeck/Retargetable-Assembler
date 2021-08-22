@@ -86,6 +86,7 @@ import org.parker.retargetableassembler.pipe.lex.cup.AssemblerSym;
 
 /* main character classes */
 LineTerminator = \r|\n|\r\n
+LineContinue = ['\\']{LineTerminator}
 InputCharacter = [^\r\n]
 
 WhiteSpace = {LineTerminator} | [ \t\f]
@@ -205,6 +206,7 @@ SingleCharacter = [^\r\n\'\\]
   /* character literal */
   \'                             { yybegin(CHARLITERAL); }
 
+  {LineContinue}                      { /* ignore */ }
   {LineTerminator}+               { return symbol(LINE_TERMINATOR); }
 
   /* numeric literals */
