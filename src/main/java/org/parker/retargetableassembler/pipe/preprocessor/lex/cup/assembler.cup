@@ -1,4 +1,4 @@
-package org.parker.retargetableassembler.pipe.lex.cup;
+package org.parker.retargetableassembler.pipe.preprocessor.lex.cup;
 
 class Assembler;
 

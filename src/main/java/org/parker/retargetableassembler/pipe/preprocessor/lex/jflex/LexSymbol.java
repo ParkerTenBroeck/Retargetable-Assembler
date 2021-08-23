@@ -1,6 +1,6 @@
-package org.parker.retargetableassembler.pipe.lex.jflex;
+package org.parker.retargetableassembler.pipe.preprocessor.lex.jflex;
 
-import org.parker.retargetableassembler.pipe.lex.cup.AssemblerSym;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.cup.AssemblerSym;
 
 import java.io.File;
 
@@ -77,7 +77,7 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
                 + ", size: "
                 + size
                 + ", sym: "
-                + org.parker.retargetableassembler.pipe.lex.cup.AssemblerSym.terminalNames[this.sym]
+                + org.parker.retargetableassembler.pipe.preprocessor.lex.cup.AssemblerSym.terminalNames[this.sym]
                 + "("
                 + this.sym
                 + ") "

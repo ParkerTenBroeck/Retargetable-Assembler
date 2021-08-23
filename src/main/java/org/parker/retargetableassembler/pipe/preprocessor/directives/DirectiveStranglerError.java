@@ -1,13 +1,11 @@
 package org.parker.retargetableassembler.pipe.preprocessor.directives;
 
-import org.parker.retargetableassembler.pipe.lex.jflex.LexSymbol;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
-import org.parker.retargetableassembler.pipe.util.iterators.IteratorStack;
-import org.parker.retargetableassembler.util.AssemblerLogLevel;
 
 import java.util.logging.Logger;
 
-public class DirectiveStranglerError implements PreProcessorDirective{
+public final class DirectiveStranglerError implements PreProcessorDirective{
 
     private final static Logger LOGGER = Logger.getLogger("PreProcessor");
 
@@ -18,7 +16,7 @@ public class DirectiveStranglerError implements PreProcessorDirective{
     }
 
     @Override
-    public void init(IteratorStack<LexSymbol> iterator, PreProcessor pp) {
-        LOGGER.log(AssemblerLogLevel.SEVERE, message);
+    public void init(LexSymbol root, PreProcessor pp) {
+        pp.report().reportError(message, root);
     }
 }

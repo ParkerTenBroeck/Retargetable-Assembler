@@ -1,4 +1,4 @@
-package org.parker.retargetableassembler.pipe.lex.jflex;
+package org.parker.retargetableassembler.pipe.preprocessor.lex.jflex;
 
 import org.junit.Test;
 

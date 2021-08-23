@@ -1,6 +1,6 @@
 package org.parker.retargetableassembler.pipe.preprocessor.directives.control;
 
-import org.parker.retargetableassembler.pipe.lex.jflex.LexSymbol;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.PreProcessorDirective;
 import org.parker.retargetableassembler.pipe.preprocessor.util.PreProcessorOutputFilter;
@@ -14,30 +14,33 @@ public final class REP implements PreProcessorDirective {
 
 
     @Override
-    public void init(IteratorStack<LexSymbol> iterator, PreProcessor pp) {
+    public void init(LexSymbol root, PreProcessor pp) {
 
-        iterator.push_iterator_stack(new loopIterator(iterator, pp));
+        pp.getIteratorStack().push_iterator_stack(new loopIterator(root, pp));
     }
 
     private class loopIterator extends PeekEverywhereIteratorAbstract<LexSymbol> implements PreProcessorOutputFilter {
 
+        LexSymbol root;
+
         private PreProcessor pp;
         private IteratorStack<LexSymbol> stack;
         private PeekEverywhereIterator<LexSymbol> last;
-        private int count = 0;
-
-        boolean buildingLoop = true;
         ArrayList<LexSymbol> loop = new ArrayList<>();
+
+        private int count;
+        boolean buildingLoop = true;
         int loopIndex = 0;
         boolean exit = false;
         boolean requestExit = false;
 
-        public loopIterator(IteratorStack<LexSymbol> iterator, PreProcessor pp){
+        public loopIterator(LexSymbol root, PreProcessor pp){
+            this.root = root;
             this.pp = pp;
-            this.stack = iterator;
-            this.last = iterator.peek_iterator_stack();
-            this.count = ((Number)iterator.next().value).intValue();
-            iterator.next();
+            this.stack = pp.getIteratorStack();
+            this.last = stack.peek_iterator_stack();
+            this.count = ((Number)stack.next().value).intValue();
+            stack.next();
         }
 
         @Override
@@ -53,14 +56,15 @@ public final class REP implements PreProcessorDirective {
                     exit = true;
                 }
             }
-
             if(buildingLoop){
                 if(exit){
                     LexSymbol s = last.next();
 
                     while(!(s.sym == LexSymbol.DIRECTIVE && s.value.equals("endrep"))){
                         if(s.sym == LexSymbol.EOF){
-                            throw new RuntimeException("REP not terminated");
+
+                            pp.report().reportError("rep never terminated", root);
+                            return s;
                         }
                         s = last.next();
                     }
@@ -76,26 +80,21 @@ public final class REP implements PreProcessorDirective {
                     }
                 }
             }
-            if(!buildingLoop){
-
-                if(loop.size() == 0 || count <= 0 || exit == true){
+            if(loop.size() == 0 || count <= 0 || exit == true){
+                exit = true;
+                return new LexSymbol();
+            }
+            while(loopIndex >= loop.size()){
+                count --;
+                loopIndex = 0;
+                if(count <= 0){
                     exit = true;
                     return new LexSymbol();
                 }
-
-                while(loopIndex >= loop.size()){
-                    count --;
-                    loopIndex = 0;
-                    if(count <= 0){
-                        exit = true;
-                        return new LexSymbol();
-                    }
-                }
-                LexSymbol s = loop.get(loopIndex);
-                loopIndex ++;
-                return s;
             }
-            return new LexSymbol();//i dont think this should be reached
+            LexSymbol s = loop.get(loopIndex);
+            loopIndex ++;
+            return s;
         }
 
         @Override

@@ -89,6 +89,10 @@
     .endif
 .endif
 
+.mmsg "message"
+.wmsg "warning"
+.emsg "error"
+
 '\\'
 '\'''f'
 pi

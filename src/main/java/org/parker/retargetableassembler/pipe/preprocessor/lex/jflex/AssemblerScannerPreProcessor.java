@@ -1,4 +1,4 @@
-package org.parker.retargetableassembler.pipe.lex.jflex;
+package org.parker.retargetableassembler.pipe.preprocessor.lex.jflex;
 
 import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIterator;
 import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIteratorAbstract;
@@ -21,7 +21,6 @@ public class AssemblerScannerPreProcessor extends PeekEverywhereIteratorAbstract
         }else{
             this.iterator = new PeekEverywhereIteratorWrapper<>(iterator, new LexSymbol());
         }
-
     }
 
     @Override
@@ -49,18 +48,20 @@ public class AssemblerScannerPreProcessor extends PeekEverywhereIteratorAbstract
             s = iterator.next();
         }
 
-        if(atBOL || this.peek_behind().sym == LexSymbol.LABEL){
-            if(s.sym == LexSymbol.DOT && iterator.peek_ahead().sym == LexSymbol.IDENTIFIER){
-                LexSymbol ident = iterator.next();
-                s = LexSymbol.combine(LexSymbol.DIRECTIVE, ident.value, s, ident);
-            }
-        }else if(atBOL && s.sym == LexSymbol.IDENTIFIER){
+        if(atBOL && s.sym == LexSymbol.IDENTIFIER){
             if(iterator.peek_ahead().sym == LexSymbol.COLON){
                 LexSymbol colon = iterator.next();
-                s = LexSymbol.combine(LexSymbol.DIRECTIVE, s.value, s, colon);
-            }else if(iterator.peek_ahead().sym == LexSymbol.WHITESPACE){
-                iterator.next(); //disregard white space
-                s.sym = LexSymbol.INSTRUCTION;
+                s = LexSymbol.combine(LexSymbol.LABEL, s.value, s, colon);
+            }
+        }
+        if(atBOL || this.peek_behind().sym == LexSymbol.LABEL){
+            if(s.sym == LexSymbol.IDENTIFIER){
+                if(s.value.toString().startsWith(".")){
+                    s.sym = LexSymbol.DIRECTIVE;
+                    s.value = s.value.toString().substring(1);
+                }else{
+                    s.sym = LexSymbol.INSTRUCTION;
+                }
             }
         }
 

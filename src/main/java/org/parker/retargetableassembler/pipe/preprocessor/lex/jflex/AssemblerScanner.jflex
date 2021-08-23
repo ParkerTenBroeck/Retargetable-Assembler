@@ -1,4 +1,4 @@
-package org.parker.retargetableassembler.pipe.lex.jflex;
+package org.parker.retargetableassembler.pipe.preprocessor.lex.jflex;
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Copyright (C) 2001       Gerwin Klein <lsf@jflex.de>                    *
  * Copyright (C) 2001       Bernhard Rumpe <rumpe@in.tum.de>               *
@@ -9,9 +9,9 @@ package org.parker.retargetableassembler.pipe.lex.jflex;
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 
+import org.parker.retargetableassembler.pipe.preprocessor.lex.cup.AssemblerSym;
 import java.io.File;
 import java.util.Iterator;
-import org.parker.retargetableassembler.pipe.lex.cup.AssemblerSym;
 
 %%
 
@@ -100,7 +100,9 @@ EndOfLineComment = "//" {InputCharacter}* {LineTerminator}?
 DocumentationComment = "/*" "*"+ [^/*] ~"*/"
 
 /* identifiers */
-Identifier = [:jletter:][:jletterdigit:]*
+ALetter = [a-zA-Z_$\.]
+ALetterDigit = [a-zA-Z_$1-9\.]
+Identifier = {ALetter}{ALetterDigit}*
 
 /* integer literals */
 DecIntegerLiteral = 0 | [1-9][0-9]*

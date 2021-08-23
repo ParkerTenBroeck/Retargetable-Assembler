@@ -1,49 +1,56 @@
 package org.parker.retargetableassembler.pipe.preprocessor.directives.message;
 
-import org.parker.retargetableassembler.pipe.lex.jflex.LexSymbol;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.PreProcessorDirective;
 import org.parker.retargetableassembler.pipe.preprocessor.util.BufferUtils;
-import org.parker.retargetableassembler.pipe.util.iterators.IteratorStack;
-import org.parker.retargetableassembler.util.AssemblerLogLevel;
 
-import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+public final class MSG {
 
-public class MSG {
-
-
-    private static final Logger LOGGER = Logger.getLogger("PreProcessor");
+    private enum Level{
+        message,
+        warning,
+        error;
+    }
 
     public static final class MMSG implements PreProcessorDirective {
         @Override
-        public void init(IteratorStack<LexSymbol> iterator, PreProcessor pp) {
-            LOG(iterator, AssemblerLogLevel.ASSEMBLER_MESSAGE);
+        public void init(LexSymbol root, PreProcessor pp) {
+            LOG(root, pp, Level.message);
         }
     }
 
     public static final class WMSG implements PreProcessorDirective {
         @Override
-        public void init(IteratorStack<LexSymbol> iterator, PreProcessor pp) {
-            LOG(iterator, AssemblerLogLevel.ASSEMBLER_WARNING);
+        public void init(LexSymbol root, PreProcessor pp) {
+            LOG(root, pp, Level.warning);
         }
     }
 
     public static final class EMSG implements PreProcessorDirective {
 
         @Override
-        public void init(IteratorStack<LexSymbol> iterator, PreProcessor pp) {
-            LOG(iterator, AssemblerLogLevel.ASSEMBLER_ERROR);
+        public void init(LexSymbol root, PreProcessor pp) {
+            LOG(root, pp, Level.error);
         }
     }
 
-    public static void LOG(Iterator<LexSymbol> iterator, Level logLevel){
-        BufferUtils.LineTerminatorIterator line = BufferUtils.tillLineTerminator(iterator, false);
+    public static void LOG(LexSymbol root, PreProcessor pp, Level logLevel){
+        BufferUtils.LineTerminatorIterator line = BufferUtils.tillLineTerminator(pp.getIteratorStack(), false);
         while(line.hasNext()){
             LexSymbol s = line.next();
             if(s.sym == LexSymbol.STRING_LITERAL){
-                LOGGER.log(logLevel, s.value.toString());
+                switch (logLevel){
+                    case message:
+                        pp.report().reportMessage(s.value.toString());
+                        break;
+                    case warning:
+                        pp.report().reportWarning(s.value.toString(), root);
+                        break;
+                    case error:
+                        pp.report().reportError(s.value.toString(), root);
+                        break;
+                }
             }else{
                 line.toLineTerminator();
                 throw new RuntimeException("Not a string");

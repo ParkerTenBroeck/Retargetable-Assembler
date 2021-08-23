@@ -1,28 +1,25 @@
 package org.parker.retargetableassembler.pipe.preprocessor.directives.control;
 
-import org.parker.retargetableassembler.pipe.lex.jflex.LexSymbol;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.PreProcessorDirective;
-import org.parker.retargetableassembler.pipe.util.iterators.IteratorStack;
+import org.parker.retargetableassembler.pipe.preprocessor.util.BufferUtils;
 import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIterator;
 import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIteratorAbstract;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.parker.retargetableassembler.pipe.preprocessor.util.BufferUtils.EnsureNextLine;
 
 public final class IF implements PreProcessorDirective {
 
-    private static final Logger LOGGER = Logger.getLogger("PreProcessor");
-
     @Override
-    public void init(IteratorStack<LexSymbol> iterator, PreProcessor pp) {
-        iterator.push_iterator_stack(new ifIterator(iterator.peek_iterator_stack()));
+    public void init(LexSymbol root, PreProcessor pp) {
+        pp.getIteratorStack().push_iterator_stack(new ifIterator(root, pp));
     }
 
-    private class ifIterator extends PeekEverywhereIteratorAbstract<LexSymbol> {
+    private static class ifIterator extends PeekEverywhereIteratorAbstract<LexSymbol> {
 
+        PreProcessor pp;
+        private LexSymbol root;
         private final PeekEverywhereIterator<LexSymbol> ss;
         private boolean controlState;
         private boolean exit;
@@ -30,18 +27,31 @@ public final class IF implements PreProcessorDirective {
         private byte state;
         private short level;
 
-        public ifIterator(PeekEverywhereIterator<LexSymbol> ss) {
-            this.ss = ss;
-            if(ss.peek_ahead().sym == LexSymbol.BOOLEAN_LITERAL){
-                controlState = (Boolean) ss.next().value;
-                ss.next();
-                state = 0;
-                exit = false;
-                hasNext = true;
-                level = 0;
+        public ifIterator(LexSymbol root, PreProcessor pp) {
+            this.ss = pp.getIteratorStack().peek_iterator_stack();
+            this.pp = pp;
+            this.root = root;
+
+            BufferUtils.LineTerminatorIterator line = BufferUtils.tillLineTerminator(ss, false);
+            LexSymbol temp;
+            if(line.hasNext()){
+                temp = line.next();
+                if(temp.sym == LexSymbol.BOOLEAN_LITERAL){
+                    controlState = (Boolean) temp.value;
+                    state = 0;
+                    exit = false;
+                    hasNext = true;
+                    level = 0;
+                }else{
+                    pp.report().unexpectedTokenError(temp, LexSymbol.BOOLEAN_LITERAL);
+                }
+                if(line.hasNext()){
+                    pp.report().unexpectedTokenError(temp);
+                }
             }else{
-                throw new RuntimeException("must be boolean found: " + ss.next());
+                pp.report().reportError("expression syntax error", ss.peek_behind());
             }
+            line.toLineTerminator();
         }
 
 
@@ -90,6 +100,9 @@ public final class IF implements PreProcessorDirective {
                     }else if(symbol.value.equals("if")){
                         level ++;
                     }
+                }else if(symbol.sym == LexSymbol.EOF){
+                    pp.report().reportError("if without endif", root);
+                    return symbol;
                 }
                 if(controlState){
                     return symbol;
@@ -133,6 +146,9 @@ public final class IF implements PreProcessorDirective {
                     }else if(symbol.value.equals("if")){
                         level ++;
                     }
+                }else if(symbol.sym == LexSymbol.EOF){
+                    pp.report().reportError("if without endif", root);
+                    return symbol;
                 }
                 if(controlState){
                     return symbol;
@@ -159,6 +175,9 @@ public final class IF implements PreProcessorDirective {
                     }else if(symbol.value.equals("if")){
                         level ++;
                     }
+                }else if(symbol.sym == LexSymbol.EOF){
+                    pp.report().reportError("if without endif", root);
+                    return symbol;
                 }
                 if(controlState){
                     return symbol;
@@ -170,11 +189,13 @@ public final class IF implements PreProcessorDirective {
             while(exit){
                 if(symbol.sym == LexSymbol.DIRECTIVE) {
                     if (symbol.value.equals("elseif") && level == 0 && state >= 2) {
-                        LOGGER.log(Level.WARNING, "elseif after else");
+                        pp.report().reportError("elseif after else", symbol);
+                        //LOGGER.log(Level.WARNING, "elseif after else");
                         EnsureNextLine(ss, false);
                     } else if (symbol.value.equals("else") && level == 0) {
                         if(state >= 2) {
-                            LOGGER.log(Level.WARNING, "else after else");
+                            pp.report().reportError("else after else", symbol);
+                            //LOGGER.log(Level.WARNING, "else after else");
                         }
                         EnsureNextLine(ss);
                         state = 2;
@@ -184,7 +205,8 @@ public final class IF implements PreProcessorDirective {
                         return new LexSymbol(); //EOF
                     }
                 }else if(symbol.sym == LexSymbol.EOF){
-                    throw new RuntimeException("if without endif");
+                    pp.report().reportError("if without endif", root);
+                    return symbol;
                 }
                 symbol = ss.next();
             }

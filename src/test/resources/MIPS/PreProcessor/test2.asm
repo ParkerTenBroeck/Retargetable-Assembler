@@ -1,3 +1,19 @@
+.local: ;this is an error
+
+
+nonLocal:
+
+.local:
+
+
+nonLocal2:
+
+.local:
+
+
+.if false
+.endif
+
 this is a test \
 to see if this works \
 
@@ -43,6 +59,9 @@ to see if this works \
 .endrep
 
 
+.emsg "this is a test", "LOOL"
+.wmsg "jk its a warning"
+
 
 .bruh 012 't' '\f'
 .include "test2i.asm"
@@ -59,10 +78,19 @@ to see if this works \
     .macro $_12test 2-5+
         .rep 2
             .rep 2
-                .mmsg "nested", "rep"
+                .mmsg "nested rep"
             .endrep
         .endrep
     .endmacro
+.endmacro
+
+.macro overlap 1-3
+.endmacro
+
+.macro overlap 2-5
+.endmacro
+
+.macro overlap 4+
 .endmacro
 
 add $4, $4, $4

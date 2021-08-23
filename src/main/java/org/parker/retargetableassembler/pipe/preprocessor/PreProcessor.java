@@ -1,7 +1,8 @@
 package org.parker.retargetableassembler.pipe.preprocessor;
 
-import org.parker.retargetableassembler.pipe.lex.cup.AssemblerSym;
-import org.parker.retargetableassembler.pipe.lex.jflex.LexSymbol;
+import org.parker.retargetableassembler.pipe.Report;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.cup.AssemblerSym;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.Directives;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.other.MACRO;
 import org.parker.retargetableassembler.pipe.preprocessor.util.PreProcessorOutputFilter;
@@ -14,11 +15,18 @@ import java.util.Map;
 
 public class PreProcessor implements Iterator<LexSymbol>{
 
-    private Directives directives = new Directives();
-    private ArrayList<PreProcessorOutputFilter> filterStack = new ArrayList<>();
-    private boolean atBOL = true;
-    private MacroHolder definedMacros = new MacroHolder();
+    private PreProcessorReportWrapper report;
 
+    private LexSymbol lastNonLocalLabel;
+
+    private boolean atBOL = true;
+    private boolean atEOF = false;
+    private Object expressionEvaluator;
+    private Directives directives = new Directives();
+    private Object defineStack;
+    private Object constants;
+    private MacroHolder definedMacros = new MacroHolder();
+    private ArrayList<PreProcessorOutputFilter> filterStack = new ArrayList<>();
     private IteratorStack<LexSymbol> iteratorStack = new IteratorStack<LexSymbol>(){
 
         {
@@ -61,10 +69,21 @@ public class PreProcessor implements Iterator<LexSymbol>{
         }
     };
 
-    private boolean atEOF = false;
+    public void setReport(Report report){
+        this.report = new PreProcessorReportWrapper(report);
+    }
 
+    public Report getReport(){
+        return this.report.getReport();
+    }
 
+    public PreProcessorReportWrapper report(){
+        return this.report;
+    }
 
+    public IteratorStack<LexSymbol> getIteratorStack(){
+        return this.iteratorStack;
+    }
 
     @Override
     public LexSymbol next() {
@@ -78,7 +97,7 @@ public class PreProcessor implements Iterator<LexSymbol>{
                 return s;
             }
             while (s.sym == AssemblerSym.DIRECTIVE && directives.hasDirective((String) s.value)) {
-                directives.handleDirective((String) s.value, iteratorStack, this);
+                directives.handleDirective((String) s.value, s, this);
                 s = iteratorStack.next();
             }
 
@@ -91,12 +110,29 @@ public class PreProcessor implements Iterator<LexSymbol>{
 
             if(s != null) {
                 while (s.sym == AssemblerSym.DIRECTIVE && directives.hasStranglerDirective((String) s.value)) {
-                    directives.handleStranglerDirective((String) s.value, iteratorStack, this);
+                    directives.handleStranglerDirective((String) s.value, s, this);
                     s = iteratorStack.next();
                 }
             }
         }
         atBOL = s.sym == LexSymbol.LINE_TERMINATOR;
+
+        if (s.sym == AssemblerSym.EOF) {
+            atEOF = true;
+        }
+
+        if(s.sym == LexSymbol.LABEL){
+            if(s.value.toString().startsWith(".")){
+                if(lastNonLocalLabel != null){
+                    s.value = lastNonLocalLabel.value.toString() + s.value.toString();
+                }else{
+                    report().reportError("Found local label without nonlocal label", s);
+                    return s;
+                }
+            }else{
+                lastNonLocalLabel = s;
+            }
+        }
 
         return s;
     }
@@ -124,7 +160,7 @@ public class PreProcessor implements Iterator<LexSymbol>{
     }
 
 
-    public static class MacroHolder{
+    public class MacroHolder{
 
         Map<String, pp> macros = new HashMap<>();
 
@@ -157,24 +193,28 @@ public class PreProcessor implements Iterator<LexSymbol>{
         }
 
         public synchronized void removeMacroFromID(MACRO.MacroID mID){
-            if(macros.containsKey(mID.getID())){
-                macros.get(mID.getID()).removeMacro(mID);
+            if(macros.containsKey(mID.getIDName())){
+                macros.get(mID.getIDName()).removeMacro(mID);
             }
             //does not contain
         }
 
-        private static class pp{
-            private ArrayList<MACRO.MacroDefinition> macros = new ArrayList<>();
+        private class pp{
+            private final ArrayList<MACRO.MacroDefinition> macros = new ArrayList<>();
 
             public void clear(){
                 macros.clear();
             }
 
             public void addMacro(MACRO.MacroDefinition m){
-                //TODO add override checks to give warnings when newly defined macros overlap
 
                 if(hasMacro(m)){
                     removeMacro(m);
+                }
+                for (MACRO.MacroDefinition macro : macros) {
+                    if (macro.getID().overlaps(m.getID())) {
+                        report().reportWarning("Macro Definition '" + m.getID().toString() + "' overlaps with existing definitions", m.getID().getID());
+                    }
                 }
                 macros.add(m);
             }
@@ -192,8 +232,8 @@ public class PreProcessor implements Iterator<LexSymbol>{
             }
 
             public boolean hasMacro(MACRO.MacroID m){
-                for (int i = 0; i < macros.size(); i++) {
-                    if(macros.get(i).equals(m)){
+                for (MACRO.MacroDefinition macro : macros) {
+                    if (macro.getID().equals(m)) {
                         return true;
                     }
                 }
@@ -204,7 +244,7 @@ public class PreProcessor implements Iterator<LexSymbol>{
             public MACRO.MacroDefinition getAvailableMacro(int args){
                 for(int i = macros.size() - 1; i >= 0; i --){
                     MACRO.MacroDefinition m = macros.get(i);
-                    if(m.withinArguments(args)){
+                    if(m.getID().withinArguments(args)){
                         return m;
                     }
                 }
@@ -214,7 +254,7 @@ public class PreProcessor implements Iterator<LexSymbol>{
             public boolean hasAvailableMacro(int args){
                 for(int i = macros.size() - 1; i >= 0; i --){
                     MACRO.MacroDefinition m = macros.get(i);
-                    if(m.withinArguments(args)){
+                    if(m.getID().withinArguments(args)){
                         return true;
                     }
                 }

@@ -1,6 +1,6 @@
 package org.parker.retargetableassembler.pipe.preprocessor.util;
 
-import org.parker.retargetableassembler.pipe.lex.jflex.LexSymbol;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 
 public interface PreProcessorOutputFilter {
 

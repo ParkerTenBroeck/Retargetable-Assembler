@@ -1,28 +1,28 @@
 package org.parker.retargetableassembler.pipe.preprocessor.directives.other;
 
-import org.parker.retargetableassembler.pipe.lex.jflex.LexSymbol;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.PreProcessorDirective;
 import org.parker.retargetableassembler.pipe.preprocessor.util.BufferUtils;
-import org.parker.retargetableassembler.pipe.util.iterators.IteratorStack;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class MACRO {
+public final class MACRO {
 
 
     public static class DEFINITION implements PreProcessorDirective {
         @Override
-        public void init(IteratorStack<LexSymbol> iterator, PreProcessor pp) {
+        public void init(LexSymbol root, PreProcessor pp) {
 
-            Iterator<LexSymbol> curr = iterator.peek_iterator_stack();
+            Iterator<LexSymbol> curr = pp.getIteratorStack().peek_iterator_stack();
             Iterator<LexSymbol> line = BufferUtils.tillLineTerminator(curr, false);
 
             MacroDefinition m = new MacroDefinition();
-            m.mID = generateMacroIDFromIterator(line);
+            m.mID = generateMacroIDFromIterator(line, pp);
             if(line.hasNext()){
-                throw new RuntimeException("Unexpected token expected:LINE_TERMINATOR got:" + LexSymbol.terminalNames[line.next().sym]);
+                pp.report().unexpectedTokenError(line.next(), LexSymbol.LINE_TERMINATOR);
+                return;
             }
 
             LexSymbol temp;
@@ -48,7 +48,8 @@ public class MACRO {
                     }
                 }
                 if(temp.sym == LexSymbol.EOF){
-                    throw new RuntimeException("reached EOF without macro termination");
+                    pp.report().reportError("macro definition without termination", root);
+                    return;
                 }
                 m.tokenList.add(temp);
 
@@ -63,20 +64,21 @@ public class MACRO {
     public static class UNDEFINITION implements PreProcessorDirective {
 
         @Override
-        public void init(IteratorStack<LexSymbol> iterator, PreProcessor pp) {
-            Iterator<LexSymbol> curr = iterator.peek_iterator_stack();
+        public void init(LexSymbol root, PreProcessor pp) {
+            Iterator<LexSymbol> curr = pp.getIteratorStack().peek_iterator_stack();
             Iterator<LexSymbol> line = BufferUtils.tillLineTerminator(curr, false);
 
-            MacroID mID = generateMacroIDFromIterator(line);
+            MacroID mID = generateMacroIDFromIterator(line, pp);
             if(line.hasNext()){
-                throw new RuntimeException("Unexpected token expected:LINE_TERMINATOR got:" + LexSymbol.terminalNames[line.next().sym]);
+                pp.report().unexpectedTokenError(line.next(), LexSymbol.LINE_TERMINATOR);
+                return;
             }
 
             pp.removeMacroFromID(mID);
         }
     }
     
-    public static MacroID generateMacroIDFromIterator(Iterator<LexSymbol> iterator){
+    public static MacroID generateMacroIDFromIterator(Iterator<LexSymbol> iterator, PreProcessor pp){
         
         MacroID mID = new MacroID();
         LexSymbol temp;
@@ -86,18 +88,22 @@ public class MACRO {
             if(temp.sym == LexSymbol.IDENTIFIER) {
                 mID.id = temp;
             }else{
-                throw new RuntimeException("Invalid Token Type expected:IDENTIFIER got:" + LexSymbol.terminalNames[temp.sym]);
+                pp.report().unexpectedTokenError(temp, LexSymbol.IDENTIFIER);
+                return null;
             }
         }
         if(iterator.hasNext()){
             temp = iterator.next();
             if(temp.sym == LexSymbol.INTEGER_LITERAL){
                 mID.lowerOp =  ((Number)temp.value).intValue();
+                mID.higherOp = mID.lowerOp;
                 if(mID.lowerOp < 0){
-                    throw new RuntimeException("Cannot have negative operands");
+                    pp.report().reportError("Cannot have negative operands", temp);
+                    return null;
                 }
             }else{
-                throw new RuntimeException("Invalid Token Type expected:INTEGER_LITERAL got:" + LexSymbol.terminalNames[temp.sym]);
+                pp.report().unexpectedTokenError(temp, LexSymbol.INTEGER_LITERAL);
+                return null;
             }
         }
 
@@ -112,9 +118,11 @@ public class MACRO {
                     if(temp.sym == LexSymbol.INTEGER_LITERAL){
                         mID.higherOp = ((Number)temp.value).intValue();
                         if(mID.higherOp < 0){
-                            throw new RuntimeException("Cannot have negative operands");
+                            pp.report().reportError("Cannot have negative operands", temp);
+                            return null;
                         }else if(mID.higherOp <= mID.lowerOp){
-                            throw new RuntimeException("Upper operand limit cannot be lower or equal to lower operand limit");
+                            pp.report().reportError("Upper operand limit cannot be lower or equal to lower operand limit", temp);
+                            return null;
                         }
                     }
                     if(iterator.hasNext()){
@@ -123,13 +131,15 @@ public class MACRO {
                             mID.greedy = true;
                         }else{
                             temp = iterator.next();
-                            throw new RuntimeException("Invalid Token Type got:" + LexSymbol.terminalNames[temp.sym]);
+                            pp.report().unexpectedTokenError(temp);
+                            return null;
                         }
                     }
                 }
             }else{
                 temp = iterator.next();
-                throw new RuntimeException("Invalid Token Type got:" + LexSymbol.terminalNames[temp.sym]);
+                pp.report().unexpectedTokenError(temp);
+                return null;
             }
         }
         return mID;
@@ -141,8 +151,25 @@ public class MACRO {
         private int higherOp = -1;
         private boolean greedy = false;
 
-        public String getID(){
+        public String getIDName(){
             return (String) id.value;
+        }
+        public LexSymbol getID(){
+            return id;
+        }
+
+        @Override
+        public String toString() {
+            String temp = getIDName();
+            if(lowerOp == higherOp){
+                temp += " " + lowerOp;
+            }else{
+                temp += " " + lowerOp + "-" + higherOp;
+            }
+            if(greedy)
+                temp += "+";
+
+            return temp;
         }
 
         public int getLowerOP(){
@@ -155,6 +182,65 @@ public class MACRO {
 
         public boolean isGreedy(){
             return greedy;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+
+            MacroID mID2;
+
+            if(obj instanceof  MacroID){
+                mID2 = (MacroID) obj;
+            }else{
+                return false;
+            }
+            if(!id.value.equals(mID2.id.value)){
+                return false;
+            }
+            if(lowerOp != mID2.lowerOp){
+                return false;
+            }
+            if(higherOp != mID2.higherOp){
+                return false;
+            }
+            if(greedy != mID2.greedy){
+                return false;
+            }
+
+            return true;
+        }
+
+        public boolean withinArguments(int args) {
+            if(args == lowerOp){
+                return true;
+            }
+            if(args >= lowerOp && greedy){
+                return true;
+            }
+            if(higherOp > 0){
+                if(args >= lowerOp && args <= higherOp){
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public boolean overlaps(MacroID mID){
+            if(this.greedy && mID.greedy){
+                return true;
+            }else if(this.greedy){
+                if(mID.higherOp >= this.lowerOp){
+                    return true;
+                }
+            }else if(mID.greedy){
+                if(this.higherOp >= mID.lowerOp){
+                    return true;
+                }
+            }else{
+                return this.lowerOp <= mID.higherOp && mID.lowerOp <= this.higherOp;
+            }
+            return false;
         }
     }
 
@@ -175,36 +261,7 @@ public class MACRO {
             }else{
                 return false;
             }
-            if(!mID.id.value.equals(mID2.id.value)){
-                return false;
-            }
-            if(mID.lowerOp != mID2.lowerOp){
-                return false;
-            }
-            if(mID.higherOp != mID2.higherOp){
-                return false;
-            }
-            if(mID.greedy != mID2.greedy){
-                return false;
-            }
-
-            return true;
-        }
-
-        public boolean withinArguments(int args) {
-            if(args == mID.lowerOp){
-                return true;
-            }
-            if(args >= mID.lowerOp && mID.greedy){
-                return true;
-            }
-            if(mID.higherOp > 0){
-                if(args >= mID.lowerOp && args <= mID.higherOp){
-                    return true;
-                }
-            }
-
-            return false;
+            return mID.equals(mID2);
         }
 
         public String getNameID() {

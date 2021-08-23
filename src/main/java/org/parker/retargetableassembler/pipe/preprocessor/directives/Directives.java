@@ -1,6 +1,6 @@
 package org.parker.retargetableassembler.pipe.preprocessor.directives;
 
-import org.parker.retargetableassembler.pipe.lex.jflex.LexSymbol;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.control.IF;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.control.REP;
@@ -45,16 +45,16 @@ public class Directives {
         return directiveAtlasMap.containsKey(atlas) && !(directiveAtlasMap.get(atlas) instanceof DirectiveStranglerError);
     }
 
-    public void handleDirective(String atlas, IteratorStack<LexSymbol> scannerStack, PreProcessor preProcessor) {
-        directiveAtlasMap.get(atlas).init(scannerStack, preProcessor);
+    public void handleDirective(String atlas, LexSymbol root, PreProcessor preProcessor) {
+        directiveAtlasMap.get(atlas).init(root, preProcessor);
     }
 
     public boolean hasStranglerDirective(String atlas) {
         return directiveAtlasMap.containsKey(atlas) && (directiveAtlasMap.get(atlas) instanceof DirectiveStranglerError);
     }
 
-    public void handleStranglerDirective(String atlas, IteratorStack<LexSymbol> scannerStack, PreProcessor preProcessor){
-        directiveAtlasMap.get(atlas).init(scannerStack, preProcessor);
+    public void handleStranglerDirective(String atlas, LexSymbol root, PreProcessor preProcessor){
+        directiveAtlasMap.get(atlas).init(root, preProcessor);
     }
 
 }
