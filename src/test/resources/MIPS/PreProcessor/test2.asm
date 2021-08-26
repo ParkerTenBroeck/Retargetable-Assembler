@@ -1,3 +1,21 @@
+.macro $_12testMacro 2-5+
+    add $5, $8, $2
+    add $5, $8, $2
+
+    ..$testLabel:
+
+    add ..$testLabel, ..$testLabel2
+.endmacro
+
+$_12testMacro "arg1", "arg2", "arg3"
+$_12testMacro "arg1", "arg2", "arg3"
+$_12testMacro "arg1", "arg2", "arg3"
+
+.macro overlap 1-3
+.endmacro
+
+add $4, $4, $4
+
 .local: ;this is an error
 
 

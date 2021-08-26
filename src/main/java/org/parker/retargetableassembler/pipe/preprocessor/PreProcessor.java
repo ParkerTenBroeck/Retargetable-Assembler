@@ -1,6 +1,8 @@
 package org.parker.retargetableassembler.pipe.preprocessor;
 
 import org.parker.retargetableassembler.pipe.Report;
+import org.parker.retargetableassembler.pipe.preprocessor.expressions.CompiledExpression;
+import org.parker.retargetableassembler.pipe.preprocessor.expressions.ExpressionEvaluator;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.cup.AssemblerSym;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.Directives;
@@ -112,6 +114,31 @@ public class PreProcessor implements Iterator<LexSymbol>{
                 while (s.sym == AssemblerSym.DIRECTIVE && directives.hasStranglerDirective((String) s.value)) {
                     directives.handleStranglerDirective((String) s.value, s, this);
                     s = iteratorStack.next();
+                }
+
+                if(s.sym == LexSymbol.INSTRUCTION){
+                    CompiledExpression[] arguments =
+                            ExpressionEvaluator.evaluateCommaSeparatedExpressions(this.iteratorStack.peek_iterator_stack(), report());
+                    if(iteratorStack.peek_iterator_stack().peek_ahead().sym != LexSymbol.LINE_TERMINATOR && iteratorStack.peek_iterator_stack().peek_ahead().sym != LexSymbol.EOF){
+                            this.report().reportError("Unexpected token found at the end of arguments", iteratorStack.peek_iterator_stack().peek_ahead());
+                            while(iteratorStack.peek_iterator_stack().peek_ahead().sym != LexSymbol.LINE_TERMINATOR && iteratorStack.peek_iterator_stack().peek_ahead().sym != LexSymbol.EOF){
+                                iteratorStack.peek_iterator_stack().next();
+                            }
+                    }
+                    if(definedMacros.hasAvailableMacro(s.value.toString(), arguments.length)){
+                        MACRO.MacroDefinition md = definedMacros.getAvailableMacro(s.value.toString(), arguments.length);
+                        iteratorStack.push_iterator_stack(new MACRO.MacroIterator(md));
+                        s = null;
+                    }else{
+                        InstructionDefinition id = new InstructionDefinition();
+                        id.instruction = s;
+                        id.arguments = arguments;
+                        LexSymbol last = this.iteratorStack.peek_iterator_stack().peek_behind();
+                        s = new LexSymbol(s.getFile(), s.sym, s.getLine(), s.getColumn(), s.getCharPos(),
+                                (int) ((last.getCharPos() + last.getSize()) - s.getCharPos()),
+                                s.left, s.right, id);
+                        return s;
+                    }
                 }
             }
         }
@@ -261,6 +288,24 @@ public class PreProcessor implements Iterator<LexSymbol>{
                 return false;
             }
 
+        }
+    }
+
+    public static class InstructionDefinition{
+        LexSymbol instruction;
+        CompiledExpression[] arguments;
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+
+            sb.append(instruction.value + " ");
+
+            for(int i = 0; i < arguments.length; i ++){
+                if(i != 0) sb.append(", ");
+                sb.append(arguments[i].toString());
+            }
+            return sb.toString();
         }
     }
 }

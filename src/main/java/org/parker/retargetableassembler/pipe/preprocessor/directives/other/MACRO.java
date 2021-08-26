@@ -4,6 +4,7 @@ import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.PreProcessorDirective;
 import org.parker.retargetableassembler.pipe.preprocessor.util.BufferUtils;
+import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIteratorAbstract;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -144,6 +145,44 @@ public final class MACRO {
         }
         return mID;
     }
+
+    public static class MacroIterator extends PeekEverywhereIteratorAbstract<LexSymbol>{
+
+        private int index = 0;
+        private int use;
+        private MacroDefinition md;
+
+        public MacroIterator(MacroDefinition md){
+            this.md = md;
+            this.use = md.uses;
+            md.uses ++;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return index < md.tokenList.size();
+        }
+
+        @Override
+        protected LexSymbol next_peekless() {
+            if(index < md.tokenList.size()){
+                LexSymbol sym = md.tokenList.get(index);
+
+                if(sym.sym == LexSymbol.LABEL || sym.sym == LexSymbol.IDENTIFIER){
+                    if(sym.value.toString().startsWith("..$") && sym.value.toString().length() > 3){
+                        sym = new LexSymbol(sym.getFile(), sym.sym, sym.getLine(), sym.getColumn(), sym.getCharPos(),
+                                sym.getSize(), sym.left, sym.right,
+                                "..$" + use + "." + sym.value.toString().substring(3));
+                    }
+                }
+
+                index ++;
+                return sym;
+            }else{
+                return new LexSymbol();
+            }
+        }
+    }
     
     public static class MacroID{
         private LexSymbol id;
@@ -248,6 +287,7 @@ public final class MACRO {
 
         MacroID mID = new MacroID();
         ArrayList<LexSymbol> tokenList = new ArrayList<>();
+        int uses = 0;
 
         @Override
         public boolean equals(Object obj) {

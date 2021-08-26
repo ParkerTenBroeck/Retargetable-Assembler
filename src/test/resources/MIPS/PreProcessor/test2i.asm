@@ -68,7 +68,7 @@
     .elseif false
         if6wrong
     .elseif true
-        if6wrong(but kinda right)
+        if6wrong"(but kinda right)"
     .else
         if6wrong
     .elseif false
@@ -83,7 +83,7 @@
     .elseif false
         if7wrong
     .else
-        if7wrong(but kinda right)
+        if7wrong "(but kinda right)"
     .else
         if7wrong
     .endif

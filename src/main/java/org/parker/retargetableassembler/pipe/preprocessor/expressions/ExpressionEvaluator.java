@@ -11,10 +11,12 @@ public class ExpressionEvaluator {
 
     public static CompiledExpression[] evaluateCommaSeparatedExpressions(PeekEverywhereIterator<LexSymbol> iterator, PreProcessorReportWrapper report){
         ArrayList<CompiledExpression> expressions = new ArrayList<>();
-        while(true){
+        while(iterator.peek_ahead().sym != LexSymbol.LINE_TERMINATOR && iterator.peek_ahead().sym != LexSymbol.EOF){
             expressions.add(evaluateExpression(iterator, report));
             if(iterator.peek_ahead().sym != LexSymbol.COMMA){
                 break;
+            }else{
+                iterator.next();
             }
         }
         return expressions.toArray(new CompiledExpression[0]);
@@ -53,6 +55,7 @@ public class ExpressionEvaluator {
 
         @Override
         public String toString() {
+            if(compiledExpression == null) return "";
             return compiledExpression.toString();
         }
 
