@@ -1,7 +1,6 @@
-package org.parker.retargetableassembler.base.elf.readelf;
+package org.parker.retargetableassembler.pipe.elf.readelf;
 
-import org.parker.retargetableassembler.base.elf.BitManipulation;
-import org.parker.retargetableassembler.base.elf.Elf;
+import org.parker.retargetableassembler.pipe.elf.Elf;
 
 public class ReadElf {
 

@@ -3,6 +3,7 @@ package org.parker.retargetableassembler.pipe.preprocessor.lex.jflex;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.cup.AssemblerSym;
 
 import java.io.File;
+import java.util.Collection;
 
 @SuppressWarnings("unused")
 public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
@@ -90,7 +91,18 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
 
     public static LexSymbol combine(int newType, Object newVal, LexSymbol sym1, LexSymbol sym2){
         return new LexSymbol(sym1.file, newType, sym1.line, sym1.column, sym1.charPos,
-                sym1.size + sym2.size, sym1.left, sym2.right, newVal);
+                (int) ((sym2.size + sym2.charPos) - sym1.charPos), sym1.left, sym2.right, newVal);
+    }
+
+    public static LexSymbol combine(int identifier, Object o, Collection<LexSymbol> causeCollection) {
+        Object[] temp = causeCollection.stream().toArray();
+        if(temp.length > 0) {
+            LexSymbol first = (LexSymbol) temp[0];
+            LexSymbol last = (LexSymbol) temp[temp.length - 1];
+            return combine(identifier, o, first, last);
+        }else{
+            return null;
+        }
     }
 
 }

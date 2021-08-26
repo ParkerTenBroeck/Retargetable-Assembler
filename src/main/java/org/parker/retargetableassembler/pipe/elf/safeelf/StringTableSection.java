@@ -1,9 +1,8 @@
-package org.parker.retargetableassembler.base.elf.safeelf;
+package org.parker.retargetableassembler.pipe.elf.safeelf;
 
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.List;
 
 public class StringTableSection extends SectionDataInterpreter {
 

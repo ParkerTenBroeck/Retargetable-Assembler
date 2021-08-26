@@ -1,4 +1,4 @@
-package org.parker.retargetableassembler.base.elf.sections.symtab;
+package org.parker.retargetableassembler.pipe.elf.symtab;
 
 @SuppressWarnings("unused")
 public abstract class ElfSymbol {

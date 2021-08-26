@@ -1,6 +1,6 @@
-package org.parker.retargetableassembler.base.elf.sections.symtab;
+package org.parker.retargetableassembler.pipe.elf.symtab;
 
-import org.parker.retargetableassembler.base.elf.safeelf.SectionDataInterpreter;
+import org.parker.retargetableassembler.pipe.elf.safeelf.SectionDataInterpreter;
 
 public class SymbolTableSection extends SectionDataInterpreter {
 

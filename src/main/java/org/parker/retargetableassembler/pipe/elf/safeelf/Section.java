@@ -1,7 +1,7 @@
-package org.parker.retargetableassembler.base.elf.safeelf;
+package org.parker.retargetableassembler.pipe.elf.safeelf;
 
-import org.parker.retargetableassembler.base.elf.Elf;
-import org.parker.retargetableassembler.base.elf.ElfException;
+import org.parker.retargetableassembler.pipe.elf.Elf;
+import org.parker.retargetableassembler.pipe.elf.ElfException;
 
 import java.io.IOException;
 import java.util.ArrayList;

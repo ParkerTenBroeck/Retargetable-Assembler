@@ -1,6 +1,6 @@
-package org.parker.retargetableassembler.base.elf;
+package org.parker.retargetableassembler.pipe.elf;
 
-import org.parker.retargetableassembler.base.elf.readelf.ReadElf;
+import org.parker.retargetableassembler.pipe.elf.readelf.ReadElf;
 
 import java.io.File;
 import java.io.IOException;

@@ -3,6 +3,8 @@ package org.parker.retargetableassembler.pipe.preprocessor;
 import org.parker.retargetableassembler.pipe.Report;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 
+import java.util.Collection;
+
 public class PreProcessorReportWrapper {
     private final Report report;
 
@@ -47,6 +49,14 @@ public class PreProcessorReportWrapper {
     }
 
     public void reportError(String message, LexSymbol cause){
+        report.reportError(cause.getFile().getPath() + " " +
+                "line:" + (cause.getLine() + 1) + " " +
+                "column:" + (cause.getColumn() + 1) + " " +
+                "Error: " + message);
+    }
+
+    public void reportError(String message, Collection<LexSymbol> causeCollection){
+        LexSymbol cause = LexSymbol.combine(LexSymbol.IDENTIFIER, null, causeCollection);
         report.reportError(cause.getFile().getPath() + " " +
                 "line:" + (cause.getLine() + 1) + " " +
                 "column:" + (cause.getColumn() + 1) + " " +

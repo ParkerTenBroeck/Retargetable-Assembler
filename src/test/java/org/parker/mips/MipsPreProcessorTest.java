@@ -15,7 +15,6 @@ import java.util.Map;
 
 public class MipsPreProcessorTest {
 
-
     private static class FilesToCompare {
         public File a;
         public File s;

@@ -33,6 +33,7 @@ import java.util.Iterator;
   private int columnStringStart = 0;
   private long charStringStart = 0;
   private File parentFile = null;
+  private boolean includeWhiteSpace = true;
 
   private LexSymbol symbol(int type) {
     return new LexSymbol(parentFile, type, yyline, yycolumn, yychar, yylength());
@@ -59,9 +60,14 @@ import java.util.Iterator;
     }
 
   public AssemblerScanner(java.io.Reader in, File parentFile) {
-    this(in);
-    this.parentFile = parentFile;
+    this(in, parentFile, false);
   }
+
+    public AssemblerScanner(java.io.Reader in, File parentFile, boolean includeWhiteSpace) {
+      this(in);
+      this.parentFile = parentFile;
+      this.includeWhiteSpace = includeWhiteSpace;
+    }
 
   
 
@@ -115,6 +121,10 @@ HexDigit          = [0-9a-fA-F]
 OctIntegerLiteral = 0+ [1-3]? {OctDigit} {1,15}
 OctLongLiteral    = 0+ 1? {OctDigit} {1,21} [lL]
 OctDigit          = [0-7]
+
+BinaryIntegerLiteral = 0 [bB] 0* {BinaryDigit} {1,32}
+BinaryLongLiteral    = 0 [bB] 0* {BinaryDigit} {1,64} [lL]
+BinaryDigit          = [0-1]
 
 /* floating point literals */
 FloatLiteral  = ({FLit1}|{FLit2}|{FLit3}) {Exponent}? [fF]
@@ -226,6 +236,9 @@ SingleCharacter = [^\r\n\'\\]
   {OctIntegerLiteral}            { return symbol(INTEGER_LITERAL, Integer.valueOf((int) parseLong(0, yylength(), 8))); }
   {OctLongLiteral}               { return symbol(INTEGER_LITERAL, new Long(parseLong(0, yylength()-1, 8))); }
 
+  {BinaryIntegerLiteral}         { return symbol(INTEGER_LITERAL, Integer.valueOf((int) parseLong(2, yylength(), 2))); }
+  {BinaryLongLiteral}            { return symbol(INTEGER_LITERAL, new Long(parseLong(2, yylength()-1, 2))); }
+
   {FloatLiteral}                 { return symbol(FLOATING_POINT_LITERAL, new Float(yytext().substring(0,yylength()-1))); }
   {DoubleLiteral}                { return symbol(FLOATING_POINT_LITERAL, new Double(yytext())); }
   {DoubleLiteral}[dD]            { return symbol(FLOATING_POINT_LITERAL, new Double(yytext().substring(0,yylength()-1))); }
@@ -234,7 +247,7 @@ SingleCharacter = [^\r\n\'\\]
   {Comment}                      { /* ignore */ }
 
   /* whitespace */
-  {WhiteSpace}                   { return symbol(WHITESPACE); }
+  {WhiteSpace}                   { if(includeWhiteSpace)return symbol(WHITESPACE); }
 
   /* identifiers */
   {Identifier}                   { return symbol(IDENTIFIER, yytext()); }

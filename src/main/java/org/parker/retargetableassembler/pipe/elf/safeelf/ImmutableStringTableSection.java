@@ -1,4 +1,4 @@
-package org.parker.retargetableassembler.base.elf.safeelf;
+package org.parker.retargetableassembler.pipe.elf.safeelf;
 
 public final class ImmutableStringTableSection extends SectionDataInterpreter{
 

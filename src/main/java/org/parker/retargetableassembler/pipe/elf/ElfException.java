@@ -1,4 +1,4 @@
-package org.parker.retargetableassembler.base.elf;
+package org.parker.retargetableassembler.pipe.elf;
 
 public class ElfException extends RuntimeException{
     public ElfException(String message){

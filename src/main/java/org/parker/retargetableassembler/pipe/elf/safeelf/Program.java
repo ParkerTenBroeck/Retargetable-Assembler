@@ -1,6 +1,6 @@
-package org.parker.retargetableassembler.base.elf.safeelf;
+package org.parker.retargetableassembler.pipe.elf.safeelf;
 
-import org.parker.retargetableassembler.base.elf.Elf;
+import org.parker.retargetableassembler.pipe.elf.Elf;
 
 public class Program {
 
