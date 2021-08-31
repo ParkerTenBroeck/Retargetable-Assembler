@@ -9,8 +9,8 @@ import java.util.*;
 
 public class ExpressionEvaluator {
 
-    public static CompiledExpression[] evaluateCommaSeparatedExpressions(PeekEverywhereIterator<LexSymbol> iterator, PreProcessorReportWrapper report){
-        ArrayList<CompiledExpression> expressions = new ArrayList<>();
+    public static $CompiledExpression[] evaluateCommaSeparatedExpressions(PeekEverywhereIterator<LexSymbol> iterator, PreProcessorReportWrapper report){
+        ArrayList<$CompiledExpression> expressions = new ArrayList<>();
         while(iterator.peek_ahead().sym != LexSymbol.LINE_TERMINATOR && iterator.peek_ahead().sym != LexSymbol.EOF){
             expressions.add(evaluateExpression(iterator, report));
             if(iterator.peek_ahead().sym != LexSymbol.COMMA){
@@ -19,22 +19,22 @@ public class ExpressionEvaluator {
                 iterator.next();
             }
         }
-        return expressions.toArray(new CompiledExpression[0]);
+        return expressions.toArray(new $CompiledExpression[0]);
     }
 
-    public static CompiledExpression evaluateExpression(PeekEverywhereIterator<LexSymbol> iterator, PreProcessorReportWrapper report){
+    public static $CompiledExpression evaluateExpression(PeekEverywhereIterator<LexSymbol> iterator, PreProcessorReportWrapper report){
         try {
-            return new idkName(iterator, report);
+            return new $CompiledExpression(iterator, report);
         }catch (Exception ignored){
             return null;
         }
     }
 
-    protected static class idkName extends CompiledExpression{
+    protected static class $CompiledExpression extends CompiledExpression{
 
         AST compiledExpression;
 
-        public idkName(PeekEverywhereIterator<LexSymbol> iterator, PreProcessorReportWrapper report){
+        public $CompiledExpression(PeekEverywhereIterator<LexSymbol> iterator, PreProcessorReportWrapper report){
             this.setReport(report);
             this.compiledExpression = parseLevel15(iterator);
         }
@@ -59,8 +59,85 @@ public class ExpressionEvaluator {
             return compiledExpression.toString();
         }
 
+        public Node<LexSymbol> getAsTree(){
+            return compiledExpression;
+        }
+
+        public enum TreeType{
+            ArrayAccess(1),
+            ArrayDeclaration(2),
+            AssignmentOperator(3),
+            BinaryOperator(4),
+            CommaSeparatedList(5),
+            Constant(6),
+            FunctionCall(7),
+            Parenthesis(8),
+            TernaryOperator(9),
+            TypeCast(10),
+            UnaryOperator(11),
+            Variable(12);
+
+            public final int ID;
+            TreeType(int ID){
+                this.ID = ID;
+            }
+        }
+
+        @SuppressWarnings("unused")
+        public interface Node<T>{
+            default boolean isLeaf(){
+                return false;
+            }
+            default T getValue(){
+                return null;
+            }
+            List<Node<T>> getChildren();
+            int getNumChildren();
+            Node<T> getChild(int child);
+            TreeType getType();
+        }
+
+        public static class SymbolLeaf implements Node<LexSymbol>{
+
+            private final LexSymbol id;
+
+            public SymbolLeaf(LexSymbol id){
+                this.id = id;
+            }
+
+            @Override
+            public List<Node<LexSymbol>> getChildren() {
+                return null;
+            }
+
+            @Override
+            public int getNumChildren() {
+                return 0;
+            }
+
+            @Override
+            public Node<LexSymbol> getChild(int child) {
+                throw new IndexOutOfBoundsException();
+            }
+
+            @Override
+            public LexSymbol getValue() {
+                return id;
+            }
+
+            @Override
+            public TreeType getType() {
+                return null;
+            }
+
+            @Override
+            public boolean isLeaf() {
+                return true;
+            }
+        }
+
         /* expression parts */
-        public static abstract class AST{
+        public static abstract class AST implements Node<LexSymbol>{
             public abstract Object evaluate();
             public abstract List<LexSymbol> toSymbols();
         }
@@ -87,6 +164,26 @@ public class ExpressionEvaluator {
                 symbols.addAll(inside.toSymbols());
                 symbols.add(b2);
                 return symbols;
+            }
+
+            @Override
+            public List<Node<LexSymbol>> getChildren() {
+                return Arrays.asList(new SymbolLeaf(b1), inside, new SymbolLeaf(b2));
+            }
+
+            @Override
+            public int getNumChildren() {
+                return 3;
+            }
+
+            @Override
+            public Node<LexSymbol> getChild(int child) {
+                return getChildren().get(child);
+            }
+
+            @Override
+            public TreeType getType() {
+                return TreeType.Parenthesis;
             }
         }
 
@@ -120,6 +217,36 @@ public class ExpressionEvaluator {
             public List<LexSymbol> toSymbols() {
                 return Collections.singletonList(variableIdent);
             }
+
+            @Override
+            public List<Node<LexSymbol>> getChildren() {
+                return null;
+            }
+
+            @Override
+            public int getNumChildren() {
+                return 0;
+            }
+
+            @Override
+            public Node<LexSymbol> getChild(int child) {
+                throw new IndexOutOfBoundsException();
+            }
+
+            @Override
+            public boolean isLeaf() {
+                return true;
+            }
+
+            @Override
+            public LexSymbol getValue() {
+                return variableIdent;
+            }
+
+            @Override
+            public TreeType getType() {
+                return TreeType.Variable;
+            }
         }
 
         public static class Constant extends AST{
@@ -146,6 +273,36 @@ public class ExpressionEvaluator {
             @Override
             public List<LexSymbol> toSymbols() {
                 return Collections.singletonList(constant);
+            }
+
+            @Override
+            public List<Node<LexSymbol>> getChildren() {
+                return null;
+            }
+
+            @Override
+            public int getNumChildren() {
+                return 0;
+            }
+
+            @Override
+            public Node<LexSymbol> getChild(int child) {
+                throw new IndexOutOfBoundsException();
+            }
+
+            @Override
+            public boolean isLeaf() {
+                return true;
+            }
+
+            @Override
+            public LexSymbol getValue() {
+                return constant;
+            }
+
+            @Override
+            public TreeType getType() {
+                return TreeType.Constant;
             }
         }
 
@@ -183,6 +340,26 @@ public class ExpressionEvaluator {
                 symbols.addAll(o1.toSymbols());
                 return symbols;
             }
+
+            @Override
+            public List<Node<LexSymbol>> getChildren() {
+                return Arrays.asList(new SymbolLeaf(b1), new SymbolLeaf(type), new SymbolLeaf(b2), o1);
+            }
+
+            @Override
+            public int getNumChildren() {
+                return 4;
+            }
+
+            @Override
+            public Node<LexSymbol> getChild(int child) {
+                return getChildren().get(child);
+            }
+
+            @Override
+            public TreeType getType() {
+                return TreeType.TypeCast;
+            }
         }
 
         public abstract static class UnaryOperator extends AST{
@@ -201,6 +378,26 @@ public class ExpressionEvaluator {
                 symbols.add(s);
                 symbols.addAll(o1.toSymbols());
                 return symbols;
+            }
+
+            @Override
+            public List<Node<LexSymbol>> getChildren() {
+                return Arrays.asList(new SymbolLeaf(s), o1);
+            }
+
+            @Override
+            public int getNumChildren() {
+                return 2;
+            }
+
+            @Override
+            public Node<LexSymbol> getChild(int child) {
+                return getChildren().get(child);
+            }
+
+            @Override
+            public TreeType getType() {
+                return TreeType.UnaryOperator;
             }
         }
 
@@ -221,6 +418,67 @@ public class ExpressionEvaluator {
                 symbols.add(s);
                 symbols.addAll(o2.toSymbols());
                 return symbols;
+            }
+
+            @Override
+            public List<Node<LexSymbol>> getChildren() {
+                return Arrays.asList(o1, new SymbolLeaf(s), o2);
+            }
+
+            @Override
+            public int getNumChildren() {
+                return 3;
+            }
+
+            @Override
+            public Node<LexSymbol> getChild(int child) {
+                return getChildren().get(child);
+            }
+
+            @Override
+            public TreeType getType() {
+                return TreeType.BinaryOperator;
+            }
+        }
+
+        public abstract static class AssignmentOperator extends AST{
+            LexSymbol id;
+            LexSymbol s;
+            String sRep;
+            AST o1;
+
+            @Override
+            public String toString() {
+                return id.value.toString() + " " + (sRep == null ? LexSymbol.terminalNames[s.sym] : sRep) + " " + o1.toString();
+            }
+
+            @Override
+            public List<LexSymbol> toSymbols() {
+                List<LexSymbol> symbols = new ArrayList<>();
+                symbols.add(id);
+                symbols.add(s);
+                symbols.addAll(o1.toSymbols());
+                return symbols;
+            }
+
+            @Override
+            public List<Node<LexSymbol>> getChildren() {
+                return Arrays.asList(new SymbolLeaf(id), new SymbolLeaf(s), o1);
+            }
+
+            @Override
+            public int getNumChildren() {
+                return 3;
+            }
+
+            @Override
+            public Node<LexSymbol> getChild(int child) {
+                return getChildren().get(child);
+            }
+
+            @Override
+            public TreeType getType() {
+                return TreeType.AssignmentOperator;
             }
         }
 
@@ -247,9 +505,29 @@ public class ExpressionEvaluator {
                 symbols.addAll(o3.toSymbols());
                 return symbols;
             }
+
+            @Override
+            public List<Node<LexSymbol>> getChildren() {
+                return Arrays.asList(o1, new SymbolLeaf(s1), o2, new SymbolLeaf(s2), o3);
+            }
+
+            @Override
+            public int getNumChildren() {
+                return 5;
+            }
+
+            @Override
+            public Node<LexSymbol> getChild(int child) {
+                return getChildren().get(child);
+            }
+
+            @Override
+            public TreeType getType() {
+                return TreeType.TernaryOperator;
+            }
         }
 
-        public static class CommaSeparatedList extends AST{
+        public static class CommaSeparatedList extends AST {
 
             private static class item{
                 AST exp;
@@ -305,6 +583,34 @@ public class ExpressionEvaluator {
             public int getNum(){
                 return list.size();
             }
+
+
+            @Override
+            public List<Node<LexSymbol>> getChildren() {
+                List<Node<LexSymbol>> items = new ArrayList<>();
+                for (CommaSeparatedList.item item : list) {
+                    items.add(item.exp);
+                    if (item.comma != null) {
+                        items.add(new SymbolLeaf(item.comma));
+                    }
+                }
+                return items;
+            }
+
+            @Override
+            public int getNumChildren() {
+                return getChildren().size();
+            }
+
+            @Override
+            public Node<LexSymbol> getChild(int child) {
+                return getChildren().get(child);
+            }
+
+            @Override
+            public TreeType getType() {
+                return TreeType.CommaSeparatedList;
+            }
         }
 
         public class ArrayAccess extends AST{
@@ -345,12 +651,31 @@ public class ExpressionEvaluator {
 
             @Override
             public List<LexSymbol> toSymbols() {
-                List<LexSymbol> symbols = new ArrayList<>();
-                symbols.addAll(array.toSymbols());
+                List<LexSymbol> symbols = new ArrayList<>(array.toSymbols());
                 symbols.add(b1);
                 symbols.addAll(argument.toSymbols());
                 symbols.add(b2);
                 return symbols;
+            }
+
+            @Override
+            public List<Node<LexSymbol>> getChildren() {
+                return Arrays.asList(array, new SymbolLeaf(b1), argument, new SymbolLeaf(b2));
+            }
+
+            @Override
+            public int getNumChildren() {
+                return 4;
+            }
+
+            @Override
+            public Node<LexSymbol> getChild(int child) {
+                return getChildren().get(child);
+            }
+
+            @Override
+            public TreeType getType() {
+                return TreeType.ArrayAccess;
             }
         }
 
@@ -377,6 +702,26 @@ public class ExpressionEvaluator {
                 symbols.addAll(arguments.toSymbols());
                 symbols.add(b2);
                 return symbols;
+            }
+
+            @Override
+            public List<Node<LexSymbol>> getChildren() {
+                return Arrays.asList(new SymbolLeaf(b1), arguments, new SymbolLeaf(b2));
+            }
+
+            @Override
+            public int getNumChildren() {
+                return 3;
+            }
+
+            @Override
+            public Node<LexSymbol> getChild(int child) {
+                return getChildren().get(child);
+            }
+
+            @Override
+            public TreeType getType() {
+                return TreeType.ArrayDeclaration;
             }
         }
 
@@ -414,6 +759,26 @@ public class ExpressionEvaluator {
                 symbols.add(b2);
                 return symbols;
             }
+
+            @Override
+            public List<Node<LexSymbol>> getChildren() {
+                return Arrays.asList(new SymbolLeaf(funcIdent), new SymbolLeaf(b1), arguments, new SymbolLeaf(b2));
+            }
+
+            @Override
+            public int getNumChildren() {
+                return 4;
+            }
+
+            @Override
+            public Node<LexSymbol> getChild(int child) {
+                return getChildren().get(child);
+            }
+
+            @Override
+            public TreeType getType() {
+                return TreeType.FunctionCall;
+            }
         }
         /* end of expression parts */
         /* start of expression compiler */
@@ -422,7 +787,7 @@ public class ExpressionEvaluator {
         public AST parseLevel16(PeekEverywhereIterator<LexSymbol> iterator){
             CommaSeparatedList csl = new CommaSeparatedList();
             while(true){
-                AST item = parseLevel15(iterator);
+                AST item = parseLevel14(iterator);
                 if(iterator.peek_ahead().sym == LexSymbol.COMMA){
                     csl.addItem(item, iterator.next());
                 }else{
@@ -434,11 +799,336 @@ public class ExpressionEvaluator {
         }
 
         public AST parseLevel15(PeekEverywhereIterator<LexSymbol> iterator){
-            return parseLevel14(iterator);
+            AST ast = parseLevel14(iterator);
+
+            for(;;) {
+                if (iterator.peek_ahead().sym == LexSymbol.COMMA) {
+                    BinaryOperator bo = new BinaryOperator() {
+                        @Override
+                        public Object evaluate() {
+                            o1.evaluate();
+                            return o2.evaluate();
+                        }
+                    };
+                    bo.o1 = ast;
+                    bo.s = iterator.next();
+                    bo.sRep = ",";
+                    bo.o2 = parseLevel14(iterator);
+                    ast = bo;
+                }else{
+                    return ast;
+                }
+            }
         }
 
+        void t(int i ){
+            System.out.println(i);
+        }
+
+
         public AST parseLevel14(PeekEverywhereIterator<LexSymbol> iterator){
-            return parseLevel13(iterator);
+            int x = 10;
+            t(x + 1);
+
+            LexSymbol peekID = iterator.peek_ahead();
+            LexSymbol peekAss = iterator.peek_ahead(1);
+
+            if (peekAss.sym == LexSymbol.EQ && peekID.sym == LexSymbol.IDENTIFIER) {
+                AssignmentOperator ao = new AssignmentOperator() {
+                    @Override
+                    public Object evaluate() {
+                        getContext().setVariable(id.value.toString(), o1.evaluate());
+                        return getContext().getVariable(id.value.toString());
+                    }
+                };
+                ao.id = iterator.next();
+                ao.s = iterator.next();
+                ao.sRep = "=";
+                ao.o1 = parseLevel14(iterator);
+                return ao;
+            }else if (peekAss.sym == LexSymbol.PLUSEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+                AssignmentOperator ao = new AssignmentOperator() {
+                    @Override
+                    public Object evaluate() {
+                        if(getContext().hasVariable(id.value.toString())) {
+                            Object o1 = getContext().getVariable(id.value.toString());
+                            Object o2 = this.o1.evaluate();
+                            Object result;
+                            if(o1 instanceof Number && o2 instanceof Number){
+                                result = add((Number)o1, (Number)o2);
+                            }else if(o1 instanceof String && o2 instanceof String){
+                                result = o1.toString() +  o2.toString();
+                            }else{
+                                getReport().reportError("Cannot add " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
+                                return null;
+                            }
+                            getContext().setVariable(id.value.toString(), result);
+                            return getContext().getVariable(id.value.toString());
+                        }else{
+                            getReport().reportError("variable is not declared", id);
+                            return null;
+                        }
+                    }
+                };
+                ao.id = iterator.next();
+                ao.s = iterator.next();
+                ao.sRep = "+=";
+                ao.o1 = parseLevel14(iterator);
+                return ao;
+            }else if (peekAss.sym == LexSymbol.MINUSEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+                AssignmentOperator ao = new AssignmentOperator() {
+                    @Override
+                    public Object evaluate() {
+                        if(getContext().hasVariable(id.value.toString())) {
+                            Object o1 = getContext().getVariable(id.value.toString());
+                            Object o2 = this.o1.evaluate();
+                            if(o1 instanceof Number && o2 instanceof Number){
+                                getContext().setVariable(id.value.toString(), subtract((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.value.toString());
+                            }else{
+                                getReport().reportError("Cannot subtract " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
+                                return null;
+                            }
+                        }else{
+                            getReport().reportError("variable is not declared", id);
+                            return null;
+                        }
+                    }
+                };
+                ao.id = iterator.next();
+                ao.s = iterator.next();
+                ao.sRep = "-=";
+                ao.o1 = parseLevel14(iterator);
+                return ao;
+            }else if (peekAss.sym == LexSymbol.MULTEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+                AssignmentOperator ao = new AssignmentOperator() {
+                    @Override
+                    public Object evaluate() {
+                        if(getContext().hasVariable(id.value.toString())) {
+                            Object o1 = getContext().getVariable(id.value.toString());
+                            Object o2 = this.o1.evaluate();
+                            if(o1 instanceof Number && o2 instanceof Number){
+                                getContext().setVariable(id.value.toString(), multiply((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.value.toString());
+                            }else{
+                                getReport().reportError("Cannot multiply " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
+                                return null;
+                            }
+                        }else{
+                            getReport().reportError("variable is not declared", id);
+                            return null;
+                        }
+                    }
+                };
+                ao.id = iterator.next();
+                ao.s = iterator.next();
+                ao.sRep = "*=";
+                ao.o1 = parseLevel14(iterator);
+                return ao;
+            }else if (peekAss.sym == LexSymbol.DIVEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+                AssignmentOperator ao = new AssignmentOperator() {
+                    @Override
+                    public Object evaluate() {
+                        if(getContext().hasVariable(id.value.toString())) {
+                            Object o1 = getContext().getVariable(id.value.toString());
+                            Object o2 = this.o1.evaluate();
+                            if(o1 instanceof Number && o2 instanceof Number){
+                                getContext().setVariable(id.value.toString(), divide((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.value.toString());
+                            }else{
+                                getReport().reportError("Cannot divide " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
+                                return null;
+                            }
+                        }else{
+                            getReport().reportError("variable is not declared", id);
+                            return null;
+                        }
+                    }
+                };
+                ao.id = iterator.next();
+                ao.s = iterator.next();
+                ao.sRep = "/=";
+                ao.o1 = parseLevel14(iterator);
+                return ao;
+            }else if (peekAss.sym == LexSymbol.MODEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+                AssignmentOperator ao = new AssignmentOperator() {
+                    @Override
+                    public Object evaluate() {
+                        if(getContext().hasVariable(id.value.toString())) {
+                            Object o1 = getContext().getVariable(id.value.toString());
+                            Object o2 = this.o1.evaluate();
+                            if(o1 instanceof Number && o2 instanceof Number){
+                                getContext().setVariable(id.value.toString(), mod((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.value.toString());
+
+                            }else{
+                                getReport().reportError("Cannot mod " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
+                                return null;
+                            }
+                        }else{
+                            getReport().reportError("variable is not declared", id);
+                            return null;
+                        }
+                    }
+                };
+                ao.id = iterator.next();
+                ao.s = iterator.next();
+                ao.sRep = "%=";
+                ao.o1 = parseLevel14(iterator);
+                return ao;
+            }else if (peekAss.sym == LexSymbol.ANDEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+                AssignmentOperator ao = new AssignmentOperator() {
+                    @Override
+                    public Object evaluate() {
+                        if(getContext().hasVariable(id.value.toString())) {
+                            Object o1 = getContext().getVariable(id.value.toString());
+                            Object o2 = this.o1.evaluate();
+                            if(o1 instanceof Number && o2 instanceof Number && !(o1 instanceof Double || o2 instanceof Double || o1 instanceof Float || o2 instanceof Float)){
+                                getContext().setVariable(id.value.toString(), bitwiseAnd((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.value.toString());
+                            }else{
+                                getReport().reportError("Cannot and " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
+                                return null;
+                            }
+                        }else{
+                            getReport().reportError("variable is not declared", id);
+                            return null;
+                        }
+                    }
+                };
+                ao.id = iterator.next();
+                ao.s = iterator.next();
+                ao.sRep = "&=";
+                ao.o1 = parseLevel14(iterator);
+                return ao;
+            }else if (peekAss.sym == LexSymbol.OREQ && peekID.sym == LexSymbol.IDENTIFIER) {
+                AssignmentOperator ao = new AssignmentOperator() {
+                    @Override
+                    public Object evaluate() {
+                        if(getContext().hasVariable(id.value.toString())) {
+                            Object o1 = getContext().getVariable(id.value.toString());
+                            Object o2 = this.o1.evaluate();
+                            if(o1 instanceof Number && o2 instanceof Number && !(o1 instanceof Double || o2 instanceof Double || o1 instanceof Float || o2 instanceof Float)){
+                                getContext().setVariable(id.value.toString(), bitwiseOr((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.value.toString());
+                            }else{
+                                getReport().reportError("Cannot and " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
+                                return null;
+                            }
+                        }else{
+                            getReport().reportError("variable is not declared", id);
+                            return null;
+                        }
+                    }
+                };
+                ao.id = iterator.next();
+                ao.s = iterator.next();
+                ao.sRep = "|=";
+                ao.o1 = parseLevel14(iterator);
+                return ao;
+            }else if (peekAss.sym == LexSymbol.XOREQ && peekID.sym == LexSymbol.IDENTIFIER) {
+                AssignmentOperator ao = new AssignmentOperator() {
+                    @Override
+                    public Object evaluate() {
+                        if(getContext().hasVariable(id.value.toString())) {
+                            Object o1 = getContext().getVariable(id.value.toString());
+                            Object o2 = this.o1.evaluate();
+                            if(o1 instanceof Number && o2 instanceof Number && !(o1 instanceof Double || o2 instanceof Double || o1 instanceof Float || o2 instanceof Float)){
+                                getContext().setVariable(id.value.toString(), bitwiseXor((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.value.toString());
+                            }else{
+                                getReport().reportError("Cannot xor " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
+                                return null;
+                            }
+                        }else{
+                            getReport().reportError("variable is not declared", id);
+                            return null;
+                        }
+                    }
+                };
+                ao.id = iterator.next();
+                ao.s = iterator.next();
+                ao.sRep = "^=";
+                ao.o1 = parseLevel14(iterator);
+                return ao;
+            }else if (peekAss.sym == LexSymbol.LSHIFTEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+                AssignmentOperator ao = new AssignmentOperator() {
+                    @Override
+                    public Object evaluate() {
+                        if(getContext().hasVariable(id.value.toString())) {
+                            Object o1 = getContext().getVariable(id.value.toString());
+                            Object o2 = this.o1.evaluate();
+                            if(o1 instanceof Number && o2 instanceof Number && !(o1 instanceof Double || o2 instanceof Double || o1 instanceof Float || o2 instanceof Float)){
+                                getContext().setVariable(id.value.toString(), shiftLeft((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.value.toString());
+                            }else{
+                                getReport().reportError("Cannot shift left " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
+                                return null;
+                            }
+                        }else{
+                            getReport().reportError("variable is not declared", id);
+                            return null;
+                        }
+                    }
+                };
+                ao.id = iterator.next();
+                ao.s = iterator.next();
+                ao.sRep = "<<=";
+                ao.o1 = parseLevel14(iterator);
+                return ao;
+            }else if (peekAss.sym == LexSymbol.URSHIFTEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+                AssignmentOperator ao = new AssignmentOperator() {
+                    @Override
+                    public Object evaluate() {
+                        if(getContext().hasVariable(id.value.toString())) {
+                            Object o1 = getContext().getVariable(id.value.toString());
+                            Object o2 = this.o1.evaluate();
+                            if(o1 instanceof Number && o2 instanceof Number && !(o1 instanceof Double || o2 instanceof Double || o1 instanceof Float || o2 instanceof Float)){
+                                getContext().setVariable(id.value.toString(), uShiftRight((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.value.toString());
+                            }else{
+                                getReport().reportError("Cannot uShiftRight " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
+                                return null;
+                            }
+                        }else{
+                            getReport().reportError("variable is not declared", id);
+                            return null;
+                        }
+                    }
+                };
+                ao.id = iterator.next();
+                ao.s = iterator.next();
+                ao.sRep = ">>>=";
+                ao.o1 = parseLevel14(iterator);
+                return ao;
+            }else if (peekAss.sym == LexSymbol.RSHIFTEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+                AssignmentOperator ao = new AssignmentOperator() {
+                    @Override
+                    public Object evaluate() {
+                        if(getContext().hasVariable(id.value.toString())) {
+                            Object o1 = getContext().getVariable(id.value.toString());
+                            Object o2 = this.o1.evaluate();
+                            if(o1 instanceof Number && o2 instanceof Number && !(o1 instanceof Double || o2 instanceof Double || o1 instanceof Float || o2 instanceof Float)){
+                                getContext().setVariable(id.value.toString(), bitwiseOr((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.value.toString());
+                            }else{
+                                getReport().reportError("Cannot right shift " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
+                                return null;
+                            }
+                        }else{
+                            getReport().reportError("variable is not declared", id);
+                            return null;
+                        }
+                    }
+                };
+                ao.id = iterator.next();
+                ao.s = iterator.next();
+                ao.sRep = ">>=";
+                ao.o1 = parseLevel14(iterator);
+                return ao;
+            }else{
+                return parseLevel13(iterator);
+            }
         }
 
         public AST parseLevel13(PeekEverywhereIterator<LexSymbol> iterator){
@@ -462,11 +1152,11 @@ public class ExpressionEvaluator {
                 to.o1 = ast;
                 to.s1 = iterator.next();
                 to.s1Rep = "?";
-                to.o2 = parseLevel15(iterator);
+                to.o2 = parseLevel12(iterator);
                 if(iterator.peek_ahead().sym == LexSymbol.COLON){
                     to.s2 = iterator.next();
                     to.s2Rep = ":";
-                    to.o3 = parseLevel15(iterator);
+                    to.o3 = parseLevel12(iterator);
                     return to;
                 }else{
                     getReport().reportError(iterator.next());
@@ -781,6 +1471,26 @@ public class ExpressionEvaluator {
                     bo.o2 = parseLevel4(iterator);
                     ast = bo;
 
+                }else if(peek.sym == LexSymbol.URSHIFT){
+                    BinaryOperator bo = new BinaryOperator() {
+                        @Override
+                        public Object evaluate() {
+                            Object o1 = this.o1.evaluate();
+                            Object o2 = this.o2.evaluate();
+                            if(o1 instanceof Number && o2 instanceof Number && !(o1 instanceof Double || o2 instanceof Double || o1 instanceof Float || o2 instanceof Float)){
+                                return uShiftRight((Number)o1, (Number)o2);
+                            }else{
+                                getReport().reportError("Cannot uShiftRight " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
+                                return null;
+                            }
+                        }
+                    };
+                    bo.o1 = ast;
+                    bo.s = iterator.next();
+                    bo.sRep = ">>>";
+                    bo.o2 = parseLevel4(iterator);
+                    ast = bo;
+
                 }else if(peek.sym == LexSymbol.RSHIFT){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
@@ -1092,6 +1802,8 @@ public class ExpressionEvaluator {
                     getReport().reportError("Brackets not terminated / unexpected symbol", iterator.peek_behind());
                     ast = null;
                 }
+            }else if(sym.sym == LexSymbol.COLON && iterator.peek_ahead(1).sym == LexSymbol.COLON){
+                return ast;
             }
 
             return ast;
@@ -1103,7 +1815,7 @@ public class ExpressionEvaluator {
 
     private static final NumberComparator NUMBER_COMPARATOR = new NumberComparator();
 
-    private static class NumberComparator implements Comparator {
+    private static class NumberComparator implements Comparator<Object> {
         @SuppressWarnings("unchecked")
         @Override
         public int compare(Object number1, Object number2) {
@@ -1111,7 +1823,7 @@ public class ExpressionEvaluator {
                 // both numbers are instances of the same type!
                 if (number1 instanceof Comparable) {
                     // and they implement the Comparable interface
-                    return ((Comparable) number1).compareTo(number2);
+                    return ((Comparable<Object>) number1).compareTo(number2);
                 }
             }
             // for all different Number types, let's check there double values
@@ -1230,6 +1942,19 @@ public class ExpressionEvaluator {
             return a.shortValue() >> b.shortValue();
         } else if (a instanceof Byte || b instanceof Byte) {
             return a.byteValue() >> b.byteValue();
+        }
+        return null;
+    }
+
+    public static Number uShiftRight(Number a, Number b) {
+        if (a instanceof Long || b instanceof Long) {
+            return a.longValue() >>> b.longValue();
+        } else if (a instanceof Integer || b instanceof Integer) {
+            return a.intValue() >>> b.intValue();
+        } else if (a instanceof Short || b instanceof Short) {
+            return a.shortValue() >>> b.shortValue();
+        } else if (a instanceof Byte || b instanceof Byte) {
+            return a.byteValue() >>> b.byteValue();
         }
         return null;
     }

@@ -11,6 +11,8 @@ import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIterat
 
 import java.io.File;
 import java.io.StringReader;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class ExpressionEvaluatorTest {
@@ -18,50 +20,81 @@ public class ExpressionEvaluatorTest {
     @Test
     public void Test(){
 
-        TestContext tc = new TestContext();
-
         for(Map.Entry<String, Object> entry:Expressions.resultExpressionMap.entrySet()){
 
             System.out.println(entry.getKey());
-            if(entry.getKey().startsWith("{sin(toRadians(toDegrees(PI/2))), !!false ? 12 : 10, 4}")){
-                System.out.println(entry.getKey());
-            }
+
             AssemblerScanner as = new AssemblerScanner(new StringReader(entry.getKey()), new File(""), false);
 
             PeekEverywhereIterator<LexSymbol> iterator = new PeekEverywhereIteratorWrapper<>(as);
 
-            CompiledExpression e = ExpressionEvaluator.evaluateExpression(iterator, new PreProcessorReportWrapper(new LoggerReport()));
+            ExpressionEvaluator.$CompiledExpression e = ExpressionEvaluator.evaluateExpression(iterator, new PreProcessorReportWrapper(new LoggerReport()));
 
+            TestContext tc = new TestContext();
             e.setContext(tc);
             Object got = e.evaluateExpression();
             Assert.assertEquals(entry.getValue(), got);
             System.out.println(entry.getValue() + " ## " + got);
             System.out.println(entry.getKey() + " ## " + e.toString());
-            System.out.println(e.toSymbols());
+
+            StringBuilder buffer = new StringBuilder(50);
+            print(e.getAsTree(), buffer, "", "");
+            System.out.println(buffer);
+        }
+    }
+
+    private void print(ExpressionEvaluator.$CompiledExpression.Node<LexSymbol> tree, StringBuilder buffer, String prefix, String childrenPrefix) {
+
+        buffer.append(prefix);
+        if(tree.isLeaf()){
+            buffer.append(LexSymbol.terminalNames[tree.getValue().sym]);
+            if(tree.getValue().value != null){
+                buffer.append(" '" + tree.getValue().value + "'");
+            }
+            buffer.append('\n');
+            return;
+        }else{
+            buffer.append(tree.getType().name());
+            buffer.append('\n');
         }
 
+        for (Iterator<ExpressionEvaluator.$CompiledExpression.Node<LexSymbol>> it = tree.getChildren().iterator(); it.hasNext();) {
+            ExpressionEvaluator.$CompiledExpression.Node<LexSymbol> next = it.next();
+            if (it.hasNext()) {
+                print(next, buffer, childrenPrefix + "|-- ", childrenPrefix + "|   ");
+            } else {
+                print(next, buffer, childrenPrefix + "\\-- ", childrenPrefix + "    ");
+            }
+        }
     }
 
     private static class TestContext extends Context{
+
+        private HashMap<String, Object> variables = new HashMap<>();
 
         public static class TestDummyObject{
             public final static int someMember = 22;
         }
 
+        public TestContext(){
+            variables.put("pi", Math.PI);
+            variables.put("PI", Math.PI);
+            variables.put("TestDummyObject.someMember", TestDummyObject.someMember);
+        }
+
+        @Override
+        public void setVariable(String id, Object value) {
+            variables.put(id, value);
+        }
+
         @Override
         public Object getVariable(String value) {
-            if(value.equals("pi") || value.equals("PI")){
-                return Math.PI;
-            }else if(value.equals("TestDummyObject.someMember")){
-                return TestDummyObject.someMember;
-            }else{
-                return null;
-            }
+            return variables.get(value);
         }
 
         @Override
         public boolean hasVariable(String value) {
-            return value.equals("pi") || value.equals("PI") || value.equals("TestDummyObject.someMember");
+            return variables.containsKey(value);
         }
 
         @Override

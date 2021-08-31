@@ -116,14 +116,17 @@ public class PreProcessor implements Iterator<LexSymbol>{
                     s = iteratorStack.next();
                 }
 
+                exitIf:
                 if(s.sym == LexSymbol.INSTRUCTION){
                     CompiledExpression[] arguments =
                             ExpressionEvaluator.evaluateCommaSeparatedExpressions(this.iteratorStack.peek_iterator_stack(), report());
                     if(iteratorStack.peek_iterator_stack().peek_ahead().sym != LexSymbol.LINE_TERMINATOR && iteratorStack.peek_iterator_stack().peek_ahead().sym != LexSymbol.EOF){
-                            this.report().reportError("Unexpected token found at the end of arguments", iteratorStack.peek_iterator_stack().peek_ahead());
-                            while(iteratorStack.peek_iterator_stack().peek_ahead().sym != LexSymbol.LINE_TERMINATOR && iteratorStack.peek_iterator_stack().peek_ahead().sym != LexSymbol.EOF){
-                                iteratorStack.peek_iterator_stack().next();
-                            }
+                        this.report().reportError("Unexpected token found at the end of arguments", iteratorStack.peek_iterator_stack().peek_ahead());
+                        while(iteratorStack.peek_iterator_stack().peek_ahead().sym != LexSymbol.LINE_TERMINATOR && iteratorStack.peek_iterator_stack().peek_ahead().sym != LexSymbol.EOF){
+                            iteratorStack.peek_iterator_stack().next();
+                        }
+                        s = null;
+                        break exitIf;
                     }
                     if(definedMacros.hasAvailableMacro(s.value.toString(), arguments.length)){
                         MACRO.MacroDefinition md = definedMacros.getAvailableMacro(s.value.toString(), arguments.length);
@@ -170,6 +173,9 @@ public class PreProcessor implements Iterator<LexSymbol>{
 
     public void clear(){
         iteratorStack.clear_peek_behind();
+        definedMacros.clear();
+        filterStack.clear();
+        iteratorStack.clear();
         atEOF = false;
     }
 
@@ -224,6 +230,10 @@ public class PreProcessor implements Iterator<LexSymbol>{
                 macros.get(mID.getIDName()).removeMacro(mID);
             }
             //does not contain
+        }
+
+        public void clear() {
+            macros.clear();
         }
 
         private class pp{

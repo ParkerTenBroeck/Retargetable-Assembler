@@ -35,6 +35,8 @@ public class Expressions {
 
         resultExpressionMap.put("8 << 1", 16);
         resultExpressionMap.put("8 >> 1", 4);
+        resultExpressionMap.put("16 >>> 4", 16 >>> 4);
+        resultExpressionMap.put("-16 >>> 4", -16 >>> 4);
 
         resultExpressionMap.put("8 > 2", true);
         resultExpressionMap.put("2 > 8", false);
@@ -70,6 +72,15 @@ public class Expressions {
 
 
         resultExpressionMap.put("TestDummyObject.someMember", TestExpressionScope.TestDummyObject.someMember);
-    }
 
+        resultExpressionMap.put("a = 4", 4);
+        resultExpressionMap.put("a = 2, a", 2);
+        resultExpressionMap.put("a = b = c = 2, a", 2);
+        resultExpressionMap.put("a = b = c = 2, b", 2);
+        resultExpressionMap.put("a = b = c = 2, c", 2);
+
+        resultExpressionMap.put("a = b = c = 2, c", 2);
+        resultExpressionMap.put("a = 2, b = 15, a + b", 17);
+        resultExpressionMap.put("a = c = 2, b = 15, (a + b) * c", 34);
+    }
 }

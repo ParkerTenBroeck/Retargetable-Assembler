@@ -8,6 +8,10 @@ public class IteratorStack<T> extends PeekBehindIteratorAbstract<T> implements P
     private Stack<PeekEverywhereIterator<T>> iteratorStack = new Stack<>();
     private int maxScannerStackSize = 32;
 
+    public void clear(){
+        iteratorStack.clear();
+    }
+
 
     public void setMaxScannerStackSize(int size){
         if(size < iteratorStack.size()){
