@@ -5,12 +5,15 @@ class Assembler;
 terminal DIRECTIVE;
 terminal INSTRUCTION;
 terminal LABEL;
+terminal MACRO;
 
 terminal WHITESPACE;
 
 terminal RESERVE_WORD;
 
 terminal LINE_TERMINATOR;
+
+terminal BACKSLASH;
 
 terminal BOOLEAN; // primitive_type
 terminal BYTE, SHORT, INT, LONG, CHAR; // integral_type

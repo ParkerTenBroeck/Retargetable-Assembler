@@ -12,7 +12,7 @@ public class ExpressionEvaluator {
     public static $CompiledExpression[] evaluateCommaSeparatedExpressions(PeekEverywhereIterator<LexSymbol> iterator, PreProcessorReportWrapper report){
         ArrayList<$CompiledExpression> expressions = new ArrayList<>();
         while(iterator.peek_ahead().sym != LexSymbol.LINE_TERMINATOR && iterator.peek_ahead().sym != LexSymbol.EOF){
-            expressions.add(evaluateExpression(iterator, report));
+            expressions.add(evaluateExpressionList(iterator, report));
             if(iterator.peek_ahead().sym != LexSymbol.COMMA){
                 break;
             }else{
@@ -20,6 +20,14 @@ public class ExpressionEvaluator {
             }
         }
         return expressions.toArray(new $CompiledExpression[0]);
+    }
+
+    public static $CompiledExpression evaluateExpressionList(PeekEverywhereIterator<LexSymbol> iterator, PreProcessorReportWrapper report){
+        try {
+            return new $CompiledExpression(iterator, report, true);
+        }catch (Exception ignored){
+            return null;
+        }
     }
 
     public static $CompiledExpression evaluateExpression(PeekEverywhereIterator<LexSymbol> iterator, PreProcessorReportWrapper report){
@@ -33,10 +41,19 @@ public class ExpressionEvaluator {
     protected static class $CompiledExpression extends CompiledExpression{
 
         AST compiledExpression;
+        boolean valid = true;
 
         public $CompiledExpression(PeekEverywhereIterator<LexSymbol> iterator, PreProcessorReportWrapper report){
+            this(iterator, report, false);
+        }
+
+        public $CompiledExpression(PeekEverywhereIterator<LexSymbol> iterator, PreProcessorReportWrapper report, boolean list){
             this.setReport(report);
-            this.compiledExpression = parseLevel15(iterator);
+            if(list) {
+                this.compiledExpression = parseLevel14(iterator);
+            }else{
+                this.compiledExpression = parseLevel15(iterator);
+            }
         }
 
         @Override
@@ -46,6 +63,11 @@ public class ExpressionEvaluator {
             }catch (Exception ignored){
                 return null;
             }
+        }
+
+        @Override
+        public boolean isValid() {
+            return valid;
         }
 
         @Override
@@ -198,12 +220,14 @@ public class ExpressionEvaluator {
             public Object evaluate() {
                 if(getContext() == null){
                     getReport().reportError("Given Context is null aborting evaluation", this.toSymbols());
+                    valid = false;
                     throw new RuntimeException();
                 }
                 if(getContext().hasVariable(variableIdent.value.toString())){
                     return getContext().getVariable(variableIdent.value.toString());
                 }else{
                     getReport().reportError("'" + variableIdent.value + "' is not defined in the current scope", variableIdent);
+                    valid = false;
                     return null;
                 }
             }
@@ -740,7 +764,7 @@ public class ExpressionEvaluator {
                 if(getContext().hasFunction(funcIdent.value.toString(), arguments == null ? 0 : arguments.getNum())){
                     return getContext().evaluateFunction(funcIdent.value.toString(), arguments.getNum(), arguments.evaluate());
                 }else{
-                    getReport().reportError(funcIdent);
+                    getReport().reportError("No Function: " + funcIdent.value + " with: " + arguments.getNum() + " declared in the current context", funcIdent);
                     return null;
                 }
             }
@@ -821,15 +845,8 @@ public class ExpressionEvaluator {
             }
         }
 
-        void t(int i ){
-            System.out.println(i);
-        }
-
 
         public AST parseLevel14(PeekEverywhereIterator<LexSymbol> iterator){
-            int x = 10;
-            t(x + 1);
-
             LexSymbol peekID = iterator.peek_ahead();
             LexSymbol peekAss = iterator.peek_ahead(1);
 
@@ -1159,7 +1176,7 @@ public class ExpressionEvaluator {
                     to.o3 = parseLevel12(iterator);
                     return to;
                 }else{
-                    getReport().reportError(iterator.next());
+                    getReport().unexpectedTokenError(iterator.next());
                     return null;
                 }
             }else{
@@ -1744,6 +1761,7 @@ public class ExpressionEvaluator {
                     }
                     if(iterator.peek_ahead().sym != LexSymbol.RPAREN){
                         getReport().reportError("Un terminated brackets / unexpected token", iterator.next());
+                        valid = false;
                     }else{
                         func.b2 = iterator.next();
                     }
@@ -1760,6 +1778,7 @@ public class ExpressionEvaluator {
                     ast = p;
                 }else{
                     getReport().reportError("Brackets not terminated / unexpected symbol", iterator.peek_behind());
+                    valid = false;
                     ast = null;
                 }
 
@@ -1772,6 +1791,7 @@ public class ExpressionEvaluator {
                     ast = p;
                 }else{
                     getReport().reportError("Braces not terminated / unexpected symbol", iterator.peek_behind());
+                    valid = false;
                     ast = null;
                 }
             }else{ //constants
@@ -1784,7 +1804,8 @@ public class ExpressionEvaluator {
                         ast = new Constant(sym);
                         break;
                     default:
-                        getReport().reportError(sym);
+                        getReport().reportError("Unexpected Symbol found while evaluating expression",sym);
+                        valid = false;
                         ast = null;
                 }
             }
@@ -1800,6 +1821,7 @@ public class ExpressionEvaluator {
                     ast = p;
                 }else{
                     getReport().reportError("Brackets not terminated / unexpected symbol", iterator.peek_behind());
+                    valid = false;
                     ast = null;
                 }
             }else if(sym.sym == LexSymbol.COLON && iterator.peek_ahead(1).sym == LexSymbol.COLON){

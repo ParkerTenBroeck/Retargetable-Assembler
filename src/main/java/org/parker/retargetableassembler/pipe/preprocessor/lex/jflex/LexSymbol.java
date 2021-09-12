@@ -12,6 +12,7 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
     private final int size;
     private final long charPos;
     private final File file;
+    private LexSymbol parent;
 
     public LexSymbol(int type, int line,  int column, long charPos, int size) {
         this(null, type, line, column, charPos, size, -1, -1, null);
@@ -28,6 +29,15 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
         this(file, type, line, column, charPos, size, -1, -1, value);
     }
 
+    public void setParent(LexSymbol parent){
+        this.parent = parent;
+    }
+
+    @Override
+    public LexSymbol clone() {
+        return new LexSymbol(file, sym, line, column, charPos, size, left, right, value, parent);
+    }
+
     /** Default is always NULL EOF
      *
      */
@@ -36,16 +46,21 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
     }
 
     public LexSymbol(int sym_num) {
-        this(null, sym_num, -1, -1, -1, -1, -1, -1, null);
+        this(null, sym_num, -1, -1, -1, -1, -1, -1, null, null);
     }
 
-    public LexSymbol(File file, int type, int line, int column, long charPos, int size, int left, int right, Object value) {
+    public LexSymbol(File file, int type, int line, int column, long charPos, int size, int left, int right, Object value, LexSymbol parent) {
         super(type, left, right, value);
         this.file = file;
         this.line = line;
         this.column = column;
         this.charPos = charPos;
         this.size = size;
+        this.parent = parent;
+    }
+
+    public LexSymbol(File file, int type, int line, int column, long charPos, int size, int left, int right, Object value) {
+        this(file, type, line, column, charPos, size, left, right, value, null);
     }
 
     public int getLine() {
@@ -68,6 +83,10 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
         return file;
     }
 
+    public LexSymbol getParent(){
+        return parent;
+    }
+
     public String toString() {
         return "line: "
                 + (line + 1)
@@ -86,7 +105,6 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
                 + file.getAbsolutePath()
                 + (value == null ? "" : (" , value: '" + value + "'"))
                 + "\n";
-
     }
 
     public static LexSymbol combine(int newType, Object newVal, LexSymbol sym1, LexSymbol sym2){
@@ -104,5 +122,4 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
             return null;
         }
     }
-
 }

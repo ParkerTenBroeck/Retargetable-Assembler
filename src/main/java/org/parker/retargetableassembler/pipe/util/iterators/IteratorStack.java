@@ -14,7 +14,7 @@ public class IteratorStack<T> extends PeekBehindIteratorAbstract<T> implements P
 
 
     public void setMaxScannerStackSize(int size){
-        if(size < iteratorStack.size()){
+        if(size < iteratorStack.size() && size != -1){
             throw new IndexOutOfBoundsException("new size exceeds current size");
         }
         maxScannerStackSize = size;
@@ -29,7 +29,7 @@ public class IteratorStack<T> extends PeekBehindIteratorAbstract<T> implements P
     }
 
     public void push_iterator_stack(Iterator<T> iterator){
-        if(iteratorStack.size() >= maxScannerStackSize){
+        if(iteratorStack.size() >= maxScannerStackSize && maxScannerStackSize != -1){
             throw new IndexOutOfBoundsException("max stack size reached");
         }
         if(iterator instanceof PeekEverywhereIterator){

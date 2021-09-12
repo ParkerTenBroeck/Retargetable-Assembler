@@ -1,3 +1,25 @@
+;rbuh
+;content: addi $4, $4, 1 ;a;lkjasd;lkjasdf;lkj comment
+
+.macro argTestInside 1
+db $_0, f / *
+db $_1
+.endmacro
+
+.macro argTest 1
+argTestInside $_1
+.endmacro
+
+.content:
+argTest $_0
+
+.macro addM 3
+add $_1, $_2, $_3
+.endmacro
+
+
+addM $4, $4, {1\,3}[2]
+
 .macro $_12testMacro 2-5+
     add $5, $8, $2
     add $5, $8, $2
@@ -80,7 +102,6 @@ to see if this works \
 .emsg "this is a test", "LOOL"
 .wmsg "jk its a warning"
 
-
 .bruh 012 't' '\f'
 .include "test2i.asm"
 
@@ -117,6 +138,18 @@ trap 0
 
 trap 0xFF
 trap 012
+
+" hel no
+
+hello \
+test line
+
+hello2 \,
+test2
+
+hello3 \, test3
+
+hello4 \ test4
 
 trap 0.2
 trap 0.3d

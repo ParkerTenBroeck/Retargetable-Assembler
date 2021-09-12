@@ -1,5 +1,6 @@
 package org.parker.retargetableassembler.pipe;
 
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.util.AssemblerLogLevel;
 
 import java.util.logging.Level;
@@ -9,33 +10,41 @@ public class LoggerReport implements Report{
 
     private static final Logger LOGGER = Logger.getLogger("PipeLine_Report");
 
-    @Override
-    public void reportCodeError(String message){
-        LOGGER.log(Level.SEVERE, message);
-    }
 
     @Override
-    public void reportCodeError(Exception e){
-        LOGGER.log(Level.SEVERE, "", e);
-    }
+    public void report(String message, Exception e, LexSymbol parent, ReportLevel level) {
+        Level l;
+        String levelID;
+        switch (level){
+            case message:
+                l = AssemblerLogLevel.ASSEMBLER_MESSAGE;
+                levelID = "Message";
+                break;
+            case warning:
+                l = AssemblerLogLevel.ASSEMBLER_WARNING;
+                levelID = "Warning";
+                break;
+            case error:
+                l = AssemblerLogLevel.ASSEMBLER_ERROR;
+                levelID = "Error";
+                break;
+            case codeError: default:
+                l = Level.SEVERE;
+                levelID = "Severe Error";
+                break;
+        }
+        message = levelID + ": " + message;
+        if(parent != null){
+            message = parent.getFile().getPath() + ":" + parent.getLine() + ": " + message;
+            parent = parent.getParent();
+            while(parent != null){
+                message += "\n" + parent.getFile().getPath() + ":" + parent.getLine() + ": ... from " +
+                        LexSymbol.terminalNames[parent.sym] + " " + parent.value + " defined here";
+                parent = parent.getParent();
+            }
+        }
 
-    @Override
-    public void reportCodeError(String message, Exception e){
-        LOGGER.log(Level.SEVERE, message, e);
-    }
-
-    @Override
-    public void reportError(String message){
-        LOGGER.log(AssemblerLogLevel.ASSEMBLER_ERROR, message);
-    }
-
-    @Override
-    public void reportWarning(String message){
-        LOGGER.log(AssemblerLogLevel.ASSEMBLER_WARNING, message);
-    }
-
-    @Override
-    public void reportMessage(String message){
-        LOGGER.log(AssemblerLogLevel.ASSEMBLER_MESSAGE, message);
+        System.out.println(message);
+        if(e!=null)e.printStackTrace();
     }
 }

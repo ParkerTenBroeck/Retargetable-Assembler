@@ -1,5 +1,7 @@
 package org.parker.retargetableassembler.pipe;
 
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
+
 import java.util.ArrayList;
 
 public class MultiReporter implements Report {
@@ -19,32 +21,7 @@ public class MultiReporter implements Report {
     }
 
     @Override
-    public void reportCodeError(String message) {
-        reports.forEach(report -> report.reportCodeError(message));
-    }
-
-    @Override
-    public void reportCodeError(Exception e) {
-        reports.forEach(report -> report.reportCodeError(e));
-    }
-
-    @Override
-    public void reportCodeError(String message, Exception e) {
-        reports.forEach(report -> report.reportCodeError(message, e));
-    }
-
-    @Override
-    public void reportError(String message) {
-        reports.forEach(report -> report.reportError(message));
-    }
-
-    @Override
-    public void reportWarning(String message) {
-        reports.forEach(report -> report.reportWarning(message));
-    }
-
-    @Override
-    public void reportMessage(String message) {
-        reports.forEach(report -> report.reportWarning(message));
+    public void report(String message, Exception e, LexSymbol parent, ReportLevel level) {
+        reports.forEach(report -> report.report(message, e, parent, level));
     }
 }

@@ -26,5 +26,7 @@ public abstract class CompiledExpression {
         this.report = report;
     }
 
+    public abstract boolean isValid();
+
     public abstract List<LexSymbol> toSymbols();
 }

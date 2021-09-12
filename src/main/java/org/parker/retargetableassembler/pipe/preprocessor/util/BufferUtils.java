@@ -1,8 +1,15 @@
 package org.parker.retargetableassembler.pipe.preprocessor.util;
 
 import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
+import org.parker.retargetableassembler.pipe.util.iterators.PeekAheadIterator;
+import org.parker.retargetableassembler.pipe.util.iterators.PeekAheadIteratorAbstract;
+import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIterator;
+import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIteratorAbstract;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,6 +39,53 @@ public class BufferUtils {
         return;
     }
 
+    public static<T> List<T> iteratorToArrayList(Iterator<T> i){
+        ArrayList<T> tmp = new ArrayList<>();
+        i.forEachRemaining(o -> tmp.add(o));
+        return tmp;
+    }
+
+    public static<T> Iterator<T> iteratorFromList(List<T> list){
+        return new Iterator<T>() {
+            final T[] data;
+            int index = 0;
+            {
+                data = list.toArray((T[])new Object[0]);
+            }
+            @Override
+            public boolean hasNext() {
+                return index >= data.length;
+            }
+
+            @Override
+            public T next() {
+                if(index >= data.length) return data[data.length - 1];
+                return data[index++];
+            }
+        };
+    }
+
+    public static<T> PeekEverywhereIterator<T> peekEverywhereIteratorFromList(List<T> list){
+        return new PeekEverywhereIteratorAbstract<T>() {
+            final T[] data;
+            int index = 0;
+            {
+                data = list.toArray((T[])new Object[0]);
+            }
+            @Override
+            public boolean hasNext() {
+                return index < data.length && index >= 0;
+            }
+
+            @Override
+            protected T next_peekless() {
+                if(index >= data.length) return data[index - 1];
+                return data[index++];
+            }
+
+        };
+    }
+
     public static LineTerminatorIterator tillLineTerminator(Iterator<LexSymbol> iterator, boolean includeLineTerminator) {
         return new LineTerminatorIterator(iterator, includeLineTerminator);
     }
@@ -39,6 +93,7 @@ public class BufferUtils {
     public static class LineTerminatorIterator implements Iterator<LexSymbol> {
 
         private LexSymbol next;
+        private LexSymbol last;
         private Iterator<LexSymbol> iterator;
         private boolean includeLineTerminator;
 
@@ -60,6 +115,7 @@ public class BufferUtils {
                 return false;
             }else{
                 if(next.sym == LexSymbol.LINE_TERMINATOR && includeLineTerminator){
+                    last = next;
                     next = null;
                     return true;
                 }else{
@@ -73,6 +129,7 @@ public class BufferUtils {
             LexSymbol curr = next;
 
             if(next == null || next.sym == LexSymbol.LINE_TERMINATOR || next.sym == LexSymbol.EOF){
+                if(includeLineTerminator) return last;
                 return next;
             }
 

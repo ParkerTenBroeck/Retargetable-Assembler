@@ -68,7 +68,7 @@ public class ExpressionEvaluatorTest {
         }
     }
 
-    private static class TestContext extends Context{
+    private static class TestContext implements Context{
 
         private HashMap<String, Object> variables = new HashMap<>();
 

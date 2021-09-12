@@ -27,51 +27,30 @@ public class PreProcessorReportWrapper {
     }
 
     public void unexpectedTokenError(LexSymbol unexpectedToken){
-        report.reportError(unexpectedToken.getFile().getPath() + " " +
-                "line:" + (unexpectedToken.getLine() + 1) + " " +
-                "column:" + (unexpectedToken.getColumn() + 1) + " " +
-                "Error: Unexpected token '" + LexSymbol.terminalNames[unexpectedToken.sym] + "'");
+        report.reportError("Error: Unexpected token '" +
+                LexSymbol.terminalNames[unexpectedToken.sym] + "'", unexpectedToken);
     }
 
     public void unexpectedTokenError(LexSymbol unexpectedToken, int expected){
-        report.reportError(unexpectedToken.getFile().getPath() + " " +
-                "line:" + (unexpectedToken.getLine() + 1) + " " +
-                "column:" + (unexpectedToken.getColumn() + 1) + " " +
-                "Error: Unexpected token '" + LexSymbol.terminalNames[unexpectedToken.sym] + "' " +
-                "Expected: '" + LexSymbol.terminalNames[expected] + "'");
-    }
-
-    public void reportError(LexSymbol cause){
-        report.reportError(cause.getFile().getPath() + " " +
-                "line:" + (cause.getLine() + 1) + " " +
-                "column:" + (cause.getColumn() + 1) + " " +
-                "Error:");
+        report.reportError("Unexpected token: " + "'" + LexSymbol.terminalNames[unexpectedToken.sym] + "'" +
+                "Expected: '" + LexSymbol.terminalNames[expected] + "'", unexpectedToken);
     }
 
     public void reportError(String message, LexSymbol cause){
-        report.reportError(cause.getFile().getPath() + " " +
-                "line:" + (cause.getLine() + 1) + " " +
-                "column:" + (cause.getColumn() + 1) + " " +
-                "Error: " + message);
+        report.reportError(message, cause);
     }
 
     public void reportError(String message, Collection<LexSymbol> causeCollection){
         LexSymbol cause = LexSymbol.combine(LexSymbol.IDENTIFIER, null, causeCollection);
-        report.reportError(cause.getFile().getPath() + " " +
-                "line:" + (cause.getLine() + 1) + " " +
-                "column:" + (cause.getColumn() + 1) + " " +
-                "Error: " + message);
+        report.reportError(message, cause);
     }
 
     public void reportWarning(String message, LexSymbol cause) {
-        report.reportWarning(cause.getFile().getPath() + " " +
-            "line:" + (cause.getLine() + 1) + " " +
-            "column:" + (cause.getColumn() + 1) + " " +
-            "Warning: " + message);
+        report.reportWarning(message, cause);
     }
 
     public void reportMessage(String message) {
-        report.reportMessage("Message: " + message);
+        report.reportMessage(message);
     }
 
     public Report getReport() {

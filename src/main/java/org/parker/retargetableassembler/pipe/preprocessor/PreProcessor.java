@@ -7,13 +7,12 @@ import org.parker.retargetableassembler.pipe.preprocessor.lex.cup.AssemblerSym;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.Directives;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.other.MACRO;
+import org.parker.retargetableassembler.pipe.preprocessor.util.BufferUtils;
 import org.parker.retargetableassembler.pipe.preprocessor.util.PreProcessorOutputFilter;
 import org.parker.retargetableassembler.pipe.util.iterators.IteratorStack;
+import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIterator;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class PreProcessor implements Iterator<LexSymbol>{
 
@@ -118,24 +117,34 @@ public class PreProcessor implements Iterator<LexSymbol>{
 
                 exitIf:
                 if(s.sym == LexSymbol.INSTRUCTION){
-                    CompiledExpression[] arguments =
-                            ExpressionEvaluator.evaluateCommaSeparatedExpressions(this.iteratorStack.peek_iterator_stack(), report());
-                    if(iteratorStack.peek_iterator_stack().peek_ahead().sym != LexSymbol.LINE_TERMINATOR && iteratorStack.peek_iterator_stack().peek_ahead().sym != LexSymbol.EOF){
+                    Iterator<LexSymbol> endOfLineIterator = BufferUtils.tillLineTerminator(iteratorStack.peek_iterator_stack(), true);
+                    List<LexSymbol> endOfLineData = BufferUtils.iteratorToArrayList(endOfLineIterator);
+                    PeekEverywhereIterator<LexSymbol> reusableIterator = BufferUtils.peekEverywhereIteratorFromList(endOfLineData);
+
+                    List<List<LexSymbol>> macroArguments = MACRO.splitMacroArguments(reusableIterator);
+
+                    if(reusableIterator.peek_ahead().sym != LexSymbol.LINE_TERMINATOR && reusableIterator.peek_ahead().sym != LexSymbol.EOF){
                         this.report().reportError("Unexpected token found at the end of arguments", iteratorStack.peek_iterator_stack().peek_ahead());
-                        while(iteratorStack.peek_iterator_stack().peek_ahead().sym != LexSymbol.LINE_TERMINATOR && iteratorStack.peek_iterator_stack().peek_ahead().sym != LexSymbol.EOF){
-                            iteratorStack.peek_iterator_stack().next();
-                        }
                         s = null;
                         break exitIf;
                     }
-                    if(definedMacros.hasAvailableMacro(s.value.toString(), arguments.length)){
-                        MACRO.MacroDefinition md = definedMacros.getAvailableMacro(s.value.toString(), arguments.length);
-                        iteratorStack.push_iterator_stack(new MACRO.MacroIterator(md));
+                    if(definedMacros.hasAvailableMacro(s.value.toString(), macroArguments.size())){
+                        MACRO.MacroDefinition md = definedMacros.getAvailableMacro(s, macroArguments.size());
+                        iteratorStack.push_iterator_stack(new MACRO.MacroIterator(md, macroArguments));
                         s = null;
                     }else{
                         InstructionDefinition id = new InstructionDefinition();
                         id.instruction = s;
-                        id.arguments = arguments;
+                        reusableIterator = BufferUtils.peekEverywhereIteratorFromList(endOfLineData);
+                        id.arguments =
+                                ExpressionEvaluator.evaluateCommaSeparatedExpressions(reusableIterator, report());
+                        for(CompiledExpression e: id.arguments) {
+                            if(!e.isValid()){
+                                this.report().reportError("Invalid arguments. Skipping over instruction", s);
+                                s = null;
+                                break exitIf;
+                            }
+                        }
                         LexSymbol last = this.iteratorStack.peek_iterator_stack().peek_behind();
                         s = new LexSymbol(s.getFile(), s.sym, s.getLine(), s.getColumn(), s.getCharPos(),
                                 (int) ((last.getCharPos() + last.getSize()) - s.getCharPos()),
@@ -204,9 +213,14 @@ public class PreProcessor implements Iterator<LexSymbol>{
             return false;
         }
 
-        public MACRO.MacroDefinition getAvailableMacro(String id, int args){
-            if(macros.containsKey(id)){
-                return macros.get(id).getAvailableMacro(args);
+        public MACRO.MacroDefinition getAvailableMacro(LexSymbol id, int args){
+            if(macros.containsKey(id.value)){
+                MACRO.MacroDefinition md = macros.get(id.value).getAvailableMacro(args);
+                if(md != null){
+                    md = md.clone();
+                    md.updateID(id);
+                    return md;
+                }
             }
             return null;
         }

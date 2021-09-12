@@ -1,14 +1,14 @@
 package org.parker.retargetableassembler.pipe.preprocessor.expressions;
 
-public abstract class Context {
+public interface Context {
 
-    public abstract void setVariable(String id, Object value);
-    public abstract Object getVariable(String id);
-    public abstract boolean hasVariable(String id);
+    void setVariable(String id, Object value);
+    Object getVariable(String id);
+    boolean hasVariable(String id);
 
-    public abstract Object evaluateFunction(String toString, int num, Object[] evaluate);
-    public abstract boolean hasFunction(String toString, int num);
+    Object evaluateFunction(String toString, int num, Object[] evaluate);
+    boolean hasFunction(String toString, int num);
 
-    public abstract Object evaluateTypeCast(String toString, Object evaluate);
-    public abstract boolean hasTypeCast(String toString);
+    Object evaluateTypeCast(String toString, Object evaluate);
+    boolean hasTypeCast(String toString);
 }

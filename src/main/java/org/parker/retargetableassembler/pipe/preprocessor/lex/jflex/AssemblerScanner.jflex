@@ -102,12 +102,12 @@ Comment = {TraditionalComment} | {EndOfLineComment} |
           {DocumentationComment}
 
 TraditionalComment = "/*" [^*] ~"*/" | "/*" "*"+ "/"
-EndOfLineComment = "//" {InputCharacter}* {LineTerminator}?
+EndOfLineComment = "//" | ";" {InputCharacter}* {LineTerminator}?
 DocumentationComment = "/*" "*"+ [^/*] ~"*/"
 
 /* identifiers */
 ALetter = [a-zA-Z_$\.]
-ALetterDigit = [a-zA-Z_$1-9\.]
+ALetterDigit = [a-zA-Z_$0-9\.]
 Identifier = {ALetter}{ALetterDigit}*
 
 /* integer literals */
@@ -193,6 +193,7 @@ SingleCharacter = [^\r\n\'\\]
   "-"                            { return symbol(MINUS); }
   "*"                            { return symbol(MULT); }
   "/"                            { return symbol(DIV); }
+  "\\"                            { return symbol(BACKSLASH); }
   "&"                            { return symbol(AND); }
   "|"                            { return symbol(OR); }
   "^"                            { return symbol(XOR); }
@@ -271,8 +272,8 @@ SingleCharacter = [^\r\n\'\\]
                         				   string.append( val ); }
 
   /* error cases */
-  \\.                            { throw new RuntimeException("Illegal escape sequence \""+yytext()+"\""); }
-  {LineTerminator}               { throw new RuntimeException("Unterminated string at end of line"); }
+  \\.                            {yybegin(YYINITIAL); return symbol(error, yyline, columnStringStart, charStringStart, yycolumn - columnStringStart + 1 , "Illegal escape sequence \""+yytext()+"\""); }
+  {LineTerminator}               {yybegin(YYINITIAL); return symbol(error, yyline, columnStringStart, charStringStart, yycolumn - columnStringStart + 1 , "Unterminated string at end of line"); }
 }
 
 <CHARLITERAL> {
@@ -292,11 +293,11 @@ SingleCharacter = [^\r\n\'\\]
 			                            return symbol(CHARACTER_LITERAL, yyline, yycolumn - 1, yychar - 1, yylength() + 1, (char)val); }
 
   /* error cases */
-  \\.                            { throw new RuntimeException("Illegal escape sequence \""+yytext()+"\""); }
-  {LineTerminator}               { throw new RuntimeException("Unterminated character literal at end of line"); }
+  \\.                            {yybegin(YYINITIAL); return symbol(error, yyline, yycolumn - 1, yychar - 1, yylength() + 1,  "Illegal escape sequence \""+yytext()+"\""); }
+  {LineTerminator}               {yybegin(YYINITIAL); return symbol(error, yyline, yycolumn - 1, yychar - 1, yylength() + 1, "Unterminated character literal at end of line"); }
 }
 
 /* error fallback */
-[^]                              { throw new RuntimeException("Illegal character \""+yytext()+
+[^]                              {yybegin(YYINITIAL); return symbol(error, yyline, yycolumn, yychar, yylength(), "Illegal character \""+yytext()+
                                                               "\" at line "+(yyline + 1)+", column "+(yycolumn + 1)); }
 <<EOF>>                          { return symbol(EOF); }

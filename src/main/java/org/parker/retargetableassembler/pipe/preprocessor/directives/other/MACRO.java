@@ -4,10 +4,12 @@ import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.PreProcessorDirective;
 import org.parker.retargetableassembler.pipe.preprocessor.util.BufferUtils;
+import org.parker.retargetableassembler.pipe.util.iterators.PeekAheadIterator;
 import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIteratorAbstract;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public final class MACRO {
 
@@ -60,6 +62,26 @@ public final class MACRO {
 
             pp.addMacroDefinition(m);
         }
+    }
+
+    public static List<List<LexSymbol>> splitMacroArguments(PeekAheadIterator<LexSymbol> iterator){
+        LexSymbol s;
+        if(!iterator.hasNext()) return new ArrayList<>();
+        List<List<LexSymbol>> tmpList = new ArrayList<>();
+        List<LexSymbol> tmpDataList = new ArrayList<>();
+        do{
+            s = iterator.next();
+
+            if(s.sym == LexSymbol.BACKSLASH && iterator.peek_ahead().sym == LexSymbol.COMMA){
+                tmpDataList.add(iterator.next());
+            }else if(s.sym == LexSymbol.COMMA || s.sym == LexSymbol.LINE_TERMINATOR || s.sym == LexSymbol.EOF){
+                tmpList.add(tmpDataList);
+                tmpDataList = new ArrayList<>();
+            }else{
+                tmpDataList.add(s);
+            }
+        }while(iterator.hasNext() && (s.sym != LexSymbol.LINE_TERMINATOR && s.sym != LexSymbol.EOF));
+        return tmpList;
     }
 
     public static class UNDEFINITION implements PreProcessorDirective {
@@ -143,6 +165,7 @@ public final class MACRO {
                 return null;
             }
         }
+        mID.id.sym = LexSymbol.MACRO;
         return mID;
     }
 
@@ -151,9 +174,15 @@ public final class MACRO {
         private int index = 0;
         private int use;
         private MacroDefinition md;
+        List<List<LexSymbol>> macroArguments;
 
-        public MacroIterator(MacroDefinition md){
+        private boolean inArg;
+        private int argNum;
+        private int argIndex;
+
+        public MacroIterator(MacroDefinition md, List<List<LexSymbol>> macroArguments){
             this.md = md;
+            this.macroArguments = macroArguments;
             this.use = md.uses;
             md.uses ++;
         }
@@ -170,13 +199,43 @@ public final class MACRO {
 
                 if(sym.sym == LexSymbol.LABEL || sym.sym == LexSymbol.IDENTIFIER){
                     if(sym.value.toString().startsWith("..$") && sym.value.toString().length() > 3){
-                        sym = new LexSymbol(sym.getFile(), sym.sym, sym.getLine(), sym.getColumn(), sym.getCharPos(),
-                                sym.getSize(), sym.left, sym.right,
-                                "..$" + use + "." + sym.value.toString().substring(3));
+                        sym = sym.clone();
+                        sym.value = "..$" + use + "." + sym.value.toString().substring(3);
                     }
                 }
+                if(sym.sym == LexSymbol.IDENTIFIER){
+                    if(sym.value.toString().startsWith("$_") && !inArg){
+                        if(sym.value.equals("$_0")){
+                            sym = sym.clone();
+                            sym.sym = LexSymbol.INTEGER_LITERAL;
+                            sym.value = macroArguments.size();
+                            //return sym;
+                        }else {
+                            int val = 0;
+                            try {
+                                val = Integer.parseInt(sym.value.toString().substring(2));
+                            } catch (Exception ignore) {
+                                //TODO(parker) report errors
+                            }
+                            //TODO(parker) report errors
+                            inArg = true;
+                            argNum = val - 1;
+                            argIndex = 0;
+                        }
 
-                index ++;
+                    }
+                }
+                if(inArg) {
+                    sym =  macroArguments.get(argNum).get(argIndex);
+                    argIndex++;
+                    if (argIndex >= macroArguments.get(argNum).size()){
+                        index++;
+                        inArg = false;
+                    }
+                }else{
+                    index ++;
+                }
+                sym.setParent(this.md.mID.id);
                 return sym;
             }else{
                 return new LexSymbol();
@@ -189,6 +248,16 @@ public final class MACRO {
         private int lowerOp = 0;
         private int higherOp = -1;
         private boolean greedy = false;
+
+        @Override
+        protected MacroID clone() {
+            MacroID mID = new MacroID();
+            mID.id = id;
+            mID.lowerOp = lowerOp;
+            mID.higherOp = higherOp;
+            mID.greedy = greedy;
+            return mID;
+        }
 
         public String getIDName(){
             return (String) id.value;
@@ -285,9 +354,25 @@ public final class MACRO {
 
     public static class MacroDefinition {
 
-        MacroID mID = new MacroID();
-        ArrayList<LexSymbol> tokenList = new ArrayList<>();
-        int uses = 0;
+        private MacroID mID = new MacroID();
+        private ArrayList<LexSymbol> tokenList = new ArrayList<>();
+        private int uses = 0;
+
+        @Override
+        public MacroDefinition clone() {
+            MacroDefinition md =  new MacroDefinition();
+            md.mID = mID.clone();
+            md.tokenList = tokenList;
+            md.uses = uses;
+            return md;
+        }
+
+        public void updateID(LexSymbol id){
+            if(!mID.id.value.equals(id.value)){
+                throw new IllegalArgumentException();
+            }
+            mID.id = id;
+        }
 
         @Override
         public boolean equals(Object obj) {

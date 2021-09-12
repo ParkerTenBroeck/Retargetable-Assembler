@@ -6,13 +6,12 @@ import java.io.*;
 import java.util.Iterator;
 
 
-public class ScannerTest {
+public class AssemblerScannerTest {
 
     @Test
     public void test() throws IOException {
-        if(true)return;
         File file = new File("src/test/resources/MIPS/PreProcessor/test2.asm");
-        Iterator<LexSymbol> as = new AssemblerScanner(new FileReader(file), file);
+        Iterator<LexSymbol> as = new AssemblerScanner(new FileReader(file), file, true);
 
 
         while(as.hasNext()){
