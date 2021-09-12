@@ -35,11 +35,11 @@ public class LoggerReport implements Report{
         }
         message = levelID + ": " + message;
         if(parent != null){
-            message = parent.getFile().getPath() + ":" + parent.getLine() + ": " + message;
+            message = parent.getFile().getPath() + ":" + (parent.getLine() + 1) + ": " + message;
             parent = parent.getParent();
             while(parent != null){
-                message += "\n" + parent.getFile().getPath() + ":" + parent.getLine() + ": ... from " +
-                        LexSymbol.terminalNames[parent.sym] + " " + parent.value + " defined here";
+                message += "\n" + parent.getFile().getPath() + ":" + (parent.getLine() + 1) + ": ... from " +
+                        LexSymbol.terminalNames[parent.sym] + " " + parent.value;
                 parent = parent.getParent();
             }
         }

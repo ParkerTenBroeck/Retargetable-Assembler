@@ -130,7 +130,7 @@ public class PreProcessor implements Iterator<LexSymbol>{
                     }
                     if(definedMacros.hasAvailableMacro(s.value.toString(), macroArguments.size())){
                         MACRO.MacroDefinition md = definedMacros.getAvailableMacro(s, macroArguments.size());
-                        iteratorStack.push_iterator_stack(new MACRO.MacroIterator(md, macroArguments));
+                        iteratorStack.push_iterator_stack(new MACRO.MacroIterator(s, md, macroArguments));
                         s = null;
                     }else{
                         InstructionDefinition id = new InstructionDefinition();
@@ -217,8 +217,6 @@ public class PreProcessor implements Iterator<LexSymbol>{
             if(macros.containsKey(id.value)){
                 MACRO.MacroDefinition md = macros.get(id.value).getAvailableMacro(args);
                 if(md != null){
-                    md = md.clone();
-                    md.updateID(id);
                     return md;
                 }
             }

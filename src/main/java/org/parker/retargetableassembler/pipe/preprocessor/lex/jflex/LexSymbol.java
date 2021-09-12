@@ -35,7 +35,7 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
 
     @Override
     public LexSymbol clone() {
-        return new LexSymbol(file, sym, line, column, charPos, size, left, right, value, parent);
+        return new LexSymbol(file, sym, line, column, charPos, size, left, right, value, parent != null ? parent.clone(): null);
     }
 
     /** Default is always NULL EOF

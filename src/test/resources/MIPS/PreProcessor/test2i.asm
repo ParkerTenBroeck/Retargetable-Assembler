@@ -100,3 +100,5 @@ true
 FALSE
 .anotherTest "THis is a \n String"
 .bruh 012 't' '\f'
+
+brilliant

@@ -10,8 +10,14 @@ db $_1
 argTestInside $_1
 .endmacro
 
-.content:
+
+.macro brilliant 0
+content:
 argTest $_0
+.endmacro
+
+brilliant
+brilliant
 
 .macro addM 3
 add $_1, $_2, $_3

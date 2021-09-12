@@ -69,6 +69,7 @@ public final class MACRO {
         if(!iterator.hasNext()) return new ArrayList<>();
         List<List<LexSymbol>> tmpList = new ArrayList<>();
         List<LexSymbol> tmpDataList = new ArrayList<>();
+        if(iterator.peek_ahead().sym == LexSymbol.LINE_TERMINATOR || iterator.peek_ahead().sym == LexSymbol.EOF) return new ArrayList<>();
         do{
             s = iterator.next();
 
@@ -180,10 +181,13 @@ public final class MACRO {
         private int argNum;
         private int argIndex;
 
-        public MacroIterator(MacroDefinition md, List<List<LexSymbol>> macroArguments){
+        final LexSymbol caller;
+
+        public MacroIterator(LexSymbol caller, MacroDefinition md, List<List<LexSymbol>> macroArguments){
             this.md = md;
             this.macroArguments = macroArguments;
             this.use = md.uses;
+            this.caller = caller;
             md.uses ++;
         }
 
@@ -195,18 +199,16 @@ public final class MACRO {
         @Override
         protected LexSymbol next_peekless() {
             if(index < md.tokenList.size()){
-                LexSymbol sym = md.tokenList.get(index);
+                LexSymbol sym = md.tokenList.get(index).clone();
 
                 if(sym.sym == LexSymbol.LABEL || sym.sym == LexSymbol.IDENTIFIER){
                     if(sym.value.toString().startsWith("..$") && sym.value.toString().length() > 3){
-                        sym = sym.clone();
                         sym.value = "..$" + use + "." + sym.value.toString().substring(3);
                     }
                 }
                 if(sym.sym == LexSymbol.IDENTIFIER){
                     if(sym.value.toString().startsWith("$_") && !inArg){
                         if(sym.value.equals("$_0")){
-                            sym = sym.clone();
                             sym.sym = LexSymbol.INTEGER_LITERAL;
                             sym.value = macroArguments.size();
                             //return sym;
@@ -235,7 +237,7 @@ public final class MACRO {
                 }else{
                     index ++;
                 }
-                sym.setParent(this.md.mID.id);
+                sym.setParent(this.caller);
                 return sym;
             }else{
                 return new LexSymbol();
