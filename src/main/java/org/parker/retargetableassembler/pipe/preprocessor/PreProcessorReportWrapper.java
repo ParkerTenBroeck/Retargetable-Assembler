@@ -5,52 +5,36 @@ import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 
 import java.util.Collection;
 
-public class PreProcessorReportWrapper {
+public class PreProcessorReportWrapper implements Report {
     private final Report report;
 
     public PreProcessorReportWrapper(Report report){
         this.report = report;
     }
 
-    public void reportCodeError(String message){
-        report.reportCodeError(message);
-    }
-
-
-    public void reportCodeError(Exception e){
-        report.reportCodeError(e);
-    }
-
-
-    public void reportCodeError(String message, Exception e){
-        report.reportCodeError(message, e);
-    }
-
     public void unexpectedTokenError(LexSymbol unexpectedToken){
-        report.reportError("Error: Unexpected token '" +
+        this.reportError("Unexpected token '" +
+                LexSymbol.terminalNames[unexpectedToken.sym] + "'", unexpectedToken);
+    }
+
+    public void unexpectedTokenError(String message, LexSymbol unexpectedToken){
+        this.reportError(message + " Unexpected token '" +
                 LexSymbol.terminalNames[unexpectedToken.sym] + "'", unexpectedToken);
     }
 
     public void unexpectedTokenError(LexSymbol unexpectedToken, int expected){
-        report.reportError("Unexpected token: " + "'" + LexSymbol.terminalNames[unexpectedToken.sym] + "'" +
+        this.reportError("Unexpected token: " + "'" + LexSymbol.terminalNames[unexpectedToken.sym] + "'" +
                 "Expected: '" + LexSymbol.terminalNames[expected] + "'", unexpectedToken);
-    }
-
-    public void reportError(String message, LexSymbol cause){
-        report.reportError(message, cause);
     }
 
     public void reportError(String message, Collection<LexSymbol> causeCollection){
         LexSymbol cause = LexSymbol.combine(LexSymbol.IDENTIFIER, null, causeCollection);
-        report.reportError(message, cause);
+        this.reportError(message, cause);
     }
 
-    public void reportWarning(String message, LexSymbol cause) {
-        report.reportWarning(message, cause);
-    }
-
-    public void reportMessage(String message) {
-        report.reportMessage(message);
+    @Override
+    public void report(String message, Exception e, LexSymbol parent, ReportLevel level) {
+        report.report(message, e, parent, level);
     }
 
     public Report getReport() {

@@ -98,7 +98,7 @@ InputCharacter = [^\r\n]
 WhiteSpace = {LineTerminator} | [ \t\f]
 
 /* comments */
-Comment = {TraditionalComment} | {EndOfLineComment} |
+Comment = {TraditionalComment} |
           {DocumentationComment}
 
 TraditionalComment = "/*" [^*] ~"*/" | "/*" "*"+ "/"
@@ -246,6 +246,7 @@ SingleCharacter = [^\r\n\'\\]
 
   /* comments */
   {Comment}                      { /* ignore */ }
+  {EndOfLineComment}             {return symbol(LINE_TERMINATOR);}
 
   /* whitespace */
   {WhiteSpace}                   { if(includeWhiteSpace)return symbol(WHITESPACE); }

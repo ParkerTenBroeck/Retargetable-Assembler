@@ -33,13 +33,15 @@ public class ExpressionEvaluatorTest {
             TestContext tc = new TestContext();
             e.setContext(tc);
             Object got = e.evaluateExpression();
-            Assert.assertEquals(entry.getValue(), got);
             System.out.println(entry.getValue() + " ## " + got);
             System.out.println(entry.getKey() + " ## " + e.toString());
 
             StringBuilder buffer = new StringBuilder(50);
             print(e.getAsTree(), buffer, "", "");
             System.out.println(buffer);
+
+
+            Assert.assertEquals(entry.getValue(), got);
         }
     }
 
@@ -98,9 +100,9 @@ public class ExpressionEvaluatorTest {
         }
 
         @Override
-        public Object evaluateFunction(String toString, int num, Object[] evaluate) {
+        public Object evaluateFunction(LexSymbol toString, int num, Object[] evaluate) {
             if(num == 1){
-                switch (toString){
+                switch (toString.value.toString()){
                     case "sin":
                         return Math.sin(((Number) evaluate[0]).doubleValue());
                     case "cos":
@@ -146,8 +148,8 @@ public class ExpressionEvaluatorTest {
         }
 
         @Override
-        public Object evaluateTypeCast(String toString, Object evaluate) {
-            if(toString.equals("Double")){
+        public Object evaluateTypeCast(LexSymbol toString, Object evaluate) {
+            if(toString.value.equals("Double")){
                 return ((Number)evaluate).doubleValue();
             }
             return null;

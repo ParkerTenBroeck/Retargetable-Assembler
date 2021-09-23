@@ -34,7 +34,7 @@ public class LoggerReport implements Report{
                 break;
         }
         message = levelID + ": " + message;
-        if(parent != null){
+        if(parent != null && parent.getParent() != null){
             message = parent.getFile().getPath() + ":" + (parent.getLine() + 1) + ": " + message;
             parent = parent.getParent();
             while(parent != null){
@@ -42,9 +42,21 @@ public class LoggerReport implements Report{
                         LexSymbol.terminalNames[parent.sym] + " " + parent.value;
                 parent = parent.getParent();
             }
+        }else if(parent != null){
+            message = parent.getFile().getPath() + ":" + (parent.getLine() + 1) + ": " + message;
         }
 
-        System.out.println(message);
+        switch(level){
+            case codeError:
+            case error:
+                System.err.println(message);
+                break;
+            case message:
+            case warning:
+                System.out.println(message);
+                break;
+        }
+
         if(e!=null)e.printStackTrace();
     }
 }

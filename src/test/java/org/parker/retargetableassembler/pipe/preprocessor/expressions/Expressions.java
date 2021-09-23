@@ -9,6 +9,7 @@ public class Expressions {
     public static final HashMap<String, Object> resultExpressionMap = new HashMap<>();
 
     static{
+        /*
         resultExpressionMap.put("2-1", 0B1);
 
         resultExpressionMap.put("(Double)1", 1.0);
@@ -82,5 +83,8 @@ public class Expressions {
         resultExpressionMap.put("a = b = c = 2, c", 2);
         resultExpressionMap.put("a = 2, b = 15, a + b", 17);
         resultExpressionMap.put("a = c = 2, b = 15, (a + b) * c", 34);
+        */
+
+        resultExpressionMap.put("{[12 + (crazy + 2)], [r12 + 2 - r15 * 2], [2], [rt], [(func(1,2)) ] }", null);
     }
 }

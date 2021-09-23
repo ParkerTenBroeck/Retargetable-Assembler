@@ -2,8 +2,8 @@
 ;content: addi $4, $4, 1 ;a;lkjasd;lkjasdf;lkj comment
 
 .macro argTestInside 1
-db $_0, f / *
-db $_1
+db $_0
+db 5 * $_1
 .endmacro
 
 .macro argTest 1
@@ -12,12 +12,14 @@ argTestInside $_1
 
 
 .macro brilliant 0
-content:
 argTest $_0
 .endmacro
 
-brilliant
-brilliant
+.macro brilliant 1
+argTest $_1
+.endmacro
+
+brilliant 2 + 2 / *
 
 .macro addM 3
 add $_1, $_2, $_3
@@ -43,6 +45,7 @@ $_12testMacro "arg1", "arg2", "arg3"
 .endmacro
 
 add $4, $4, $4
+add $4, $4, $4
 
 .local: ;this is an error
 
@@ -63,6 +66,16 @@ nonLocal2:
 this is a test \
 to see if this works \
 
+.rep 2
+
+.rep 3 - 1 + 1
+
+.mmsg "nested", "rep", $_r, $$_r
+.mmsge $_r + $$_r > 2 ? "the sum of $_r and $$_r is greater than 2" : "the sum of $_r and $$_r is NOT greater than 2"
+
+.endrep
+
+.endrep
 
 .rep 5
 
@@ -94,15 +107,6 @@ to see if this works \
 
 .endrep
 
-.rep 2
-
-.rep 2
-
-.mmsg "nested", "rep"
-
-.endrep
-
-.endrep
 
 
 .emsg "this is a test", "LOOL"
@@ -123,7 +127,7 @@ to see if this works \
     .macro $_12test 2-5+
         .rep 2
             .rep 2
-                .mmsg "nested rep"
+                .mmsg "nested rep", $_r, $$_r
             .endrep
         .endrep
     .endmacro
@@ -145,17 +149,8 @@ trap 0
 trap 0xFF
 trap 012
 
-" hel no
-
 hello \
 test line
-
-hello2 \,
-test2
-
-hello3 \, test3
-
-hello4 \ test4
 
 trap 0.2
 trap 0.3d

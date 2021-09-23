@@ -2,6 +2,7 @@ package org.parker.retargetableassembler.pipe.preprocessor;
 
 import org.junit.Test;
 import org.parker.retargetableassembler.pipe.LoggerReport;
+import org.parker.retargetableassembler.pipe.Report;
 import org.parker.retargetableassembler.pipe.SaveReport;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.AssemblerScanner;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.AssemblerScannerPreProcessor;
@@ -24,12 +25,10 @@ public class PreProcessorTest {
         PreProcessor pp = new PreProcessor();
         pp.setReport(report);
         pp.start(as);
-
-        while(!pp.hasNext()){
+        while (!pp.hasNext()) {
             LexSymbol s = pp.next();
             System.out.println(s.toString());
         }
-
         report.flushToReport(new LoggerReport());
 
     }

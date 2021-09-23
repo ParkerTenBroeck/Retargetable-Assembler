@@ -1,8 +1,7 @@
 package org.parker.retargetableassembler.pipe.preprocessor;
 
 import org.parker.retargetableassembler.pipe.Report;
-import org.parker.retargetableassembler.pipe.preprocessor.expressions.CompiledExpression;
-import org.parker.retargetableassembler.pipe.preprocessor.expressions.ExpressionEvaluator;
+import org.parker.retargetableassembler.pipe.preprocessor.expressions.*;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.cup.AssemblerSym;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.Directives;
@@ -25,13 +24,79 @@ public class PreProcessor implements Iterator<LexSymbol>{
     private Object expressionEvaluator;
     private Directives directives = new Directives();
     private Object defineStack;
-    private Object constants;
+    private HashContext constantContext = new HashContext();
     private MacroHolder definedMacros = new MacroHolder();
     private ArrayList<PreProcessorOutputFilter> filterStack = new ArrayList<>();
     private IteratorStack<LexSymbol> iteratorStack = new IteratorStack<LexSymbol>(){
 
         {
             this.setMaxScannerStackSize(200);
+            constantContext.addFunction("sin", 1,  (caller, vals)  -> {
+                if(vals[0] instanceof Number){
+                    return Math.sin(((Number) vals[0]).doubleValue());
+                }else{
+                    report.reportError("Invalid type");
+                    return VoidType.vd;
+                }
+            });
+            constantContext.addFunction("cos", 1,  (caller, vals)  -> {
+                if(vals[0] instanceof Number){
+                    return Math.cos(((Number) vals[0]).doubleValue());
+                }else{
+                    report.reportError("Invalid type");
+                    return VoidType.vd;
+                }
+            });
+            constantContext.addFunction("tan", 1,  (caller, vals)  -> {
+                if(vals[0] instanceof Number){
+                    return Math.tan(((Number) vals[0]).doubleValue());
+                }else{
+                    report.reportError("Invalid type");
+                    return VoidType.vd;
+                }
+            });
+            constantContext.addFunction("sqrt", 1, (caller, vals) -> {
+                if(vals[0] instanceof Number){
+                    return Math.sqrt(((Number) vals[0]).doubleValue());
+                }else{
+                    report.reportError("Invalid type");
+                    return VoidType.vd;
+                }
+            });
+            constantContext.addFunction("defined", 1, (caller, vals) -> {
+                if(vals[0] instanceof Number){
+                    return Math.sqrt(((Number) vals[0]).doubleValue());
+                }else{
+                    report.reportError("Invalid type", caller);
+                    return VoidType.vd;
+                }
+            });
+            constantContext.addFunction("toString", 1, (caller, vals) -> vals[0].toString());
+            constantContext.addFunction("subString", 2, (caller, vals) -> {
+                if(vals[1] instanceof Integer || vals[1] instanceof Long || vals[1] instanceof Short || vals[1] instanceof Byte){
+                    return vals[0].toString().substring(((Number) vals[1]).intValue());
+                }else{
+                    report.reportError("Invalid type", caller);
+                    return VoidType.vd;
+                }
+            });
+            constantContext.addFunction("subString", 3, (caller, vals) -> {
+                if(vals[1] instanceof Integer || vals[1] instanceof Long || vals[1] instanceof Short || vals[1] instanceof Byte &&
+                vals[2] instanceof Integer || vals[2] instanceof Long || vals[2] instanceof Short || vals[2] instanceof Byte){
+                    return vals[0].toString().substring(((Number) vals[1]).intValue(), ((Number) vals[1]).intValue());
+                }else{
+                    report.reportError("Invalid type given for argument 2/3", caller);
+                    return VoidType.vd;
+                }
+            });
+            constantContext.addFunction("srtLength", 1, (caller, vals) -> {
+                if(vals[1] instanceof String){
+                    return vals[0].toString().length();
+                }else{
+                    report.reportError("Invalid type given for argument 1", caller);
+                    return VoidType.vd;
+                }
+            });
         }
 
         @Override
@@ -54,19 +119,32 @@ public class PreProcessor implements Iterator<LexSymbol>{
 
         @Override
         protected LexSymbol next_peekless() {
-            LexSymbol t = super.next_peekless();
+            LexSymbol s = super.next_peekless();
 
-                while (t == null || t.sym == LexSymbol.EOF) {
+                while (s == null || s.sym == LexSymbol.EOF) {
                     LexSymbol peek = super.peek_ahead();
                     if (peek == null) {
                         super.next_peekless();
-                        return t;
+                        return s;
                     } else {
-                        t = super.next_peekless();
+                        s = super.next_peekless();
                     }
                 }
 
-            return t;
+            if(s.sym == LexSymbol.LABEL || s.sym == LexSymbol.IDENTIFIER){
+                if(s.value.toString().startsWith(".")){
+                    if(lastNonLocalLabel != null){
+                        s.value = lastNonLocalLabel.value.toString() + s.value.toString();
+                    }else{
+                        report().reportError("Found local label without nonlocal label", s);
+                        return s;
+                    }
+                }else{
+                    if(s.sym == LexSymbol.LABEL)lastNonLocalLabel = s;
+                }
+            }
+
+            return s;
         }
     };
 
@@ -84,6 +162,36 @@ public class PreProcessor implements Iterator<LexSymbol>{
 
     public IteratorStack<LexSymbol> getIteratorStack(){
         return this.iteratorStack;
+    }
+
+    public class EvaluatedExpression{
+        public final Object val;
+        public final CompiledExpression expression;
+
+        public EvaluatedExpression(Object val, CompiledExpression expression){
+            this.val = val;
+            this.expression = expression;
+        }
+    }
+
+    public EvaluatedExpression evaluateExpression(){
+        CompiledExpression cp = ExpressionEvaluator.evaluateExpression(iteratorStack, report());
+        cp.setContext(this.getConstantContext());
+        return new EvaluatedExpression(cp.evaluateExpression(), cp);
+    }
+
+    private Context getConstantContext() {
+        return constantContext;
+    }
+
+    public EvaluatedExpression[] evaluateExpressions(){
+        CompiledExpression[] expressions = ExpressionEvaluator.evaluateCommaSeparatedExpressions(iteratorStack, report());
+        EvaluatedExpression[] results = new EvaluatedExpression[expressions.length];
+        for(int i = 0; i < expressions.length; i ++){
+            expressions[i].setContext(getConstantContext());
+            results[i] = new EvaluatedExpression(expressions[i].evaluateExpression(), expressions[i]);
+        }
+        return results;
     }
 
     @Override
@@ -117,8 +225,10 @@ public class PreProcessor implements Iterator<LexSymbol>{
 
                 exitIf:
                 if(s.sym == LexSymbol.INSTRUCTION){
-                    Iterator<LexSymbol> endOfLineIterator = BufferUtils.tillLineTerminator(iteratorStack.peek_iterator_stack(), true);
+                    Iterator<LexSymbol> endOfLineIterator = BufferUtils.tillLineTerminator(iteratorStack, true);
                     List<LexSymbol> endOfLineData = BufferUtils.iteratorToArrayList(endOfLineIterator);
+                    final LexSymbol fs = s;
+                    endOfLineData.forEach(lexSymbol -> lexSymbol.setParent(fs));
                     PeekEverywhereIterator<LexSymbol> reusableIterator = BufferUtils.peekEverywhereIteratorFromList(endOfLineData);
 
                     List<List<LexSymbol>> macroArguments = MACRO.splitMacroArguments(reusableIterator);
@@ -139,7 +249,7 @@ public class PreProcessor implements Iterator<LexSymbol>{
                         id.arguments =
                                 ExpressionEvaluator.evaluateCommaSeparatedExpressions(reusableIterator, report());
                         for(CompiledExpression e: id.arguments) {
-                            if(!e.isValid()){
+                            if(e == null || !e.isValid()){
                                 this.report().reportError("Invalid arguments. Skipping over instruction", s);
                                 s = null;
                                 break exitIf;
@@ -153,24 +263,12 @@ public class PreProcessor implements Iterator<LexSymbol>{
                     }
                 }
             }
+            atBOL = s!= null && s.sym == LexSymbol.LINE_TERMINATOR;
         }
-        atBOL = s.sym == LexSymbol.LINE_TERMINATOR;
+
 
         if (s.sym == AssemblerSym.EOF) {
             atEOF = true;
-        }
-
-        if(s.sym == LexSymbol.LABEL){
-            if(s.value.toString().startsWith(".")){
-                if(lastNonLocalLabel != null){
-                    s.value = lastNonLocalLabel.value.toString() + s.value.toString();
-                }else{
-                    report().reportError("Found local label without nonlocal label", s);
-                    return s;
-                }
-            }else{
-                lastNonLocalLabel = s;
-            }
         }
 
         return s;

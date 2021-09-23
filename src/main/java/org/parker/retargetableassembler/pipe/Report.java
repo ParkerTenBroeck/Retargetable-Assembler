@@ -48,6 +48,7 @@ public interface Report {
     default void reportError(String message){
         reportError(message, null);
     }
+
     default void reportWarning(String message){
         reportWarning(message, null);
     }

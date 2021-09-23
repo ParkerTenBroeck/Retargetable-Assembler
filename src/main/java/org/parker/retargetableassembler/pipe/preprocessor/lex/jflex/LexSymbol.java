@@ -3,7 +3,9 @@ package org.parker.retargetableassembler.pipe.preprocessor.lex.jflex;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.cup.AssemblerSym;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @SuppressWarnings("unused")
 public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
@@ -30,12 +32,36 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
     }
 
     public void setParent(LexSymbol parent){
-        this.parent = parent;
+            this.parent = parent;
+    }
+
+    public LexSymbol invertParentRelationship(){
+        return invertParentRelationshipTruncate(0);
+    }
+
+    public LexSymbol invertParentRelationshipTruncate(int trunkate) {
+        if(trunkate < -1) throw new IndexOutOfBoundsException("Trunkate cannot be negative");
+        List<LexSymbol> tmp = new ArrayList<>();
+        LexSymbol sym = this;
+        for(int i = 0; i < 100; i ++){ //max iterations
+            if(sym == null) break;
+            tmp.add(sym.cloneParentless());
+            sym = sym.parent;
+        }
+
+        for(int i = tmp.size() - 1; i > trunkate; i --){
+            tmp.get(i).setParent(tmp.get(i -1));
+        }
+        return tmp.get(tmp.size() - 1);
     }
 
     @Override
     public LexSymbol clone() {
         return new LexSymbol(file, sym, line, column, charPos, size, left, right, value, parent != null ? parent.clone(): null);
+    }
+
+    public LexSymbol cloneParentless() {
+        return new LexSymbol(file, sym, line, column, charPos, size, left, right, value, null);
     }
 
     /** Default is always NULL EOF
@@ -112,11 +138,15 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
                 (int) ((sym2.size + sym2.charPos) - sym1.charPos), sym1.left, sym2.right, newVal);
     }
 
+    public LexSymbol getSuperParent(){
+        return this.parent == null ? this : this.getParent();
+    }
+
     public static LexSymbol combine(int identifier, Object o, Collection<LexSymbol> causeCollection) {
-        Object[] temp = causeCollection.stream().toArray();
+        LexSymbol[] temp = causeCollection.toArray(new LexSymbol[0]);
         if(temp.length > 0) {
-            LexSymbol first = (LexSymbol) temp[0];
-            LexSymbol last = (LexSymbol) temp[temp.length - 1];
+            LexSymbol first = temp[0];
+            LexSymbol last = temp[temp.length - 1];
             return combine(identifier, o, first, last);
         }else{
             return null;

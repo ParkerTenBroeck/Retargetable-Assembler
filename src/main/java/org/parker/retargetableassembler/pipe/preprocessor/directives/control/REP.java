@@ -16,7 +16,14 @@ public final class REP implements PreProcessorDirective {
     @Override
     public void init(LexSymbol root, PreProcessor pp) {
 
-        pp.getIteratorStack().push_iterator_stack(new loopIterator(root, pp));
+        try {
+            pp.getIteratorStack().push_iterator_stack(new loopIterator(root, pp));
+        }catch (Brulony e){
+
+        }
+    }
+    protected class Brulony extends RuntimeException{
+
     }
 
     private class loopIterator extends PeekEverywhereIteratorAbstract<LexSymbol> implements PreProcessorOutputFilter {
@@ -28,6 +35,7 @@ public final class REP implements PreProcessorDirective {
         private PeekEverywhereIterator<LexSymbol> last;
         ArrayList<LexSymbol> loop = new ArrayList<>();
 
+        private int iterations;
         private int count;
         boolean buildingLoop = true;
         int loopIndex = 0;
@@ -39,7 +47,19 @@ public final class REP implements PreProcessorDirective {
             this.pp = pp;
             this.stack = pp.getIteratorStack();
             this.last = stack.peek_iterator_stack();
-            this.count = ((Number)stack.next().value).intValue();
+            {
+                PreProcessor.EvaluatedExpression tmp = pp.evaluateExpression();
+                if(tmp.val instanceof Integer || tmp.val instanceof Long || tmp.val instanceof Short || tmp.val instanceof  Byte){
+                    this.count = ((Number)tmp.val).intValue();
+                    if(count < 0){
+                        pp.report().reportError("Cannot have a negative value for loop num", stack.peek_behind());
+                    }
+                }else{
+                    count = -1;
+                    pp.report().reportError("Cannot use '" + tmp.getClass().getSimpleName() + "' for num iterations", tmp.expression.toSymbols());
+                }
+            }
+            this.iterations = count;
             stack.next();
         }
 
@@ -50,6 +70,11 @@ public final class REP implements PreProcessorDirective {
 
         @Override
         protected LexSymbol next_peekless() {
+
+            if(exit) return new LexSymbol();
+            if(count <= 0){
+                exit = true;
+            }
 
             if(requestExit){
                 if(stack.peek_iterator_stack().equals(this)){
@@ -64,22 +89,24 @@ public final class REP implements PreProcessorDirective {
                         if(s.sym == LexSymbol.EOF){
 
                             pp.report().reportError("rep never terminated", root);
-                            return s;
+                            return  processSymbol(s);
                         }
                         s = last.next();
                     }
-                    return last.next();
+                    return new LexSymbol();
 
                 }else {
                     LexSymbol s = last.next();
                     if (s.sym == LexSymbol.DIRECTIVE && s.value.equals("endrep") && stack.peek_iterator_stack().equals(this)) {
                         buildingLoop = false;
+                        count --;
                     }else{
                         loop.add(s);
-                        return s;
+                        return processSymbol(s);
                     }
                 }
             }
+            if(exit) return new LexSymbol();
             if(loop.size() == 0 || count <= 0 || exit == true){
                 exit = true;
                 return new LexSymbol();
@@ -92,9 +119,25 @@ public final class REP implements PreProcessorDirective {
                     return new LexSymbol();
                 }
             }
-            LexSymbol s = loop.get(loopIndex);
+            LexSymbol sym = loop.get(loopIndex);
+            sym = processSymbol(sym);
             loopIndex ++;
-            return s;
+            return sym;
+        }
+
+        private LexSymbol processSymbol(LexSymbol sym){
+            sym = sym.clone();
+            if(sym.sym == LexSymbol.IDENTIFIER){
+                if(sym.value.toString().matches("[$]*\\$_r")){
+                    if(sym.value.toString().length() > 3){
+                        sym.value = sym.value.toString().substring(1);
+                    }else{
+                        sym.value = iterations - count;
+                        sym.sym = LexSymbol.INTEGER_LITERAL;
+                    }
+                }
+            }
+            return sym;
         }
 
         @Override
@@ -104,6 +147,7 @@ public final class REP implements PreProcessorDirective {
                 return null;
             }else if(symbol.sym == LexSymbol.DIRECTIVE && symbol.value.equals("endrep")){
                 buildingLoop = false;
+                count --;
                 loop.remove(loop.size() - 1);
                 return null;
             }else{

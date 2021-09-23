@@ -1,5 +1,6 @@
 package org.parker.retargetableassembler.pipe.preprocessor.directives.message;
 
+import org.parker.retargetableassembler.pipe.Report;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.PreProcessorDirective;
@@ -7,23 +8,17 @@ import org.parker.retargetableassembler.pipe.preprocessor.util.BufferUtils;
 
 public final class MSG {
 
-    private enum Level{
-        message,
-        warning,
-        error;
-    }
-
     public static final class MMSG implements PreProcessorDirective {
         @Override
         public void init(LexSymbol root, PreProcessor pp) {
-            LOG(root, pp, Level.message);
+            LOG(root, pp, Report.ReportLevel.message);
         }
     }
 
     public static final class WMSG implements PreProcessorDirective {
         @Override
         public void init(LexSymbol root, PreProcessor pp) {
-            LOG(root, pp, Level.warning);
+            LOG(root, pp, Report.ReportLevel.warning);
         }
     }
 
@@ -31,39 +26,65 @@ public final class MSG {
 
         @Override
         public void init(LexSymbol root, PreProcessor pp) {
-            LOG(root, pp, Level.error);
+            LOG(root, pp, Report.ReportLevel.error);
         }
     }
 
-    public static void LOG(LexSymbol root, PreProcessor pp, Level logLevel){
+    public static final class MMSGE implements PreProcessorDirective {
+        @Override
+        public void init(LexSymbol root, PreProcessor pp) {
+            LOGE(root, pp, Report.ReportLevel.message);
+        }
+    }
+
+    public static final class WMSGE implements PreProcessorDirective {
+        @Override
+        public void init(LexSymbol root, PreProcessor pp) {
+            LOGE(root, pp, Report.ReportLevel.warning);
+        }
+    }
+
+    public static final class EMSGE implements PreProcessorDirective {
+
+        @Override
+        public void init(LexSymbol root, PreProcessor pp) {
+            LOGE(root, pp, Report.ReportLevel.error);
+        }
+    }
+
+    public static void LOG(LexSymbol root, PreProcessor pp, Report.ReportLevel level){
         BufferUtils.LineTerminatorIterator line = BufferUtils.tillLineTerminator(pp.getIteratorStack(), false);
+
+        String msg = "";
         while(line.hasNext()){
             LexSymbol s = line.next();
-            if(s.sym == LexSymbol.STRING_LITERAL){
-                switch (logLevel){
-                    case message:
-                        pp.report().reportMessage(s.value.toString());
-                        break;
-                    case warning:
-                        pp.report().reportWarning(s.value.toString(), root);
-                        break;
-                    case error:
-                        pp.report().reportError(s.value.toString(), root);
-                        break;
-                }
-            }else{
-                line.toLineTerminator();
-                throw new RuntimeException("Not a string");
-            }
+                        msg += s.value.toString() +  ("".equals(msg) ? "" : ", ");
             if(line.hasNext()){
                 s = line.next();
                 if(s.sym != LexSymbol.COMMA){
                     line.toLineTerminator();
-                    throw new RuntimeException(s.toString() + " is not a comma");
+                    pp.report().unexpectedTokenError(s, LexSymbol.COMMA);
+                    break;
                 }
             }else{
                 break;
             }
         }
+        pp.report().report(msg, null, root, level);
+    }
+
+    public static void LOGE(LexSymbol root, PreProcessor pp, Report.ReportLevel level){
+        //BufferUtils.LineTerminatorIterator line = BufferUtils.tillLineTerminator(pp.getIteratorStack(), false);
+        PreProcessor.EvaluatedExpression[] eps = pp.evaluateExpressions();
+        String msg = "";
+        for(int i = 0; i < eps.length; i ++){
+            if(eps[i].val != null) {
+                msg += eps[i].val;
+                msg += i != eps.length - 1 ? ", " : "";
+            }else{
+                pp.report().reportError("Error evaluating expression", eps[i].expression.toSymbols());
+            }
+        }
+        pp.report().report(msg, null, root, level);
     }
 }

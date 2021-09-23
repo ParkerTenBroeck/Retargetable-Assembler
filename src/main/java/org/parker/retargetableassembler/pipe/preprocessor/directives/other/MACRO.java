@@ -180,6 +180,7 @@ public final class MACRO {
         private boolean inArg;
         private int argNum;
         private int argIndex;
+        private LexSymbol argSym;
 
         final LexSymbol caller;
 
@@ -203,7 +204,7 @@ public final class MACRO {
 
                 if(sym.sym == LexSymbol.LABEL || sym.sym == LexSymbol.IDENTIFIER){
                     if(sym.value.toString().startsWith("..$") && sym.value.toString().length() > 3){
-                        sym.value = "..$" + use + "." + sym.value.toString().substring(3);
+                        sym.value = "$.." + use + "." + sym.value.toString().substring(3);
                     }
                 }
                 if(sym.sym == LexSymbol.IDENTIFIER){
@@ -223,12 +224,18 @@ public final class MACRO {
                             inArg = true;
                             argNum = val - 1;
                             argIndex = 0;
+                            sym.setParent(caller);
+                            argSym = sym;
                         }
 
                     }
                 }
                 if(inArg) {
-                    sym =  macroArguments.get(argNum).get(argIndex);
+                    LexSymbol tmp =  macroArguments.get(argNum).get(argIndex).clone();
+                    sym = argSym.clone();
+                    sym.value = tmp.value;
+                    sym.sym = tmp.sym;
+                    sym.setParent(tmp);
                     argIndex++;
                     if (argIndex >= macroArguments.get(argNum).size()){
                         index++;
@@ -236,8 +243,9 @@ public final class MACRO {
                     }
                 }else{
                     index ++;
+                    sym.setParent(caller);
                 }
-                sym.setParent(this.caller);
+
                 return sym;
             }else{
                 return new LexSymbol();

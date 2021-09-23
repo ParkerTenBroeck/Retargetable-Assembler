@@ -93,11 +93,12 @@ public class ExpressionEvaluator {
             CommaSeparatedList(5),
             Constant(6),
             FunctionCall(7),
-            Parenthesis(8),
-            TernaryOperator(9),
-            TypeCast(10),
-            UnaryOperator(11),
-            Variable(12);
+            MemoryAccess(8),
+            Parenthesis(9),
+            TernaryOperator(10),
+            TypeCast(11),
+            UnaryOperator(12),
+            Variable(13);
 
             public final int ID;
             TreeType(int ID){
@@ -348,7 +349,7 @@ public class ExpressionEvaluator {
                     throw new RuntimeException();
                 }
                 if(getContext().hasTypeCast(type.value.toString())){
-                    return getContext().evaluateTypeCast(type.value.toString(), o1.evaluate());
+                    return getContext().evaluateTypeCast(type, o1.evaluate());
                 }else{
                     getReport().reportError("Current context does not have type cast", type);
                     return null;
@@ -748,6 +749,68 @@ public class ExpressionEvaluator {
                 return TreeType.ArrayDeclaration;
             }
         }
+        public static class MemoryAccess extends AST{
+
+            LexSymbol lBarack;
+            ArrayList<Member> members = new ArrayList<>();
+            LexSymbol rBarack;
+
+            public static class Member{
+                ArrayList<LexSymbol> operators = new ArrayList<>();
+                AST val;
+            }
+
+            @Override
+            public List<Node<LexSymbol>> getChildren() {
+                List<Node<LexSymbol>> d = new ArrayList<>();
+                d.add(new SymbolLeaf(lBarack));
+                members.forEach(member -> {
+                    member.operators.forEach(lexSymbol -> d.add(new SymbolLeaf(lexSymbol)));
+                    if(member.val.isLeaf())d.add(member.val); else d.addAll( member.val.getChildren());
+                });
+                d.add(new SymbolLeaf(rBarack));
+                return d;
+            }
+
+            @Override
+            public int getNumChildren() {
+                return getChildren().size();
+            }
+
+            @Override
+            public Node<LexSymbol> getChild(int child) {
+                return getChildren().get(child);
+            }
+
+            @Override
+            public TreeType getType() {
+                return TreeType.MemoryAccess;
+            }
+
+            @Override
+            public Object evaluate() {
+                return this;
+            }
+
+            @Override
+            public String toString() {
+                final String[] t = {"["};
+                members.forEach(member -> {
+                    member.operators.forEach(lexSymbol -> t[0] += LexSymbol.terminalNames[lexSymbol.sym] + " ");
+                    t[0] += member.val.toString() + " ";
+                });
+                return t[0] + "]";
+            }
+
+            @Override
+            public List<LexSymbol> toSymbols() {
+                List<LexSymbol> d = new ArrayList<>();
+                d.add(lBarack);
+                members.forEach(member -> {d.addAll(member.operators); d.addAll(member.val.toSymbols());});
+                d.add(rBarack);
+                return d;
+            }
+        }
 
         public class FunctionCall extends AST{
             LexSymbol funcIdent;
@@ -762,7 +825,7 @@ public class ExpressionEvaluator {
                     throw new RuntimeException();
                 }
                 if(getContext().hasFunction(funcIdent.value.toString(), arguments == null ? 0 : arguments.getNum())){
-                    return getContext().evaluateFunction(funcIdent.value.toString(), arguments.getNum(), arguments.evaluate());
+                    return getContext().evaluateFunction(funcIdent, arguments.getNum(), arguments.evaluate());
                 }else{
                     getReport().reportError("No Function: " + funcIdent.value + " with: " + arguments.getNum() + " declared in the current context", funcIdent);
                     return null;
@@ -873,7 +936,7 @@ public class ExpressionEvaluator {
                             Object result;
                             if(o1 instanceof Number && o2 instanceof Number){
                                 result = add((Number)o1, (Number)o2);
-                            }else if(o1 instanceof String && o2 instanceof String){
+                            }else if(o1 instanceof String || o2 instanceof String){
                                 result = o1.toString() +  o2.toString();
                             }else{
                                 getReport().reportError("Cannot add " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
@@ -1546,7 +1609,7 @@ public class ExpressionEvaluator {
                             Object o2 = this.o2.evaluate();
                             if(o1 instanceof Number && o2 instanceof Number){
                                 return add((Number)o1, (Number)o2);
-                            }else if(o1 instanceof String && o2 instanceof String){
+                            }else if(o1 instanceof String || o2 instanceof String){
                                 return o1.toString() +  o2.toString();
                             }else{
                                 getReport().reportError("Cannot add " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
@@ -1751,6 +1814,7 @@ public class ExpressionEvaluator {
             LexSymbol sym = iterator.next();
             AST ast;
 
+            firstIF:
             if(sym.sym == LexSymbol.IDENTIFIER){
                 if(iterator.peek_ahead().sym == LexSymbol.LPAREN){ //functions
                     FunctionCall func = new FunctionCall();
@@ -1794,6 +1858,44 @@ public class ExpressionEvaluator {
                     valid = false;
                     ast = null;
                 }
+            }else if(sym.sym == LexSymbol.LBRACK){
+                MemoryAccess ma = new MemoryAccess();
+                ma.lBarack = sym;
+                MemoryAccess.Member m = new MemoryAccess.Member();
+                sym = iterator.peek_ahead();
+                while(sym.sym != LexSymbol.RBRACK){
+                    if(sym.sym == LexSymbol.LINE_TERMINATOR || sym.sym == LexSymbol.EOF){
+                        getReport().unexpectedTokenError(sym);
+                        iterator.next();
+                        ast = null;
+                        break firstIF;
+                    }
+                    switch (sym.sym){
+                        case LexSymbol.BOOLEAN_LITERAL:
+                        case LexSymbol.STRING_LITERAL:
+                        case LexSymbol.INTEGER_LITERAL:
+                        case LexSymbol.FLOATING_POINT_LITERAL:
+                        case LexSymbol.CHARACTER_LITERAL:
+                        case LexSymbol.IDENTIFIER:
+                            m.val = this.parseLevel1(iterator);
+                            ma.members.add(m);
+                            if(m.val == null) this.valid = false;
+                            m = new MemoryAccess.Member();
+                        break;
+                        case LexSymbol.LPAREN:
+                            m.val = this.parseLevel15(iterator);
+                            ma.members.add(m);
+                            if(m.val == null) this.valid = false;
+                            m = new MemoryAccess.Member();
+                            break;
+                        default:
+                            m.operators.add(iterator.next());
+                            break;
+                    }
+                    sym = iterator.peek_ahead();
+                }
+                ma.rBarack = iterator.next();
+                ast = ma;
             }else{ //constants
                 switch(sym.sym){
                     case LexSymbol.BOOLEAN_LITERAL:
@@ -1804,7 +1906,7 @@ public class ExpressionEvaluator {
                         ast = new Constant(sym);
                         break;
                     default:
-                        getReport().reportError("Unexpected Symbol found while evaluating expression",sym);
+                        getReport().unexpectedTokenError("Syntax error", sym);
                         valid = false;
                         ast = null;
                 }

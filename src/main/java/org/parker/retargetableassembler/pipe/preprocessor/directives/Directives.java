@@ -32,6 +32,9 @@ public class Directives {
         directiveAtlasMap.put("emsg", new MSG.EMSG());
         directiveAtlasMap.put("wmsg", new MSG.WMSG());
         directiveAtlasMap.put("mmsg", new MSG.MMSG());
+        directiveAtlasMap.put("emsge", new MSG.EMSGE());
+        directiveAtlasMap.put("wmsge", new MSG.WMSGE());
+        directiveAtlasMap.put("mmsge", new MSG.MMSGE());
 
         directiveAtlasMap.put("define", new DirectiveStranglerError("define is not implemented yet"));
         directiveAtlasMap.put("asg", new DirectiveStranglerError("asg is not implemented yet"));
