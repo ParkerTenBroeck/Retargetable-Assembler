@@ -1,8 +1,8 @@
 package org.parker.retargetableassembler.pipe.preprocessor.directives.control;
 
-import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.PreProcessorDirective;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.util.BufferUtils;
 import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIterator;
 import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIteratorAbstract;
@@ -36,8 +36,8 @@ public final class IF implements PreProcessorDirective {
             LexSymbol temp;
             if(line.hasNext()){
                 temp = line.next();
-                if(temp.sym == LexSymbol.BOOLEAN_LITERAL){
-                    controlState = (Boolean) temp.value;
+                if(temp.getSym() == LexSymbol.BOOLEAN_LITERAL){
+                    controlState = (Boolean) temp.getValue();
                     state = 0;
                     exit = false;
                     hasNext = true;
@@ -65,20 +65,20 @@ public final class IF implements PreProcessorDirective {
             LexSymbol symbol = ss.next();
 
             while(state == 0 && !exit){
-                if(symbol.sym == LexSymbol.DIRECTIVE){
-                    if(symbol.value.equals("elseif") && level == 0){
+                if(symbol.getSym() == LexSymbol.DIRECTIVE){
+                    if(symbol.getValue().equals("elseif") && level == 0){
                         if(controlState){
                             exit = true;
                             break;
                         }else{
                             state = 1;
-                            controlState = (Boolean) ss.next().value;
+                            controlState = (Boolean) ss.next().getValue();
                             EnsureNextLine(ss);
                             symbol = ss.next();
                             continue;
                         }
 
-                    }else if(symbol.value.equals("else") && level == 0){
+                    }else if(symbol.getValue().equals("else") && level == 0){
                         if(controlState){
                             exit = true;
                             break;
@@ -90,17 +90,17 @@ public final class IF implements PreProcessorDirective {
                             continue;
                         }
 
-                    }else if(symbol.value.equals("endif")){
+                    }else if(symbol.getValue().equals("endif")){
                         if(level == 0) {
                             exit = true;
                             break;
                         }else{
                             level --;
                         }
-                    }else if(symbol.value.equals("if")){
+                    }else if(symbol.getValue().equals("if")){
                         level ++;
                     }
-                }else if(symbol.sym == LexSymbol.EOF){
+                }else if(symbol.getSym() == LexSymbol.EOF){
                     pp.report().reportError("if without endif", root);
                     return symbol;
                 }
@@ -112,20 +112,20 @@ public final class IF implements PreProcessorDirective {
             }
 
             while(state == 1 && !exit){
-                if(symbol.sym == LexSymbol.DIRECTIVE){
-                    if(symbol.value.equals("elseif") && level == 0){
+                if(symbol.getSym() == LexSymbol.DIRECTIVE){
+                    if(symbol.getValue().equals("elseif") && level == 0){
                         if(controlState){
                             exit = true;
                             break;
                         }else{
                             state = 1;
-                            controlState = (Boolean) ss.next().value;
+                            controlState = (Boolean) ss.next().getValue();
                             EnsureNextLine(ss);
                             symbol = ss.next();
                             continue;
                         }
 
-                    }else if(symbol.value.equals("else") && level == 0){
+                    }else if(symbol.getValue().equals("else") && level == 0){
                         if(controlState){
                             exit = true;
                             break;
@@ -136,17 +136,17 @@ public final class IF implements PreProcessorDirective {
                             symbol = ss.next();
                             continue;
                         }
-                    }else if(symbol.value.equals("endif")){
+                    }else if(symbol.getValue().equals("endif")){
                         if(level == 0) {
                             exit = true;
                             break;
                         }else{
                             level --;
                         }
-                    }else if(symbol.value.equals("if")){
+                    }else if(symbol.getValue().equals("if")){
                         level ++;
                     }
-                }else if(symbol.sym == LexSymbol.EOF){
+                }else if(symbol.getSym() == LexSymbol.EOF){
                     pp.report().reportError("if without endif", root);
                     return symbol;
                 }
@@ -158,24 +158,24 @@ public final class IF implements PreProcessorDirective {
             }
 
             while(state == 2 && !exit){
-                if(symbol.sym == LexSymbol.DIRECTIVE){
-                    if (symbol.value.equals("elseif") && level == 0) {
+                if(symbol.getSym() == LexSymbol.DIRECTIVE){
+                    if (symbol.getValue().equals("elseif") && level == 0) {
                         exit = true;
                         break;
-                    } else if (symbol.value.equals("else") && level == 0){
+                    } else if (symbol.getValue().equals("else") && level == 0){
                         exit = true;
                         break;
-                    } else if(symbol.value.equals("endif")){
+                    } else if(symbol.getValue().equals("endif")){
                         if(level == 0) {
                             exit = true;
                             break;
                         }else{
                             level --;
                         }
-                    }else if(symbol.value.equals("if")){
+                    }else if(symbol.getValue().equals("if")){
                         level ++;
                     }
-                }else if(symbol.sym == LexSymbol.EOF){
+                }else if(symbol.getSym() == LexSymbol.EOF){
                     pp.report().reportError("if without endif", root);
                     return symbol;
                 }
@@ -187,24 +187,24 @@ public final class IF implements PreProcessorDirective {
             }
 
             while(exit){
-                if(symbol.sym == LexSymbol.DIRECTIVE) {
-                    if (symbol.value.equals("elseif") && level == 0 && state >= 2) {
+                if(symbol.getSym() == LexSymbol.DIRECTIVE) {
+                    if (symbol.getValue().equals("elseif") && level == 0 && state >= 2) {
                         pp.report().reportError("elseif after else", symbol);
                         //LOGGER.log(Level.WARNING, "elseif after else");
                         EnsureNextLine(ss, false);
-                    } else if (symbol.value.equals("else") && level == 0) {
+                    } else if (symbol.getValue().equals("else") && level == 0) {
                         if(state >= 2) {
                             pp.report().reportError("else after else", symbol);
                             //LOGGER.log(Level.WARNING, "else after else");
                         }
                         EnsureNextLine(ss);
                         state = 2;
-                    } else if (symbol.value.equals("endif")) {
+                    } else if (symbol.getValue().equals("endif")) {
                         EnsureNextLine(ss);
                         hasNext =  false;
                         return new LexSymbol(); //EOF
                     }
-                }else if(symbol.sym == LexSymbol.EOF){
+                }else if(symbol.getSym() == LexSymbol.EOF){
                     pp.report().reportError("if without endif", root);
                     return symbol;
                 }

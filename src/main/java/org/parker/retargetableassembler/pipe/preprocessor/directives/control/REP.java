@@ -1,8 +1,8 @@
 package org.parker.retargetableassembler.pipe.preprocessor.directives.control;
 
-import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.PreProcessorDirective;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.util.PreProcessorOutputFilter;
 import org.parker.retargetableassembler.pipe.util.iterators.IteratorStack;
 import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIterator;
@@ -85,8 +85,8 @@ public final class REP implements PreProcessorDirective {
                 if(exit){
                     LexSymbol s = last.next();
 
-                    while(!(s.sym == LexSymbol.DIRECTIVE && s.value.equals("endrep"))){
-                        if(s.sym == LexSymbol.EOF){
+                    while(!(s.getSym() == LexSymbol.DIRECTIVE && s.getValue().equals("endrep"))){
+                        if(s.getSym() == LexSymbol.EOF){
 
                             pp.report().reportError("rep never terminated", root);
                             return  processSymbol(s);
@@ -97,7 +97,7 @@ public final class REP implements PreProcessorDirective {
 
                 }else {
                     LexSymbol s = last.next();
-                    if (s.sym == LexSymbol.DIRECTIVE && s.value.equals("endrep") && stack.peek_iterator_stack().equals(this)) {
+                    if (s.getSym() == LexSymbol.DIRECTIVE && s.getValue().equals("endrep") && stack.peek_iterator_stack().equals(this)) {
                         buildingLoop = false;
                         count --;
                     }else{
@@ -126,14 +126,12 @@ public final class REP implements PreProcessorDirective {
         }
 
         private LexSymbol processSymbol(LexSymbol sym){
-            sym = sym.clone();
-            if(sym.sym == LexSymbol.IDENTIFIER){
-                if(sym.value.toString().matches("[$]*\\$_r")){
-                    if(sym.value.toString().length() > 3){
-                        sym.value = sym.value.toString().substring(1);
+            if(sym.getSym() == LexSymbol.IDENTIFIER){
+                if(sym.getValue().toString().matches("[$]*\\$_r")){
+                    if(sym.getValue().toString().length() > 3){
+                        sym = sym.setValue(sym.getValue().toString().substring(1));
                     }else{
-                        sym.value = iterations - count;
-                        sym.sym = LexSymbol.INTEGER_LITERAL;
+                        sym = sym.setSymValue(LexSymbol.INTEGER_LITERAL, iterations - count);
                     }
                 }
             }
@@ -142,10 +140,10 @@ public final class REP implements PreProcessorDirective {
 
         @Override
         public LexSymbol filterOutput(LexSymbol symbol) {
-            if(symbol.sym == LexSymbol.DIRECTIVE && symbol.value.equals("exitrep")){
+            if(symbol.getSym() == LexSymbol.DIRECTIVE && symbol.getValue().equals("exitrep")){
                 this.requestExit = true;
                 return null;
-            }else if(symbol.sym == LexSymbol.DIRECTIVE && symbol.value.equals("endrep")){
+            }else if(symbol.getSym() == LexSymbol.DIRECTIVE && symbol.getValue().equals("endrep")){
                 buildingLoop = false;
                 count --;
                 loop.remove(loop.size() - 1);

@@ -1,28 +1,23 @@
-;rbuh
-;content: addi $4, $4, 1 ;a;lkjasd;lkjasdf;lkj comment
-
 .macro argTestInside 1
-db $_0
-db 5 * $_1
+    db $_0
+    db 5 * $_1
 .endmacro
 
 .macro argTest 1
-argTestInside $_1
-.endmacro
-
-
-.macro brilliant 0
-argTest $_0
+    argTestInside $_1
 .endmacro
 
 .macro brilliant 1
-argTest $_1
+    argTest $_1
 .endmacro
 
-brilliant 2 + 2 / *
+brilliant 2 + 2 / 
+
+;macro test above
+
 
 .macro addM 3
-add $_1, $_2, $_3
+    add $_1, $_2, $_3
 .endmacro
 
 

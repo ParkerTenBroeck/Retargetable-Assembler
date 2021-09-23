@@ -1,8 +1,8 @@
 package org.parker.retargetableassembler.pipe.preprocessor.directives.other;
 
-import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.PreProcessorDirective;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 
 import java.util.HashMap;
 import java.util.Map;

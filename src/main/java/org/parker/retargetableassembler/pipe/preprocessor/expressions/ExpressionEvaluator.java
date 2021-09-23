@@ -11,9 +11,9 @@ public class ExpressionEvaluator {
 
     public static $CompiledExpression[] evaluateCommaSeparatedExpressions(PeekEverywhereIterator<LexSymbol> iterator, PreProcessorReportWrapper report){
         ArrayList<$CompiledExpression> expressions = new ArrayList<>();
-        while(iterator.peek_ahead().sym != LexSymbol.LINE_TERMINATOR && iterator.peek_ahead().sym != LexSymbol.EOF){
+        while(iterator.peek_ahead().getSym() != LexSymbol.LINE_TERMINATOR && iterator.peek_ahead().getSym() != LexSymbol.EOF){
             expressions.add(evaluateExpressionList(iterator, report));
-            if(iterator.peek_ahead().sym != LexSymbol.COMMA){
+            if(iterator.peek_ahead().getSym() != LexSymbol.COMMA){
                 break;
             }else{
                 iterator.next();
@@ -224,10 +224,10 @@ public class ExpressionEvaluator {
                     valid = false;
                     throw new RuntimeException();
                 }
-                if(getContext().hasVariable(variableIdent.value.toString())){
-                    return getContext().getVariable(variableIdent.value.toString());
+                if(getContext().hasVariable(variableIdent.getValue().toString())){
+                    return getContext().getVariable(variableIdent.getValue().toString());
                 }else{
-                    getReport().reportError("'" + variableIdent.value + "' is not defined in the current scope", variableIdent);
+                    getReport().reportError("'" + variableIdent.getValue() + "' is not defined in the current scope", variableIdent);
                     valid = false;
                     return null;
                 }
@@ -235,7 +235,7 @@ public class ExpressionEvaluator {
 
             @Override
             public String toString() {
-                return variableIdent.value.toString();
+                return variableIdent.getValue().toString();
             }
 
             @Override
@@ -283,15 +283,15 @@ public class ExpressionEvaluator {
 
             @Override
             public Object evaluate() {
-                return constant.value;
+                return constant.getValue();
             }
 
             @Override
             public String toString() {
-                if(constant.sym == LexSymbol.STRING_LITERAL){
-                    return '"' + constant.value.toString() + '"';
+                if(constant.getSym() == LexSymbol.STRING_LITERAL){
+                    return '"' + constant.getValue().toString() + '"';
                 }else{
-                    return constant.value.toString();
+                    return constant.getValue().toString();
                 }
             }
 
@@ -339,7 +339,7 @@ public class ExpressionEvaluator {
 
             @Override
             public String toString() {
-                return "(" + type.value.toString() + ")" + o1.toString();
+                return "(" + type.getValue().toString() + ")" + o1.toString();
             }
 
             @Override
@@ -348,7 +348,7 @@ public class ExpressionEvaluator {
                     getReport().reportError("Given Context is null aborting evaluation", this.toSymbols());
                     throw new RuntimeException();
                 }
-                if(getContext().hasTypeCast(type.value.toString())){
+                if(getContext().hasTypeCast(type.getValue().toString())){
                     return getContext().evaluateTypeCast(type, o1.evaluate());
                 }else{
                     getReport().reportError("Current context does not have type cast", type);
@@ -394,7 +394,7 @@ public class ExpressionEvaluator {
 
             @Override
             public String toString() {
-                return (sRep == null ? LexSymbol.terminalNames[s.sym] : sRep) + " " + o1.toString();
+                return (sRep == null ? LexSymbol.terminalNames[s.getSym()] : sRep) + " " + o1.toString();
             }
 
             @Override
@@ -434,7 +434,7 @@ public class ExpressionEvaluator {
 
             @Override
             public String toString() {
-                return o1.toString() + " " + (sRep == null ? LexSymbol.terminalNames[s.sym] : sRep) + " " + o2.toString();
+                return o1.toString() + " " + (sRep == null ? LexSymbol.terminalNames[s.getSym()] : sRep) + " " + o2.toString();
             }
 
             @Override
@@ -474,7 +474,7 @@ public class ExpressionEvaluator {
 
             @Override
             public String toString() {
-                return id.value.toString() + " " + (sRep == null ? LexSymbol.terminalNames[s.sym] : sRep) + " " + o1.toString();
+                return id.getValue().toString() + " " + (sRep == null ? LexSymbol.terminalNames[s.getSym()] : sRep) + " " + o1.toString();
             }
 
             @Override
@@ -518,7 +518,7 @@ public class ExpressionEvaluator {
 
             @Override
             public String toString() {
-                return o1.toString() + " " + (s1Rep == null ? LexSymbol.terminalNames[s1.sym] : s1Rep) + " " + o2.toString() + " " + (s2Rep == null ? LexSymbol.terminalNames[s2.sym] : s2Rep) + " " + o3.toString();
+                return o1.toString() + " " + (s1Rep == null ? LexSymbol.terminalNames[s1.getSym()] : s1Rep) + " " + o2.toString() + " " + (s2Rep == null ? LexSymbol.terminalNames[s2.getSym()] : s2Rep) + " " + o3.toString();
             }
 
             @Override
@@ -796,7 +796,7 @@ public class ExpressionEvaluator {
             public String toString() {
                 final String[] t = {"["};
                 members.forEach(member -> {
-                    member.operators.forEach(lexSymbol -> t[0] += LexSymbol.terminalNames[lexSymbol.sym] + " ");
+                    member.operators.forEach(lexSymbol -> t[0] += LexSymbol.terminalNames[lexSymbol.getSym()] + " ");
                     t[0] += member.val.toString() + " ";
                 });
                 return t[0] + "]";
@@ -824,17 +824,17 @@ public class ExpressionEvaluator {
                     getReport().reportError("Given Context is null aborting evaluation", this.toSymbols());
                     throw new RuntimeException();
                 }
-                if(getContext().hasFunction(funcIdent.value.toString(), arguments == null ? 0 : arguments.getNum())){
+                if(getContext().hasFunction(funcIdent.getValue().toString(), arguments == null ? 0 : arguments.getNum())){
                     return getContext().evaluateFunction(funcIdent, arguments.getNum(), arguments.evaluate());
                 }else{
-                    getReport().reportError("No Function: " + funcIdent.value + " with: " + arguments.getNum() + " declared in the current context", funcIdent);
+                    getReport().reportError("No Function: " + funcIdent.getValue() + " with: " + arguments.getNum() + " declared in the current context", funcIdent);
                     return null;
                 }
             }
 
             @Override
             public String toString() {
-                return funcIdent.value.toString() + "(" + arguments.toString() + ")" ;
+                return funcIdent.getValue().toString() + "(" + arguments.toString() + ")" ;
             }
 
             @Override
@@ -875,7 +875,7 @@ public class ExpressionEvaluator {
             CommaSeparatedList csl = new CommaSeparatedList();
             while(true){
                 AST item = parseLevel14(iterator);
-                if(iterator.peek_ahead().sym == LexSymbol.COMMA){
+                if(iterator.peek_ahead().getSym() == LexSymbol.COMMA){
                     csl.addItem(item, iterator.next());
                 }else{
                     csl.addItem(item);
@@ -889,7 +889,7 @@ public class ExpressionEvaluator {
             AST ast = parseLevel14(iterator);
 
             for(;;) {
-                if (iterator.peek_ahead().sym == LexSymbol.COMMA) {
+                if (iterator.peek_ahead().getSym() == LexSymbol.COMMA) {
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -913,12 +913,12 @@ public class ExpressionEvaluator {
             LexSymbol peekID = iterator.peek_ahead();
             LexSymbol peekAss = iterator.peek_ahead(1);
 
-            if (peekAss.sym == LexSymbol.EQ && peekID.sym == LexSymbol.IDENTIFIER) {
+            if (peekAss.getSym() == LexSymbol.EQ && peekID.getSym() == LexSymbol.IDENTIFIER) {
                 AssignmentOperator ao = new AssignmentOperator() {
                     @Override
                     public Object evaluate() {
-                        getContext().setVariable(id.value.toString(), o1.evaluate());
-                        return getContext().getVariable(id.value.toString());
+                        getContext().setVariable(id.getValue().toString(), o1.evaluate());
+                        return getContext().getVariable(id.getValue().toString());
                     }
                 };
                 ao.id = iterator.next();
@@ -926,12 +926,12 @@ public class ExpressionEvaluator {
                 ao.sRep = "=";
                 ao.o1 = parseLevel14(iterator);
                 return ao;
-            }else if (peekAss.sym == LexSymbol.PLUSEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+            }else if (peekAss.getSym() == LexSymbol.PLUSEQ && peekID.getSym() == LexSymbol.IDENTIFIER) {
                 AssignmentOperator ao = new AssignmentOperator() {
                     @Override
                     public Object evaluate() {
-                        if(getContext().hasVariable(id.value.toString())) {
-                            Object o1 = getContext().getVariable(id.value.toString());
+                        if(getContext().hasVariable(id.getValue().toString())) {
+                            Object o1 = getContext().getVariable(id.getValue().toString());
                             Object o2 = this.o1.evaluate();
                             Object result;
                             if(o1 instanceof Number && o2 instanceof Number){
@@ -942,8 +942,8 @@ public class ExpressionEvaluator {
                                 getReport().reportError("Cannot add " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
                                 return null;
                             }
-                            getContext().setVariable(id.value.toString(), result);
-                            return getContext().getVariable(id.value.toString());
+                            getContext().setVariable(id.getValue().toString(), result);
+                            return getContext().getVariable(id.getValue().toString());
                         }else{
                             getReport().reportError("variable is not declared", id);
                             return null;
@@ -955,16 +955,16 @@ public class ExpressionEvaluator {
                 ao.sRep = "+=";
                 ao.o1 = parseLevel14(iterator);
                 return ao;
-            }else if (peekAss.sym == LexSymbol.MINUSEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+            }else if (peekAss.getSym() == LexSymbol.MINUSEQ && peekID.getSym() == LexSymbol.IDENTIFIER) {
                 AssignmentOperator ao = new AssignmentOperator() {
                     @Override
                     public Object evaluate() {
-                        if(getContext().hasVariable(id.value.toString())) {
-                            Object o1 = getContext().getVariable(id.value.toString());
+                        if(getContext().hasVariable(id.getValue().toString())) {
+                            Object o1 = getContext().getVariable(id.getValue().toString());
                             Object o2 = this.o1.evaluate();
                             if(o1 instanceof Number && o2 instanceof Number){
-                                getContext().setVariable(id.value.toString(), subtract((Number)o1, (Number)o2));
-                                return getContext().getVariable(id.value.toString());
+                                getContext().setVariable(id.getValue().toString(), subtract((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.getValue().toString());
                             }else{
                                 getReport().reportError("Cannot subtract " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
                                 return null;
@@ -980,16 +980,16 @@ public class ExpressionEvaluator {
                 ao.sRep = "-=";
                 ao.o1 = parseLevel14(iterator);
                 return ao;
-            }else if (peekAss.sym == LexSymbol.MULTEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+            }else if (peekAss.getSym() == LexSymbol.MULTEQ && peekID.getSym() == LexSymbol.IDENTIFIER) {
                 AssignmentOperator ao = new AssignmentOperator() {
                     @Override
                     public Object evaluate() {
-                        if(getContext().hasVariable(id.value.toString())) {
-                            Object o1 = getContext().getVariable(id.value.toString());
+                        if(getContext().hasVariable(id.getValue().toString())) {
+                            Object o1 = getContext().getVariable(id.getValue().toString());
                             Object o2 = this.o1.evaluate();
                             if(o1 instanceof Number && o2 instanceof Number){
-                                getContext().setVariable(id.value.toString(), multiply((Number)o1, (Number)o2));
-                                return getContext().getVariable(id.value.toString());
+                                getContext().setVariable(id.getValue().toString(), multiply((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.getValue().toString());
                             }else{
                                 getReport().reportError("Cannot multiply " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
                                 return null;
@@ -1005,16 +1005,16 @@ public class ExpressionEvaluator {
                 ao.sRep = "*=";
                 ao.o1 = parseLevel14(iterator);
                 return ao;
-            }else if (peekAss.sym == LexSymbol.DIVEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+            }else if (peekAss.getSym() == LexSymbol.DIVEQ && peekID.getSym() == LexSymbol.IDENTIFIER) {
                 AssignmentOperator ao = new AssignmentOperator() {
                     @Override
                     public Object evaluate() {
-                        if(getContext().hasVariable(id.value.toString())) {
-                            Object o1 = getContext().getVariable(id.value.toString());
+                        if(getContext().hasVariable(id.getValue().toString())) {
+                            Object o1 = getContext().getVariable(id.getValue().toString());
                             Object o2 = this.o1.evaluate();
                             if(o1 instanceof Number && o2 instanceof Number){
-                                getContext().setVariable(id.value.toString(), divide((Number)o1, (Number)o2));
-                                return getContext().getVariable(id.value.toString());
+                                getContext().setVariable(id.getValue().toString(), divide((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.getValue().toString());
                             }else{
                                 getReport().reportError("Cannot divide " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
                                 return null;
@@ -1030,16 +1030,16 @@ public class ExpressionEvaluator {
                 ao.sRep = "/=";
                 ao.o1 = parseLevel14(iterator);
                 return ao;
-            }else if (peekAss.sym == LexSymbol.MODEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+            }else if (peekAss.getSym() == LexSymbol.MODEQ && peekID.getSym() == LexSymbol.IDENTIFIER) {
                 AssignmentOperator ao = new AssignmentOperator() {
                     @Override
                     public Object evaluate() {
-                        if(getContext().hasVariable(id.value.toString())) {
-                            Object o1 = getContext().getVariable(id.value.toString());
+                        if(getContext().hasVariable(id.getValue().toString())) {
+                            Object o1 = getContext().getVariable(id.getValue().toString());
                             Object o2 = this.o1.evaluate();
                             if(o1 instanceof Number && o2 instanceof Number){
-                                getContext().setVariable(id.value.toString(), mod((Number)o1, (Number)o2));
-                                return getContext().getVariable(id.value.toString());
+                                getContext().setVariable(id.getValue().toString(), mod((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.getValue().toString());
 
                             }else{
                                 getReport().reportError("Cannot mod " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
@@ -1056,16 +1056,16 @@ public class ExpressionEvaluator {
                 ao.sRep = "%=";
                 ao.o1 = parseLevel14(iterator);
                 return ao;
-            }else if (peekAss.sym == LexSymbol.ANDEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+            }else if (peekAss.getSym() == LexSymbol.ANDEQ && peekID.getSym() == LexSymbol.IDENTIFIER) {
                 AssignmentOperator ao = new AssignmentOperator() {
                     @Override
                     public Object evaluate() {
-                        if(getContext().hasVariable(id.value.toString())) {
-                            Object o1 = getContext().getVariable(id.value.toString());
+                        if(getContext().hasVariable(id.getValue().toString())) {
+                            Object o1 = getContext().getVariable(id.getValue().toString());
                             Object o2 = this.o1.evaluate();
                             if(o1 instanceof Number && o2 instanceof Number && !(o1 instanceof Double || o2 instanceof Double || o1 instanceof Float || o2 instanceof Float)){
-                                getContext().setVariable(id.value.toString(), bitwiseAnd((Number)o1, (Number)o2));
-                                return getContext().getVariable(id.value.toString());
+                                getContext().setVariable(id.getValue().toString(), bitwiseAnd((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.getValue().toString());
                             }else{
                                 getReport().reportError("Cannot and " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
                                 return null;
@@ -1081,16 +1081,16 @@ public class ExpressionEvaluator {
                 ao.sRep = "&=";
                 ao.o1 = parseLevel14(iterator);
                 return ao;
-            }else if (peekAss.sym == LexSymbol.OREQ && peekID.sym == LexSymbol.IDENTIFIER) {
+            }else if (peekAss.getSym() == LexSymbol.OREQ && peekID.getSym() == LexSymbol.IDENTIFIER) {
                 AssignmentOperator ao = new AssignmentOperator() {
                     @Override
                     public Object evaluate() {
-                        if(getContext().hasVariable(id.value.toString())) {
-                            Object o1 = getContext().getVariable(id.value.toString());
+                        if(getContext().hasVariable(id.getValue().toString())) {
+                            Object o1 = getContext().getVariable(id.getValue().toString());
                             Object o2 = this.o1.evaluate();
                             if(o1 instanceof Number && o2 instanceof Number && !(o1 instanceof Double || o2 instanceof Double || o1 instanceof Float || o2 instanceof Float)){
-                                getContext().setVariable(id.value.toString(), bitwiseOr((Number)o1, (Number)o2));
-                                return getContext().getVariable(id.value.toString());
+                                getContext().setVariable(id.getValue().toString(), bitwiseOr((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.getValue().toString());
                             }else{
                                 getReport().reportError("Cannot and " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
                                 return null;
@@ -1106,16 +1106,16 @@ public class ExpressionEvaluator {
                 ao.sRep = "|=";
                 ao.o1 = parseLevel14(iterator);
                 return ao;
-            }else if (peekAss.sym == LexSymbol.XOREQ && peekID.sym == LexSymbol.IDENTIFIER) {
+            }else if (peekAss.getSym() == LexSymbol.XOREQ && peekID.getSym() == LexSymbol.IDENTIFIER) {
                 AssignmentOperator ao = new AssignmentOperator() {
                     @Override
                     public Object evaluate() {
-                        if(getContext().hasVariable(id.value.toString())) {
-                            Object o1 = getContext().getVariable(id.value.toString());
+                        if(getContext().hasVariable(id.getValue().toString())) {
+                            Object o1 = getContext().getVariable(id.getValue().toString());
                             Object o2 = this.o1.evaluate();
                             if(o1 instanceof Number && o2 instanceof Number && !(o1 instanceof Double || o2 instanceof Double || o1 instanceof Float || o2 instanceof Float)){
-                                getContext().setVariable(id.value.toString(), bitwiseXor((Number)o1, (Number)o2));
-                                return getContext().getVariable(id.value.toString());
+                                getContext().setVariable(id.getValue().toString(), bitwiseXor((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.getValue().toString());
                             }else{
                                 getReport().reportError("Cannot xor " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
                                 return null;
@@ -1131,16 +1131,16 @@ public class ExpressionEvaluator {
                 ao.sRep = "^=";
                 ao.o1 = parseLevel14(iterator);
                 return ao;
-            }else if (peekAss.sym == LexSymbol.LSHIFTEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+            }else if (peekAss.getSym() == LexSymbol.LSHIFTEQ && peekID.getSym() == LexSymbol.IDENTIFIER) {
                 AssignmentOperator ao = new AssignmentOperator() {
                     @Override
                     public Object evaluate() {
-                        if(getContext().hasVariable(id.value.toString())) {
-                            Object o1 = getContext().getVariable(id.value.toString());
+                        if(getContext().hasVariable(id.getValue().toString())) {
+                            Object o1 = getContext().getVariable(id.getValue().toString());
                             Object o2 = this.o1.evaluate();
                             if(o1 instanceof Number && o2 instanceof Number && !(o1 instanceof Double || o2 instanceof Double || o1 instanceof Float || o2 instanceof Float)){
-                                getContext().setVariable(id.value.toString(), shiftLeft((Number)o1, (Number)o2));
-                                return getContext().getVariable(id.value.toString());
+                                getContext().setVariable(id.getValue().toString(), shiftLeft((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.getValue().toString());
                             }else{
                                 getReport().reportError("Cannot shift left " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
                                 return null;
@@ -1156,16 +1156,16 @@ public class ExpressionEvaluator {
                 ao.sRep = "<<=";
                 ao.o1 = parseLevel14(iterator);
                 return ao;
-            }else if (peekAss.sym == LexSymbol.URSHIFTEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+            }else if (peekAss.getSym() == LexSymbol.URSHIFTEQ && peekID.getSym() == LexSymbol.IDENTIFIER) {
                 AssignmentOperator ao = new AssignmentOperator() {
                     @Override
                     public Object evaluate() {
-                        if(getContext().hasVariable(id.value.toString())) {
-                            Object o1 = getContext().getVariable(id.value.toString());
+                        if(getContext().hasVariable(id.getValue().toString())) {
+                            Object o1 = getContext().getVariable(id.getValue().toString());
                             Object o2 = this.o1.evaluate();
                             if(o1 instanceof Number && o2 instanceof Number && !(o1 instanceof Double || o2 instanceof Double || o1 instanceof Float || o2 instanceof Float)){
-                                getContext().setVariable(id.value.toString(), uShiftRight((Number)o1, (Number)o2));
-                                return getContext().getVariable(id.value.toString());
+                                getContext().setVariable(id.getValue().toString(), uShiftRight((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.getValue().toString());
                             }else{
                                 getReport().reportError("Cannot uShiftRight " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
                                 return null;
@@ -1181,16 +1181,16 @@ public class ExpressionEvaluator {
                 ao.sRep = ">>>=";
                 ao.o1 = parseLevel14(iterator);
                 return ao;
-            }else if (peekAss.sym == LexSymbol.RSHIFTEQ && peekID.sym == LexSymbol.IDENTIFIER) {
+            }else if (peekAss.getSym() == LexSymbol.RSHIFTEQ && peekID.getSym() == LexSymbol.IDENTIFIER) {
                 AssignmentOperator ao = new AssignmentOperator() {
                     @Override
                     public Object evaluate() {
-                        if(getContext().hasVariable(id.value.toString())) {
-                            Object o1 = getContext().getVariable(id.value.toString());
+                        if(getContext().hasVariable(id.getValue().toString())) {
+                            Object o1 = getContext().getVariable(id.getValue().toString());
                             Object o2 = this.o1.evaluate();
                             if(o1 instanceof Number && o2 instanceof Number && !(o1 instanceof Double || o2 instanceof Double || o1 instanceof Float || o2 instanceof Float)){
-                                getContext().setVariable(id.value.toString(), bitwiseOr((Number)o1, (Number)o2));
-                                return getContext().getVariable(id.value.toString());
+                                getContext().setVariable(id.getValue().toString(), bitwiseOr((Number)o1, (Number)o2));
+                                return getContext().getVariable(id.getValue().toString());
                             }else{
                                 getReport().reportError("Cannot right shift " + o1.getClass().getSimpleName() + " and " + o1.getClass().getSimpleName(), this.toSymbols());
                                 return null;
@@ -1214,7 +1214,7 @@ public class ExpressionEvaluator {
         public AST parseLevel13(PeekEverywhereIterator<LexSymbol> iterator){
             AST ast = parseLevel12(iterator);
 
-            if(iterator.peek_ahead().sym == LexSymbol.QUESTION){
+            if(iterator.peek_ahead().getSym() == LexSymbol.QUESTION){
                 TernaryOperator to = new TernaryOperator() {
                     @Override
                     public Object evaluate() {
@@ -1233,7 +1233,7 @@ public class ExpressionEvaluator {
                 to.s1 = iterator.next();
                 to.s1Rep = "?";
                 to.o2 = parseLevel12(iterator);
-                if(iterator.peek_ahead().sym == LexSymbol.COLON){
+                if(iterator.peek_ahead().getSym() == LexSymbol.COLON){
                     to.s2 = iterator.next();
                     to.s2Rep = ":";
                     to.o3 = parseLevel12(iterator);
@@ -1251,7 +1251,7 @@ public class ExpressionEvaluator {
             AST ast = parseLevel11(iterator);
 
             for(;;){
-                if(iterator.peek_ahead().sym == LexSymbol.OROR){
+                if(iterator.peek_ahead().getSym() == LexSymbol.OROR){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1281,7 +1281,7 @@ public class ExpressionEvaluator {
             AST ast = parseLevel10(iterator);
 
             for(;;){
-                if(iterator.peek_ahead().sym == LexSymbol.ANDAND){
+                if(iterator.peek_ahead().getSym() == LexSymbol.ANDAND){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1311,7 +1311,7 @@ public class ExpressionEvaluator {
             AST ast = parseLevel9(iterator);
 
             for(;;){
-                if(iterator.peek_ahead().sym == LexSymbol.OR){
+                if(iterator.peek_ahead().getSym() == LexSymbol.OR){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1341,7 +1341,7 @@ public class ExpressionEvaluator {
             AST ast = parseLevel8(iterator);
 
             for(;;){
-                if(iterator.peek_ahead().sym == LexSymbol.XOR){
+                if(iterator.peek_ahead().getSym() == LexSymbol.XOR){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1371,7 +1371,7 @@ public class ExpressionEvaluator {
             AST ast = parseLevel7(iterator);
 
             for(;;){
-                if(iterator.peek_ahead().sym == LexSymbol.AND){
+                if(iterator.peek_ahead().getSym() == LexSymbol.AND){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1401,7 +1401,7 @@ public class ExpressionEvaluator {
             AST ast = parseLevel6(iterator);
 
             for(;;){
-                if(iterator.peek_ahead().sym == LexSymbol.EQEQ){
+                if(iterator.peek_ahead().getSym() == LexSymbol.EQEQ){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1416,7 +1416,7 @@ public class ExpressionEvaluator {
                     bo.o2 = parseLevel6(iterator);
                     ast = bo;
 
-                }else if(iterator.peek_ahead().sym == LexSymbol.NOTEQ){
+                }else if(iterator.peek_ahead().getSym() == LexSymbol.NOTEQ){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1441,7 +1441,7 @@ public class ExpressionEvaluator {
             AST ast = parseLevel5(iterator);
 
             for(;;){
-                if(iterator.peek_ahead().sym == LexSymbol.LT){
+                if(iterator.peek_ahead().getSym() == LexSymbol.LT){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1461,7 +1461,7 @@ public class ExpressionEvaluator {
                     bo.o2 = parseLevel5(iterator);
                     ast = bo;
 
-                }else if(iterator.peek_ahead().sym == LexSymbol.GT){
+                }else if(iterator.peek_ahead().getSym() == LexSymbol.GT){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1481,7 +1481,7 @@ public class ExpressionEvaluator {
                     bo.o2 = parseLevel5(iterator);
                     ast = bo;
 
-                }else if(iterator.peek_ahead().sym == LexSymbol.LTEQ){
+                }else if(iterator.peek_ahead().getSym() == LexSymbol.LTEQ){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1501,7 +1501,7 @@ public class ExpressionEvaluator {
                     bo.o2 = parseLevel5(iterator);
                     ast = bo;
 
-                }else if(iterator.peek_ahead().sym == LexSymbol.GTEQ){
+                }else if(iterator.peek_ahead().getSym() == LexSymbol.GTEQ){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1531,7 +1531,7 @@ public class ExpressionEvaluator {
             AST ast = parseLevel4(iterator);
             for(;;){
                 LexSymbol peek = iterator.peek_ahead();
-                if(peek.sym == LexSymbol.LSHIFT){
+                if(peek.getSym() == LexSymbol.LSHIFT){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1551,7 +1551,7 @@ public class ExpressionEvaluator {
                     bo.o2 = parseLevel4(iterator);
                     ast = bo;
 
-                }else if(peek.sym == LexSymbol.URSHIFT){
+                }else if(peek.getSym() == LexSymbol.URSHIFT){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1571,7 +1571,7 @@ public class ExpressionEvaluator {
                     bo.o2 = parseLevel4(iterator);
                     ast = bo;
 
-                }else if(peek.sym == LexSymbol.RSHIFT){
+                }else if(peek.getSym() == LexSymbol.RSHIFT){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1601,7 +1601,7 @@ public class ExpressionEvaluator {
             AST ast = parseLevel3(iterator);
             for(;;){
                 LexSymbol peek = iterator.peek_ahead();
-                if(peek.sym == LexSymbol.PLUS){
+                if(peek.getSym() == LexSymbol.PLUS){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1623,7 +1623,7 @@ public class ExpressionEvaluator {
                     bo.o2 = parseLevel3(iterator);
                     ast = bo;
 
-                }else if(peek.sym == LexSymbol.MINUS){
+                }else if(peek.getSym() == LexSymbol.MINUS){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1653,7 +1653,7 @@ public class ExpressionEvaluator {
             AST ast = parseLevel2(iterator);
             for(;;){
                 LexSymbol peek = iterator.peek_ahead();
-                if(peek.sym == LexSymbol.MULT){
+                if(peek.getSym() == LexSymbol.MULT){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1673,7 +1673,7 @@ public class ExpressionEvaluator {
                     bo.o2 = parseLevel2(iterator);
                     ast = bo;
 
-                }else if(peek.sym == LexSymbol.DIV){
+                }else if(peek.getSym() == LexSymbol.DIV){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1693,7 +1693,7 @@ public class ExpressionEvaluator {
                     bo.o2 = parseLevel2(iterator);
                     ast = bo;
 
-                }else if(peek.sym == LexSymbol.MOD){
+                }else if(peek.getSym() == LexSymbol.MOD){
                     BinaryOperator bo = new BinaryOperator() {
                         @Override
                         public Object evaluate() {
@@ -1723,7 +1723,7 @@ public class ExpressionEvaluator {
 
             LexSymbol peekAhead = iterator.peek_ahead();
 
-            if(peekAhead.sym == LexSymbol.PLUS){
+            if(peekAhead.getSym() == LexSymbol.PLUS){
                 UnaryOperator uo = new UnaryOperator() {
                     @Override
                     public Object evaluate() {
@@ -1741,7 +1741,7 @@ public class ExpressionEvaluator {
                 uo.o1 = parseLevel2(iterator);
                 return uo;
 
-            }else if(peekAhead.sym == LexSymbol.MINUS){
+            }else if(peekAhead.getSym() == LexSymbol.MINUS){
                 UnaryOperator uo = new UnaryOperator() {
                     @Override
                     public Object evaluate() {
@@ -1759,7 +1759,7 @@ public class ExpressionEvaluator {
                 uo.o1 = parseLevel2(iterator);
                 return uo;
 
-            }else if(peekAhead.sym == LexSymbol.NOT){
+            }else if(peekAhead.getSym() == LexSymbol.NOT){
                 UnaryOperator uo = new UnaryOperator() {
                     @Override
                     public Object evaluate() {
@@ -1777,7 +1777,7 @@ public class ExpressionEvaluator {
                 uo.o1 = parseLevel2(iterator);
                 return uo;
 
-            }else if(peekAhead.sym == LexSymbol.COMP){
+            }else if(peekAhead.getSym() == LexSymbol.COMP){
                 UnaryOperator uo = new UnaryOperator() {
                     @Override
                     public Object evaluate() {
@@ -1795,9 +1795,9 @@ public class ExpressionEvaluator {
                 uo.o1 = parseLevel2(iterator);
                 return uo;
 
-            }else if(peekAhead.sym == LexSymbol.LPAREN &&
-                    iterator.peek_ahead(1).sym == LexSymbol.IDENTIFIER &&
-                    iterator.peek_ahead(2).sym == LexSymbol.RPAREN){
+            }else if(peekAhead.getSym() == LexSymbol.LPAREN &&
+                    iterator.peek_ahead(1).getSym() == LexSymbol.IDENTIFIER &&
+                    iterator.peek_ahead(2).getSym() == LexSymbol.RPAREN){
                 TypeCast tc = new TypeCast();
                 tc.b1 = iterator.next();
                 tc.type = iterator.next();
@@ -1815,15 +1815,15 @@ public class ExpressionEvaluator {
             AST ast;
 
             firstIF:
-            if(sym.sym == LexSymbol.IDENTIFIER){
-                if(iterator.peek_ahead().sym == LexSymbol.LPAREN){ //functions
+            if(sym.getSym() == LexSymbol.IDENTIFIER){
+                if(iterator.peek_ahead().getSym() == LexSymbol.LPAREN){ //functions
                     FunctionCall func = new FunctionCall();
                     func.funcIdent = sym;
                     func.b1 = iterator.next();
-                    if(iterator.peek_ahead().sym != LexSymbol.RPAREN){
+                    if(iterator.peek_ahead().getSym() != LexSymbol.RPAREN){
                         func.arguments = (CommaSeparatedList) parseLevel16(iterator);
                     }
-                    if(iterator.peek_ahead().sym != LexSymbol.RPAREN){
+                    if(iterator.peek_ahead().getSym() != LexSymbol.RPAREN){
                         getReport().reportError("Un terminated brackets / unexpected token", iterator.next());
                         valid = false;
                     }else{
@@ -1833,11 +1833,11 @@ public class ExpressionEvaluator {
                 }else{ //variables
                     ast = new Variable(sym);
                 }
-            }else if(sym.sym == LexSymbol.LPAREN){
+            }else if(sym.getSym() == LexSymbol.LPAREN){
                 Parenthesis p = new Parenthesis();
                 p.b1 = sym;
                 p.inside = parseLevel15(iterator);
-                if(iterator.next().sym == LexSymbol.RPAREN){
+                if(iterator.next().getSym() == LexSymbol.RPAREN){
                     p.b2 = iterator.peek_behind();
                     ast = p;
                 }else{
@@ -1846,11 +1846,11 @@ public class ExpressionEvaluator {
                     ast = null;
                 }
 
-            }else if(sym.sym == LexSymbol.LBRACE){
+            }else if(sym.getSym() == LexSymbol.LBRACE){
                 ArrayDeclaration p = new ArrayDeclaration();
                 p.b1 = sym;
                 p.arguments = (CommaSeparatedList) parseLevel16(iterator);
-                if(iterator.next().sym == LexSymbol.RBRACE){
+                if(iterator.next().getSym() == LexSymbol.RBRACE){
                     p.b2 = iterator.peek_behind();
                     ast = p;
                 }else{
@@ -1858,19 +1858,19 @@ public class ExpressionEvaluator {
                     valid = false;
                     ast = null;
                 }
-            }else if(sym.sym == LexSymbol.LBRACK){
+            }else if(sym.getSym() == LexSymbol.LBRACK){
                 MemoryAccess ma = new MemoryAccess();
                 ma.lBarack = sym;
                 MemoryAccess.Member m = new MemoryAccess.Member();
                 sym = iterator.peek_ahead();
-                while(sym.sym != LexSymbol.RBRACK){
-                    if(sym.sym == LexSymbol.LINE_TERMINATOR || sym.sym == LexSymbol.EOF){
+                while(sym.getSym() != LexSymbol.RBRACK){
+                    if(sym.getSym() == LexSymbol.LINE_TERMINATOR || sym.getSym() == LexSymbol.EOF){
                         getReport().unexpectedTokenError(sym);
                         iterator.next();
                         ast = null;
                         break firstIF;
                     }
-                    switch (sym.sym){
+                    switch (sym.getSym()){
                         case LexSymbol.BOOLEAN_LITERAL:
                         case LexSymbol.STRING_LITERAL:
                         case LexSymbol.INTEGER_LITERAL:
@@ -1897,7 +1897,7 @@ public class ExpressionEvaluator {
                 ma.rBarack = iterator.next();
                 ast = ma;
             }else{ //constants
-                switch(sym.sym){
+                switch(sym.getSym()){
                     case LexSymbol.BOOLEAN_LITERAL:
                     case LexSymbol.STRING_LITERAL:
                     case LexSymbol.INTEGER_LITERAL:
@@ -1913,12 +1913,12 @@ public class ExpressionEvaluator {
             }
 
             sym = iterator.peek_ahead();
-            if(sym.sym == LexSymbol.LBRACK){
+            if(sym.getSym() == LexSymbol.LBRACK){
                 ArrayAccess p = new ArrayAccess();
                 p.array = ast;
                 p.b1 = iterator.next();
                 p.argument = parseLevel15(iterator);
-                if(iterator.next().sym == LexSymbol.RBRACK){
+                if(iterator.next().getSym() == LexSymbol.RBRACK){
                     p.b2 = iterator.peek_behind();
                     ast = p;
                 }else{
@@ -1926,7 +1926,7 @@ public class ExpressionEvaluator {
                     valid = false;
                     ast = null;
                 }
-            }else if(sym.sym == LexSymbol.COLON && iterator.peek_ahead(1).sym == LexSymbol.COLON){
+            }else if(sym.getSym() == LexSymbol.COLON && iterator.peek_ahead(1).getSym() == LexSymbol.COLON){
                 return ast;
             }
 

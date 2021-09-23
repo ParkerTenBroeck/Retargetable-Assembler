@@ -49,9 +49,9 @@ public class ExpressionEvaluatorTest {
 
         buffer.append(prefix);
         if(tree.isLeaf()){
-            buffer.append(LexSymbol.terminalNames[tree.getValue().sym]);
-            if(tree.getValue().value != null){
-                buffer.append(" '" + tree.getValue().value + "'");
+            buffer.append(LexSymbol.terminalNames[tree.getValue().getSym()]);
+            if(tree.getValue().getValue() != null){
+                buffer.append(" '" + tree.getValue().getValue() + "'");
             }
             buffer.append('\n');
             return;
@@ -102,7 +102,7 @@ public class ExpressionEvaluatorTest {
         @Override
         public Object evaluateFunction(LexSymbol toString, int num, Object[] evaluate) {
             if(num == 1){
-                switch (toString.value.toString()){
+                switch (toString.getValue().toString()){
                     case "sin":
                         return Math.sin(((Number) evaluate[0]).doubleValue());
                     case "cos":
@@ -119,7 +119,7 @@ public class ExpressionEvaluatorTest {
                         return  null;
                 }
             }else if(num == 2){
-                if(toString.equals("pow")){
+                if(toString.getValue().equals("pow")){
                     return Math.pow(((Number) evaluate[0]).doubleValue(), ((Number) evaluate[1]).doubleValue());
                 }
             }
@@ -149,7 +149,7 @@ public class ExpressionEvaluatorTest {
 
         @Override
         public Object evaluateTypeCast(LexSymbol toString, Object evaluate) {
-            if(toString.value.equals("Double")){
+            if(toString.getValue().equals("Double")){
                 return ((Number)evaluate).doubleValue();
             }
             return null;

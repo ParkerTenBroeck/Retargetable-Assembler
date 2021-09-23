@@ -3,9 +3,9 @@ package org.parker.retargetableassembler.pipe.preprocessor.directives.other;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.cup.AssemblerSym;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.AssemblerScanner;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.AssemblerScannerPreProcessor;
-import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.PreProcessorDirective;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,10 +17,10 @@ public final class INCLUDE implements PreProcessorDirective {
     @Override
     public void init(LexSymbol root, PreProcessor pp) {
 
-        if(pp.getIteratorStack().peek_ahead().sym == AssemblerSym.STRING_LITERAL){
+        if(pp.getIteratorStack().peek_ahead().getSym() == AssemblerSym.STRING_LITERAL){
             LexSymbol s = pp.getIteratorStack().next();
             pp.getIteratorStack().next();
-            String path = (String) s.value;
+            String path = (String) s.getValue();
             File f = s.getFile();
             f = new File(f.getParent(), path);
             if(!f.exists()){

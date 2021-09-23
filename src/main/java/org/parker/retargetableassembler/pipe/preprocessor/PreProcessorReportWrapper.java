@@ -14,16 +14,16 @@ public class PreProcessorReportWrapper implements Report {
 
     public void unexpectedTokenError(LexSymbol unexpectedToken){
         this.reportError("Unexpected token '" +
-                LexSymbol.terminalNames[unexpectedToken.sym] + "'", unexpectedToken);
+                LexSymbol.terminalNames[unexpectedToken.getSym()] + "'", unexpectedToken);
     }
 
     public void unexpectedTokenError(String message, LexSymbol unexpectedToken){
         this.reportError(message + " Unexpected token '" +
-                LexSymbol.terminalNames[unexpectedToken.sym] + "'", unexpectedToken);
+                LexSymbol.terminalNames[unexpectedToken.getSym()] + "'", unexpectedToken);
     }
 
     public void unexpectedTokenError(LexSymbol unexpectedToken, int expected){
-        this.reportError("Unexpected token: " + "'" + LexSymbol.terminalNames[unexpectedToken.sym] + "'" +
+        this.reportError("Unexpected token: " + "'" + LexSymbol.terminalNames[unexpectedToken.getSym()] + "'" +
                 "Expected: '" + LexSymbol.terminalNames[expected] + "'", unexpectedToken);
     }
 

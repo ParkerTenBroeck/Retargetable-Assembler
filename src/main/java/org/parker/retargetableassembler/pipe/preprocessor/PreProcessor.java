@@ -3,9 +3,9 @@ package org.parker.retargetableassembler.pipe.preprocessor;
 import org.parker.retargetableassembler.pipe.Report;
 import org.parker.retargetableassembler.pipe.preprocessor.expressions.*;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.cup.AssemblerSym;
-import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.Directives;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.other.MACRO;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.util.BufferUtils;
 import org.parker.retargetableassembler.pipe.preprocessor.util.PreProcessorOutputFilter;
 import org.parker.retargetableassembler.pipe.util.iterators.IteratorStack;
@@ -121,7 +121,7 @@ public class PreProcessor implements Iterator<LexSymbol>{
         protected LexSymbol next_peekless() {
             LexSymbol s = super.next_peekless();
 
-                while (s == null || s.sym == LexSymbol.EOF) {
+                while (s == null || s.getSym() == LexSymbol.EOF) {
                     LexSymbol peek = super.peek_ahead();
                     if (peek == null) {
                         super.next_peekless();
@@ -131,16 +131,16 @@ public class PreProcessor implements Iterator<LexSymbol>{
                     }
                 }
 
-            if(s.sym == LexSymbol.LABEL || s.sym == LexSymbol.IDENTIFIER){
-                if(s.value.toString().startsWith(".")){
+            if(s.getSym() == LexSymbol.LABEL || s.getSym() == LexSymbol.IDENTIFIER){
+                if(s.getValue().toString().startsWith(".")){
                     if(lastNonLocalLabel != null){
-                        s.value = lastNonLocalLabel.value.toString() + s.value.toString();
+                        s = s.setValue(lastNonLocalLabel.getValue().toString() + s.getValue().toString());
                     }else{
                         report().reportError("Found local label without nonlocal label", s);
                         return s;
                     }
                 }else{
-                    if(s.sym == LexSymbol.LABEL)lastNonLocalLabel = s;
+                    if(s.getSym() == LexSymbol.LABEL)lastNonLocalLabel = s;
                 }
             }
 
@@ -199,14 +199,14 @@ public class PreProcessor implements Iterator<LexSymbol>{
 
         LexSymbol s = null;
 
-        while(s == null || (s.sym == LexSymbol.LINE_TERMINATOR && this.atBOL)) {
+        while(s == null || (s.getSym() == LexSymbol.LINE_TERMINATOR && this.atBOL)) {
             s = iteratorStack.next();
-            if (s.sym == AssemblerSym.EOF) {
+            if (s.getSym() == AssemblerSym.EOF) {
                 atEOF = true;
                 return s;
             }
-            while (s.sym == AssemblerSym.DIRECTIVE && directives.hasDirective((String) s.value)) {
-                directives.handleDirective((String) s.value, s, this);
+            while (s.getSym() == AssemblerSym.DIRECTIVE && directives.hasDirective((String) s.getValue())) {
+                directives.handleDirective((String) s.getValue(), s, this);
                 s = iteratorStack.next();
             }
 
@@ -218,13 +218,13 @@ public class PreProcessor implements Iterator<LexSymbol>{
             }
 
             if(s != null) {
-                while (s.sym == AssemblerSym.DIRECTIVE && directives.hasStranglerDirective((String) s.value)) {
-                    directives.handleStranglerDirective((String) s.value, s, this);
+                while (s.getSym() == AssemblerSym.DIRECTIVE && directives.hasStranglerDirective((String) s.getValue())) {
+                    directives.handleStranglerDirective((String) s.getValue(), s, this);
                     s = iteratorStack.next();
                 }
 
                 exitIf:
-                if(s.sym == LexSymbol.INSTRUCTION){
+                if(s.getSym() == LexSymbol.INSTRUCTION){
                     Iterator<LexSymbol> endOfLineIterator = BufferUtils.tillLineTerminator(iteratorStack, true);
                     List<LexSymbol> endOfLineData = BufferUtils.iteratorToArrayList(endOfLineIterator);
                     final LexSymbol fs = s;
@@ -233,12 +233,12 @@ public class PreProcessor implements Iterator<LexSymbol>{
 
                     List<List<LexSymbol>> macroArguments = MACRO.splitMacroArguments(reusableIterator);
 
-                    if(reusableIterator.peek_ahead().sym != LexSymbol.LINE_TERMINATOR && reusableIterator.peek_ahead().sym != LexSymbol.EOF){
-                        this.report().reportError("Unexpected token found at the end of arguments", iteratorStack.peek_iterator_stack().peek_ahead());
+                    if(!reusableIterator.hasNext() && reusableIterator.peek_ahead().getSym() != LexSymbol.LINE_TERMINATOR && reusableIterator.peek_ahead().getSym() != LexSymbol.EOF){
+                        this.report().reportError("Unexpected token found at the end of arguments", reusableIterator.peek_ahead());
                         s = null;
                         break exitIf;
                     }
-                    if(definedMacros.hasAvailableMacro(s.value.toString(), macroArguments.size())){
+                    if(definedMacros.hasAvailableMacro(s.getValue().toString(), macroArguments.size())){
                         MACRO.MacroDefinition md = definedMacros.getAvailableMacro(s, macroArguments.size());
                         iteratorStack.push_iterator_stack(new MACRO.MacroIterator(s, md, macroArguments));
                         s = null;
@@ -255,19 +255,26 @@ public class PreProcessor implements Iterator<LexSymbol>{
                                 break exitIf;
                             }
                         }
+                        if(!reusableIterator.hasNext() && reusableIterator.peek_ahead().getSym() != LexSymbol.LINE_TERMINATOR && reusableIterator.peek_ahead().getSym() != LexSymbol.EOF){
+                            this.report().reportError("Unexpected token found at the end of arguments", reusableIterator.peek_ahead());
+                            s = null;
+                            break exitIf;
+                        }
+
                         LexSymbol last = this.iteratorStack.peek_iterator_stack().peek_behind();
-                        s = new LexSymbol(s.getFile(), s.sym, s.getLine(), s.getColumn(), s.getCharPos(),
-                                (int) ((last.getCharPos() + last.getSize()) - s.getCharPos()),
-                                s.left, s.right, id);
+                        s = LexSymbol.combine(s.getSym(), id, s, last);
+                        //s = new LexSymbol(s.getFile(), s.getSym(), s.getLine(), s.getColumn(), s.getCharPos(),
+                        //        (int) ((last.getCharPos() + last.getSize()) - s.getCharPos()),
+                        //        s.left, s.right, id);
                         return s;
                     }
                 }
             }
-            atBOL = s!= null && s.sym == LexSymbol.LINE_TERMINATOR;
+            atBOL = s!= null && s.getSym() == LexSymbol.LINE_TERMINATOR;
         }
 
 
-        if (s.sym == AssemblerSym.EOF) {
+        if (s.getSym() == AssemblerSym.EOF) {
             atEOF = true;
         }
 
@@ -312,8 +319,8 @@ public class PreProcessor implements Iterator<LexSymbol>{
         }
 
         public MACRO.MacroDefinition getAvailableMacro(LexSymbol id, int args){
-            if(macros.containsKey(id.value)){
-                MACRO.MacroDefinition md = macros.get(id.value).getAvailableMacro(args);
+            if(macros.containsKey(id.getValue())){
+                MACRO.MacroDefinition md = macros.get(id.getValue()).getAvailableMacro(args);
                 if(md != null){
                     return md;
                 }
@@ -419,7 +426,7 @@ public class PreProcessor implements Iterator<LexSymbol>{
         public String toString() {
             StringBuilder sb = new StringBuilder();
 
-            sb.append(instruction.value + " ");
+            sb.append(instruction.getValue() + " ");
 
             for(int i = 0; i < arguments.length; i ++){
                 if(i != 0) sb.append(", ");

@@ -1,15 +1,12 @@
 package org.parker.retargetableassembler.pipe.preprocessor.util;
 
 import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
-import org.parker.retargetableassembler.pipe.util.iterators.PeekAheadIterator;
-import org.parker.retargetableassembler.pipe.util.iterators.PeekAheadIteratorAbstract;
 import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIterator;
 import org.parker.retargetableassembler.pipe.util.iterators.PeekEverywhereIteratorAbstract;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,12 +25,12 @@ public class BufferUtils {
     public static void EnsureNextLine(Iterator<LexSymbol> ss, boolean report) {
         LexSymbol symbol = ss.next();
 
-        if(symbol.sym != LexSymbol.LINE_TERMINATOR && report){
+        if(symbol.getSym() != LexSymbol.LINE_TERMINATOR && report){
             LOGGER.log(Level.SEVERE, "sheesh");
         }else{
             return;
         }
-        while(symbol.sym != LexSymbol.LINE_TERMINATOR && ss.hasNext()){
+        while(symbol.getSym() != LexSymbol.LINE_TERMINATOR && ss.hasNext()){
             symbol = ss.next();
         }
         return;
@@ -111,15 +108,15 @@ public class BufferUtils {
 
         @Override
         public boolean hasNext() {
-            if(next == null || next.sym == LexSymbol.EOF){
+            if(next == null || next.getSym() == LexSymbol.EOF){
                 return false;
             }else{
-                if(next.sym == LexSymbol.LINE_TERMINATOR && includeLineTerminator){
+                if(next.getSym() == LexSymbol.LINE_TERMINATOR && includeLineTerminator){
                     last = next;
                     next = null;
                     return true;
                 }else{
-                   return next.sym != LexSymbol.LINE_TERMINATOR;
+                   return next.getSym() != LexSymbol.LINE_TERMINATOR;
                 }
             }
         }
@@ -128,7 +125,7 @@ public class BufferUtils {
         public LexSymbol next() {
             LexSymbol curr = next;
 
-            if(next == null || next.sym == LexSymbol.LINE_TERMINATOR || next.sym == LexSymbol.EOF){
+            if(next == null || next.getSym() == LexSymbol.LINE_TERMINATOR || next.getSym() == LexSymbol.EOF){
                 if(includeLineTerminator) return last;
                 return next;
             }
