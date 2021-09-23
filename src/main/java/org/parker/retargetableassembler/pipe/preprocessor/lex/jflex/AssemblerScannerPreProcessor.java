@@ -38,34 +38,38 @@ public class AssemblerScannerPreProcessor extends PeekEverywhereIteratorAbstract
             s = iterator.next();
         }
 
-        if(s.sym == LexSymbol.EOF){
-            atEOF = true;
-            last = s;
-            s = new LexSymbol(s.getFile(), LexSymbol.LINE_TERMINATOR, s.getLine(), s.getColumn(), s.getCharPos(), s.getSize(),s.left, s.right, s.value);
+        if(s.getSym() == LexSymbol.EOF){
+            if(!atEOF && !atBOL){
+                atEOF = true;
+                last = s;
+                s = s.setSym(LexSymbol.LINE_TERMINATOR);
+            }else {
+                atEOF = true;
+                last = s;
+            }
         }
 
-        while(s.sym == LexSymbol.WHITESPACE){
+        while(s.getSym() == LexSymbol.WHITESPACE){
             s = iterator.next();
         }
 
-        if(atBOL && s.sym == LexSymbol.IDENTIFIER){
-            if(iterator.peek_ahead().sym == LexSymbol.COLON){
+        if(atBOL && s.getSym() == LexSymbol.IDENTIFIER){
+            if(iterator.peek_ahead().getSym() == LexSymbol.COLON){
                 LexSymbol colon = iterator.next();
-                s = LexSymbol.combine(LexSymbol.LABEL, s.value, s, colon);
+                s = LexSymbol.combine(LexSymbol.LABEL, s.getValue(), s, colon);
             }
         }
-        if(atBOL || this.peek_behind().sym == LexSymbol.LABEL){
-            if(s.sym == LexSymbol.IDENTIFIER){
-                if(s.value.toString().startsWith(".")){
-                    s.sym = LexSymbol.DIRECTIVE;
-                    s.value = s.value.toString().substring(1);
+        if(atBOL || this.peek_behind().getSym() == LexSymbol.LABEL){
+            if(s.getSym() == LexSymbol.IDENTIFIER){
+                if(s.getValue().toString().startsWith(".")){
+                    s = s.setSymValue(LexSymbol.DIRECTIVE, s.getValue().toString().substring(1));
                 }else{
-                    s.sym = LexSymbol.INSTRUCTION;
+                    s = s.setSym(LexSymbol.INSTRUCTION);
                 }
             }
         }
 
-        atBOL = s.sym == LexSymbol.LINE_TERMINATOR;
+        atBOL = s.getSym() == LexSymbol.LINE_TERMINATOR;
 
         return s;
     }

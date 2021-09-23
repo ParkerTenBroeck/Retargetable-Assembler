@@ -1,13 +1,12 @@
 package org.parker.retargetableassembler.pipe.preprocessor.directives;
 
-import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.control.IF;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.control.REP;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.message.MSG;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.other.INCLUDE;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.other.MACRO;
-import org.parker.retargetableassembler.pipe.util.iterators.IteratorStack;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 
 import java.util.HashMap;
 import java.util.Map;

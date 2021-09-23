@@ -1,5 +1,6 @@
 package org.parker.retargetableassembler.pipe.preprocessor.lex.jflex;
 
+import java_cup.runtime.Symbol;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.cup.AssemblerSym;
 
 import java.io.File;
@@ -8,18 +9,19 @@ import java.util.Collection;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
+public class LexSymbol implements AssemblerSym {
+    private final java_cup.runtime.Symbol rSym;
     private final int line;
     private final int column;
     private final int size;
     private final long charPos;
     private final File file;
-    private LexSymbol parent;
+    private final LexSymbol parent;
 
-    public LexSymbol(int type, int line,  int column, long charPos, int size) {
+    public LexSymbol(int type, int line, int column, long charPos, int size) {
         this(null, type, line, column, charPos, size, -1, -1, null);
     }
-    public LexSymbol(File file, int type, int line,  int column, long charPos, int size) {
+    public LexSymbol(File file, int type, int line, int column, long charPos, int size) {
         this(file, type, line, column, charPos, size, -1, -1, null);
     }
 
@@ -29,10 +31,6 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
 
     public LexSymbol(File file, int type, int line, int column, long charPos, int size, Object value) {
         this(file, type, line, column, charPos, size, -1, -1, value);
-    }
-
-    public void setParent(LexSymbol parent){
-            this.parent = parent;
     }
 
     public LexSymbol invertParentRelationship(){
@@ -45,7 +43,7 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
         LexSymbol sym = this;
         for(int i = 0; i < 100; i ++){ //max iterations
             if(sym == null) break;
-            tmp.add(sym.cloneParentless());
+            tmp.add(sym.clone());
             sym = sym.parent;
         }
 
@@ -56,12 +54,24 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
     }
 
     @Override
-    public LexSymbol clone() {
-        return new LexSymbol(file, sym, line, column, charPos, size, left, right, value, parent != null ? parent.clone(): null);
+    protected LexSymbol clone() {
+        return new LexSymbol(file, rSym.sym, line, column, charPos, size, rSym.left, rSym.right, rSym.value, parent);
     }
 
-    public LexSymbol cloneParentless() {
-        return new LexSymbol(file, sym, line, column, charPos, size, left, right, value, null);
+    protected LexSymbol cloneWithNewParent(LexSymbol parent) {
+        return new LexSymbol(file, rSym.sym, line, column, charPos, size, rSym.left, rSym.right, rSym.value, parent);
+    }
+
+    protected LexSymbol cloneWithNewSym(int sym) {
+        return new LexSymbol(file, sym, line, column, charPos, size, rSym.left, rSym.right, rSym.value, parent);
+    }
+
+    protected LexSymbol cloneWithNewValue(Object value) {
+        return new LexSymbol(file, rSym.sym, line, column, charPos, size, rSym.left, rSym.right, value, parent);
+    }
+
+    protected LexSymbol cloneWithNewSymAndValue(int sym, Object value) {
+        return new LexSymbol(file, sym, line, column, charPos, size, rSym.left, rSym.right, value, parent);
     }
 
     /** Default is always NULL EOF
@@ -76,7 +86,8 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
     }
 
     public LexSymbol(File file, int type, int line, int column, long charPos, int size, int left, int right, Object value, LexSymbol parent) {
-        super(type, left, right, value);
+        rSym = new Symbol(type, left, right, value);
+        //super(type, left, right, value);
         this.file = file;
         this.line = line;
         this.column = column;
@@ -87,6 +98,62 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
 
     public LexSymbol(File file, int type, int line, int column, long charPos, int size, int left, int right, Object value) {
         this(file, type, line, column, charPos, size, left, right, value, null);
+    }
+
+    public LexSymbol getSuperParent(){
+        return this.parent == null ? this : this.getParent();
+    }
+
+    public static LexSymbol combine(int identifier, Object o, Collection<LexSymbol> causeCollection) {
+        LexSymbol[] temp = causeCollection.toArray(new LexSymbol[0]);
+        if(temp.length > 0) {
+            LexSymbol first = temp[0];
+            LexSymbol last = temp[temp.length - 1];
+            return combine(identifier, o, first, last);
+        }else{
+            return null;
+        }
+    }
+
+    public static LexSymbol combine(int newType, Object newVal, LexSymbol sym1, LexSymbol sym2){
+        return new LexSymbol(sym1.file, newType, sym1.line, sym1.column, sym1.charPos,
+                (int) ((sym2.size + sym2.charPos) - sym1.charPos), sym1.rSym.left, sym2.rSym.right, newVal);
+    }
+
+    public String toString() {
+        return "line: "
+                + (line + 1)
+                + ", column: "
+                + (column + 1)
+                + ", index: "
+                + (charPos)
+                + ", size: "
+                + size
+                + ", sym: "
+                + AssemblerSym.terminalNames[this.rSym.sym]
+                + "("
+                + this.rSym
+                + ") "
+                + "\nfile: "
+                + file.getAbsolutePath()
+                + (this.rSym.value == null ? "" : (" , value: '" + this.rSym.value + "'"))
+                + "\n";
+    }
+
+    public int getSym() { return this.rSym.sym; }
+
+    public Object getValue() { return this.rSym.value; }
+
+    public LexSymbol setSym(int sym) {
+        return this.cloneWithNewSym(sym);
+    }
+
+    public LexSymbol setValue(Object value) {
+        return this.cloneWithNewValue(value);
+    }
+
+    public LexSymbol setSymValue(int sym, Object value) {
+        return this.cloneWithNewSymAndValue(sym, value);
     }
 
     public int getLine() {
@@ -113,43 +180,7 @@ public class LexSymbol extends java_cup.runtime.Symbol implements AssemblerSym {
         return parent;
     }
 
-    public String toString() {
-        return "line: "
-                + (line + 1)
-                + ", column: "
-                + (column + 1)
-                + ", index: "
-                + (charPos)
-                + ", size: "
-                + size
-                + ", sym: "
-                + org.parker.retargetableassembler.pipe.preprocessor.lex.cup.AssemblerSym.terminalNames[this.sym]
-                + "("
-                + this.sym
-                + ") "
-                + "\nfile: "
-                + file.getAbsolutePath()
-                + (value == null ? "" : (" , value: '" + value + "'"))
-                + "\n";
-    }
-
-    public static LexSymbol combine(int newType, Object newVal, LexSymbol sym1, LexSymbol sym2){
-        return new LexSymbol(sym1.file, newType, sym1.line, sym1.column, sym1.charPos,
-                (int) ((sym2.size + sym2.charPos) - sym1.charPos), sym1.left, sym2.right, newVal);
-    }
-
-    public LexSymbol getSuperParent(){
-        return this.parent == null ? this : this.getParent();
-    }
-
-    public static LexSymbol combine(int identifier, Object o, Collection<LexSymbol> causeCollection) {
-        LexSymbol[] temp = causeCollection.toArray(new LexSymbol[0]);
-        if(temp.length > 0) {
-            LexSymbol first = temp[0];
-            LexSymbol last = temp[temp.length - 1];
-            return combine(identifier, o, first, last);
-        }else{
-            return null;
-        }
+    public LexSymbol setParent(LexSymbol parent){
+        return this.cloneWithNewParent(parent);
     }
 }

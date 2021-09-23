@@ -1,9 +1,9 @@
 package org.parker.retargetableassembler.pipe.preprocessor.directives.message;
 
 import org.parker.retargetableassembler.pipe.Report;
-import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.PreProcessorDirective;
+import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
 import org.parker.retargetableassembler.pipe.preprocessor.util.BufferUtils;
 
 public final class MSG {
@@ -58,10 +58,10 @@ public final class MSG {
         String msg = "";
         while(line.hasNext()){
             LexSymbol s = line.next();
-                        msg += s.value.toString() +  ("".equals(msg) ? "" : ", ");
+                        msg += ("".equals(msg) ? "" : ", ") + s.getValue().toString();
             if(line.hasNext()){
                 s = line.next();
-                if(s.sym != LexSymbol.COMMA){
+                if(s.getSym() != LexSymbol.COMMA){
                     line.toLineTerminator();
                     pp.report().unexpectedTokenError(s, LexSymbol.COMMA);
                     break;

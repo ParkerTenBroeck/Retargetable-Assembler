@@ -9,9 +9,7 @@ package org.parker.retargetableassembler.pipe.preprocessor.lex.jflex;
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 
-import org.parker.retargetableassembler.pipe.preprocessor.lex.cup.AssemblerSym;
 import java.io.File;
-import java.util.Iterator;
 
 %%
 
@@ -30,65 +28,65 @@ import java.util.Iterator;
 
 %{
   private StringBuilder string = new StringBuilder();
-  private int columnStringStart = 0;
-  private long charStringStart = 0;
-  private File parentFile = null;
-  private boolean includeWhiteSpace = true;
+      private int columnStringStart = 0;
+      private long charStringStart = 0;
+      private File parentFile = null;
+      private boolean includeWhiteSpace = true;
 
-  private LexSymbol symbol(int type) {
-    return new LexSymbol(parentFile, type, yyline, yycolumn, yychar, yylength());
-  }
-
-  public LexSymbol next(){
-      try{
-          return next_token();
-      }catch (Exception e){
-          throw new RuntimeException(e);
+      private LexSymbol symbol(int type) {
+        return new LexSymbol(parentFile, type, yyline, yycolumn, yychar, yylength());
       }
-  }
 
-  public boolean hasNext(){
-      return !yyatEOF();
-  }
+      public LexSymbol next(){
+          try{
+              return next_token();
+          }catch (Exception e){
+              throw new RuntimeException(e);
+          }
+      }
 
-  private LexSymbol symbol(int type, Object value) {
-    return new LexSymbol(parentFile, type, yyline, yycolumn, yychar,yylength(), value);
-  }
+      public boolean hasNext(){
+          return !yyatEOF();
+      }
 
-    private LexSymbol symbol(int type, int line, int column, long charPos, int size, Object value) {
-      return new LexSymbol(parentFile, type, line, column, charPos, size, value);
-    }
+      private LexSymbol symbol(int type, Object value) {
+        return new LexSymbol(parentFile, type, yyline, yycolumn, yychar,yylength(), value);
+      }
 
-  public AssemblerScanner(java.io.Reader in, File parentFile) {
-    this(in, parentFile, false);
-  }
+        private LexSymbol symbol(int type, int line, int column, long charPos, int size, Object value) {
+          return new LexSymbol(parentFile, type, line, column, charPos, size, value);
+        }
 
-    public AssemblerScanner(java.io.Reader in, File parentFile, boolean includeWhiteSpace) {
-      this(in);
-      this.parentFile = parentFile;
-      this.includeWhiteSpace = includeWhiteSpace;
-    }
+      public AssemblerScanner(java.io.Reader in, File parentFile) {
+        this(in, parentFile, false);
+      }
 
-  
+        public AssemblerScanner(java.io.Reader in, File parentFile, boolean includeWhiteSpace) {
+          this(in);
+          this.parentFile = parentFile;
+          this.includeWhiteSpace = includeWhiteSpace;
+        }
 
-  /**
-   * assumes correct representation of a long value for
-   * specified radix in scanner buffer from <code>start</code>
-   * to <code>end</code>
-   */
-  private long parseLong(int start, int end, int radix) {
-    long result = 0;
-    long digit;
 
-    for (int i = start; i < end; i++) {
-      digit  = Character.digit(yycharat(i),radix);
-      result*= radix;
-      result+= digit;
-    }
 
-    return result;
-  }
-%}
+      /**
+       * assumes correct representation of a long value for
+       * specified radix in scanner buffer from <code>start</code>
+       * to <code>end</code>
+       */
+      private long parseLong(int start, int end, int radix) {
+        long result = 0;
+        long digit;
+
+        for (int i = start; i < end; i++) {
+          digit  = Character.digit(yycharat(i),radix);
+          result*= radix;
+          result+= digit;
+        }
+
+        return result;
+      }
+    %}
 
 /* main character classes */
 LineTerminator = \r|\n|\r\n

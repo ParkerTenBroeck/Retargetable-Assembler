@@ -39,7 +39,7 @@ public class LoggerReport implements Report{
             parent = parent.getParent();
             while(parent != null){
                 message += "\n" + parent.getFile().getPath() + ":" + (parent.getLine() + 1) + ": ... from " +
-                        LexSymbol.terminalNames[parent.sym] + " " + parent.value;
+                        LexSymbol.terminalNames[parent.getSym()] + " " + parent.getValue();
                 parent = parent.getParent();
             }
         }else if(parent != null){

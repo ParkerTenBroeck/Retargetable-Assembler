@@ -27,7 +27,7 @@ public class HashContext implements Context{
 
     @Override
     public Object evaluateFunction(LexSymbol caller, int num, Object[] evaluate) {
-        return functions.get(caller.value + "\0\0SPECIAL\0\0" + num).evaluate(caller, evaluate);
+        return functions.get(caller.getValue() + "\0\0SPECIAL\0\0" + num).evaluate(caller, evaluate);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class HashContext implements Context{
 
     @Override
     public Object evaluateTypeCast(LexSymbol caller, Object evaluate) {
-        return casts.get(caller.value).evaluate(caller, evaluate);
+        return casts.get(caller.getValue()).evaluate(caller, evaluate);
     }
 
     public void addTypeCast(String toString, Cast cast){
