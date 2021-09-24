@@ -1,3 +1,16 @@
+.macro $_12testMacro 2-3+
+    add $_1, $_2, $_3
+    add $_4
+
+    ..$testLabel:
+
+    add ..$testLabel, ..$testLabel2
+.endmacro
+
+$_12testMacro "arg1", "arg2", "arg3", "arg4"
+$_12testMacro "arg1", "arg2", "arg3", "arg4", "arg5"
+$_12testMacro "arg1", "arg2", "arg3", "arg4", "arg5", "arg6"
+
 .macro argTestInside 1
     db $_0
     db 5 * $_1
@@ -11,7 +24,7 @@
     argTest $_1
 .endmacro
 
-brilliant 2 + 2 / 
+brilliant 2 + 2 / *
 
 ;macro test above
 
@@ -22,19 +35,6 @@ brilliant 2 + 2 /
 
 
 addM $4, $4, {1\,3}[2]
-
-.macro $_12testMacro 2-5+
-    add $5, $8, $2
-    add $5, $8, $2
-
-    ..$testLabel:
-
-    add ..$testLabel, ..$testLabel2
-.endmacro
-
-$_12testMacro "arg1", "arg2", "arg3"
-$_12testMacro "arg1", "arg2", "arg3"
-$_12testMacro "arg1", "arg2", "arg3"
 
 .macro overlap 1-3
 .endmacro

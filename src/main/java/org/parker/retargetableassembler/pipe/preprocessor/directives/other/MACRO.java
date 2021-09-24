@@ -76,6 +76,7 @@ public final class MACRO {
             if(s.getSym() == LexSymbol.BACKSLASH && iterator.peek_ahead().getSym() == LexSymbol.COMMA){
                 tmpDataList.add(iterator.next());
             }else if(s.getSym() == LexSymbol.COMMA || s.getSym() == LexSymbol.LINE_TERMINATOR || s.getSym() == LexSymbol.EOF){
+                tmpDataList.add(s);
                 tmpList.add(tmpDataList);
                 tmpDataList = new ArrayList<>();
             }else{

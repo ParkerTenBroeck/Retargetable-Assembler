@@ -6,6 +6,7 @@ import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.AssemblerSca
 import org.parker.retargetableassembler.pipe.preprocessor.PreProcessor;
 import org.parker.retargetableassembler.pipe.preprocessor.directives.PreProcessorDirective;
 import org.parker.retargetableassembler.pipe.preprocessor.lex.jflex.LexSymbol;
+import org.parker.retargetableassembler.pipe.preprocessor.util.BufferUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,30 +18,54 @@ public final class INCLUDE implements PreProcessorDirective {
     @Override
     public void init(LexSymbol root, PreProcessor pp) {
 
+        String path;
+
         if(pp.getIteratorStack().peek_ahead().getSym() == AssemblerSym.STRING_LITERAL){
             LexSymbol s = pp.getIteratorStack().next();
             pp.getIteratorStack().next();
-            String path = (String) s.getValue();
-            File f = s.getFile();
-            f = new File(f.getParent(), path);
-            if(!f.exists()){
-                f = new File(path);
+            path = (String) s.getValue();
+        }else if(pp.getIteratorStack().peek_ahead().getSym() == AssemblerSym.LT){
+            pp.getIteratorStack().next();
+            LexSymbol s = pp.getIteratorStack().next();
+            if(s.getSym() != AssemblerSym.IDENTIFIER){
+                pp.report().unexpectedTokenError(pp.getIteratorStack().next());
+                BufferUtils.tillLineTerminator(pp.getIteratorStack(), true).forEachRemaining(lexSymbol -> {});
+                return;
+            }else{
+                path = s.getValue().toString();
             }
-            if(!f.exists()){
-                pp.report().reportError("File: '" + f.getPath() + "' does not exist", root);
+            s = pp.getIteratorStack().next();
+            if(s.getSym() != AssemblerSym.GT){
+                pp.report().unexpectedTokenError(pp.getIteratorStack().next());
+                BufferUtils.tillLineTerminator(pp.getIteratorStack(), true).forEachRemaining(lexSymbol -> {});
                 return;
             }
 
-            Iterator<LexSymbol> as = null;
-            try {
-                as = new AssemblerScanner(new FileReader(f), f);
-            } catch (FileNotFoundException e) {
-                pp.report().reportError("Failed to load file cause: " + e.getMessage(), root);
-                return;
-            }
-            as = new AssemblerScannerPreProcessor(as);
-            pp.getIteratorStack().push_iterator_stack(as);
         }else{
+            pp.report().unexpectedTokenError(pp.getIteratorStack().next());
+            BufferUtils.tillLineTerminator(pp.getIteratorStack(), true).forEachRemaining(lexSymbol -> {});
+            return;
         }
+
+
+        File f = root.getFile();
+        f = new File(f.getParent(), path);
+        if(!f.exists()){
+            f = new File(path);
+        }
+        if(!f.exists()){
+            pp.report().reportError("File: '" + f.getPath() + "' does not exist", root);
+            return;
+        }
+
+        Iterator<LexSymbol> as;
+        try {
+            as = new AssemblerScanner(new FileReader(f), f);
+        } catch (FileNotFoundException e) {
+            pp.report().reportError("Failed to load file cause: " + e.getMessage(), root);
+            return;
+        }
+        as = new AssemblerScannerPreProcessor(as);
+        pp.getIteratorStack().push_iterator_stack(as);
     }
 }

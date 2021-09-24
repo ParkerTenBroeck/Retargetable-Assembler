@@ -240,6 +240,13 @@ public class PreProcessor implements Iterator<LexSymbol>{
                     }
                     if(definedMacros.hasAvailableMacro(s.getValue().toString(), macroArguments.size())){
                         MACRO.MacroDefinition md = definedMacros.getAvailableMacro(s, macroArguments.size());
+                        for(int i = md.getID().getHigherOp(), iter = macroArguments.size() - 1; i < iter; i ++){ //combine and remove extra arguments for greedy macros
+                            macroArguments.get(md.getID().getHigherOp()).addAll(macroArguments.get(md.getID().getHigherOp() + 1 ));
+                            macroArguments.remove(md.getID().getHigherOp() + 1);
+                        }
+                        for(int i = 0; i < macroArguments.size() - 1; i ++){ //remove commas from arguments
+                            macroArguments.get(i).remove(macroArguments.get(i).size() - 1);
+                        }
                         iteratorStack.push_iterator_stack(new MACRO.MacroIterator(s, md, macroArguments));
                         s = null;
                     }else{
