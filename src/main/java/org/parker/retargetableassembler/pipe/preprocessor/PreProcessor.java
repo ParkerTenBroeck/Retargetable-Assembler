@@ -148,6 +148,13 @@ public class PreProcessor implements Iterator<LexSymbol>{
         }
     };
 
+    public PreProcessor(){
+    }
+
+    public PreProcessor(Iterator<LexSymbol> input){
+        this.start(input);
+    }
+
     public void setReport(Report report){
         this.report = new PreProcessorReportWrapper(report);
     }
