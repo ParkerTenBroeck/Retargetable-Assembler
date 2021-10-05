@@ -2,6 +2,7 @@ package org.parker.retargetableassembler.pipe.elf.readelf;
 
 import org.parker.retargetableassembler.pipe.elf.Elf;
 
+@Deprecated
 public class ReadElf {
 
     public static String readElf(Elf elf) {
@@ -32,14 +33,14 @@ public class ReadElf {
         for(int i = 0; i < 16; i ++){
             sb.append(" "+ String.format("%2s", Integer.toHexString(fileHeader.e_ident[i])).replace(' ', '0') + " ");
         }
-        sb.append("\n  Class:                             " + (fileHeader.e_ident[fileHeader.EI_CLASS] == 1 ? "ELF32":"ELF64"));
-        sb.append("\n  Data:                              " + (fileHeader.e_ident[fileHeader.EI_DATA] == 1 ? "2's complement, little endian": "2's complement, big endian"));
+        sb.append("\n  Class:                             " + (fileHeader.e_ident[Elf.FileHeader.EI_CLASS] == 1 ? "ELF32":"ELF64"));
+        sb.append("\n  Data:                              " + (fileHeader.e_ident[Elf.FileHeader.EI_DATA] == 1 ? "2's complement, little endian": "2's complement, big endian"));
         sb.append("\n  Version:                           ");
-        if(fileHeader.e_ident[fileHeader.EI_VERSION] == 1) {
+        if(fileHeader.e_ident[Elf.FileHeader.EI_VERSION] == 1) {
             sb.append("1 (current)");
         }
         sb.append("\n  OS/ABI:                            ");
-        switch (fileHeader.e_ident[fileHeader.EI_OSABI]){
+        switch (fileHeader.e_ident[Elf.FileHeader.EI_OSABI]){
             case 0x00:
                 sb.append("UNIX - System V");
                 break;
@@ -96,7 +97,7 @@ public class ReadElf {
                 break;
         }
         sb.append("\n  ABI Version:                       ");
-        sb.append(fileHeader.e_ident[fileHeader.EI_ABIVERSION]);
+        sb.append(fileHeader.e_ident[Elf.FileHeader.EI_ABIVERSION]);
 
         sb.append("\n  Type:                              ");
         switch (fileHeader.e_type){
@@ -185,6 +186,7 @@ public class ReadElf {
                 sb.append("    Name:                         " + elf.get_e_shstrndx_string(sectionHeader.sh_name));
 
                 sb.append("\n    Type:                         ");
+
 
                 switch (sectionHeader.sh_type) {
                     case 0x0:

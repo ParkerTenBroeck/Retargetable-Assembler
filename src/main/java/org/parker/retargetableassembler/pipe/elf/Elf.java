@@ -58,14 +58,12 @@ public class Elf {
 
 
     public static void main(String... args) throws IOException {
-
         File f = new File("U:\\home\\parker\\testCode\\gdbTest\\a.out");
         //File f = new File("U:\\home\\parker\\assembly\\ldTest\\hw.o");
         //File f = new File("U:\\home\\parker\\assembly\\ldTest\\hw.out");
         Elf elf = new Elf(f, true);
         System.out.println(ReadElf.readElf(elf));
     }
-
 
     protected void read(boolean readSectionData) throws IOException {
         fileHeader = new FileHeader().read(this);
@@ -91,7 +89,7 @@ public class Elf {
         }
     }
 
-    byte[] readSectionData(int section) throws IOException {
+    public byte[] readSectionData(int section) throws IOException {
 
         if(section_data[section] != null){
             return section_data[section];
@@ -181,7 +179,7 @@ public class Elf {
         }
     }
 
-    public class FileHeader{
+    public static class FileHeader{
         public transient final static int EI_MAG0 = 0;
         public transient final static int EI_MAG1 = 1;
         public transient final static int EI_MAG2 = 2;
@@ -192,6 +190,105 @@ public class Elf {
         public transient final static int EI_OSABI = 7;
         public transient final static int EI_ABIVERSION = 8;
         public transient final static int EI_PAD = 9;//not used
+
+        public transient final static int SYSTEM_V = 0x00;
+        public transient final static int HP_US = 0x01;
+        public transient final static int NET_BSD = 0x02;
+        public transient final static int LINUX = 0x03;
+        public transient final static int GNU_HURD = 0x04;
+        public transient final static int SOLARIS = 0x06;
+        public transient final static int AIX = 0x07;
+        public transient final static int IRIX = 0x08;
+        public transient final static int FREE_BSD = 0x09;
+        public transient final static int TRU_64 = 0x0A;
+        public transient final static int NOVELL_MONDESTO = 0x0B;
+        public transient final static int OPEN_BSD = 0x0C;
+        public transient final static int OPEN_VMS = 0x0D;
+        public transient final static int NONSTOP_KERNEL = 0x0E;
+        public transient final static int AROS = 0x0F;
+        public transient final static int FENIX_OS = 0x10;
+        public transient final static int CLOUD_ABI = 0x11;
+        public transient final static int STRATUS_TECHNOLOGIES_OPEN_VOS = 0x12;
+
+        public transient final static int ET_NONE = 0x00;
+        public transient final static int ET_REL = 0x01;
+        public transient final static int ET_EXEC = 0x02;
+        public transient final static int ET_DYN = 0x03;
+        public transient final static int ET_CORE = 0x04;
+        public transient final static int ET_LOOS = 0xFE00;
+        public transient final static int ET_LOPROC = 0xFF00;
+        public transient final static int ET_HIPROC = 0xFFFF;
+
+        public  enum ISA{
+            Invalid_instruction_set(-1, "Invalid instruction set"),
+            No_specific_instruction_set(0x00, "No specific instruction set"),
+            AT_AND_T_WE_32100(0x01, "AT&T WE 32100"),
+            SPARC(0x02, "SPARC"),
+            x86(0x03, "x86"),
+            Motorola_68000_M68k(0x04, "Motorola 68000 (M68k)"),
+            Motorola_88000_M88k(0x05, "Motorola 88000 (M88k)"),
+            Intel_MCU(0x06, "Intel MCU"),
+            Intel_80860(0x07, "Intel 80860"),
+            MIPS(0x08, "MIPS"),
+            IBM_System_370(0x09, "IBM_System/370"),
+            MIPS_RS3000_Little_endian(0x0A, "MIPS RS3000 Little-endian"),
+            Hewlett_Packard_PA_RISC(0x0E, "Hewlett-Packard PA-RISC"),
+            Intel_80960(0x0F, "Reserved for future use"),
+            PowerPC(0x13, "Intel 80960"),
+            PowerPC_64_bit(0x14, "PowerPC"),
+            S390_including_S390x(0x15, "PowerPC (64-bit)"),
+            IBM_SPU_SPC(0x16, "S390, including S390x"),
+            NEC_V800(0x17, "IBM SPU/SPC"),
+            Fujitsu_FR20(0x24, "NEC V800"),
+            TRW_RH_32(0x25, "Fujitsu FR20"),
+            Motorola_RCE(0x26, "TRW RH-32"),
+            ARM_up_to_ARMv7_Aarch32(0x27, "Motorola RCE"),
+            Digital_Alpha(0x28, "ARM (up to ARMv7/Aarch32)"),
+            SuperH(0x29, "Digital Alpha"),
+            SPARC_Version_9(0x2A, "SuperH"),
+            Siemens_TriCore_embedded_processor(0x2B, "SPARC Version 9"),
+            Argonaut_RISC_Core(0x2C, "Siemens TriCore embedded processor"),
+            Hitachi_H8_300(0x2D, "Argonaut RISC Core"),
+            Hitachi_H8_300H(0x2E, "Hitachi H8/300"),
+            Hitachi_H8S(0x2F, "Hitachi H8/300H"),
+            Hitachi_H8_500(0x30, "Hitachi H8S"),
+            IA_64(0x31, "Hitachi H8/500"),
+            Stanford_MIPS_X(0x32, "IA-64"),
+            Motorola_ColdFire(0x33, "Stanford MIPS-X"),
+            Motorola_M68HC12(0x34, "Motorola ColdFire"),
+            Fujitsu_MMA_Multimedia_Accelerator(0x35, "Motorola M68HC12"),
+            Siemens_PCP(0x36, "Fujitsu MMA Multimedia Accelerator"),
+            Sony_nCPU_embedded_RISC_processor(0x37, "Siemens PCP"),
+            Denso_NDR1_microprocessor(0x38, "Sony nCPU embedded RISC processor"),
+            Motorola_Star_Core_processor(0x39, "Denso NDR1 microprocessor"),
+            Toyota_ME16_processor(0x3A, "Motorola Star*Core processor"),
+            STMicroelectronics_ST100_processor(0x3B, "Toyota ME16 processor"),
+            Advanced_Logic_Corp_TinyJ_embedded_processor_family(0x3C, "STMicroelectronics ST100 processor"),
+            AMD_x86_64(0x3D, "Advanced Logic Corp. TinyJ embedded processor family"),
+            TMS320C6000_Family(0x3E, "AMD x86-64"),
+            MCST_Elbrus_e2k(0x8C, "TMS320C6000 Family"),
+            ARM_64_bits_ARMv8_Aarch64(0xAF, "MCST Elbrus e2k"),
+            RISC_V(0xB7, "ARM 64-bits (ARMv8/Aarch64)"),
+            Berkeley_Packet_Filter(0xF3, "RISC-V"),
+            WDC_65C816(0xF7, "Berkeley Packet Filter");
+
+            public final int value;
+            public final String name;
+
+            public static ISA fromValue(int value){
+                for(ISA isa: ISA.values()){
+                    if(isa.value == value)
+                        return isa;
+                }
+                return ISA.Invalid_instruction_set;
+            }
+
+            ISA(int value, String name){
+                this.value = value;
+                this.name = name;
+            }
+        }
+
 
 
         public final byte[] e_ident = new byte[16]; //name is zero terminated followed by zero padding
@@ -361,15 +458,15 @@ public class Elf {
 
         protected FileHeader read(Elf elf) throws IOException {
 
-            raf.seek(0);
-            raf.read(this.e_ident);
-            fileHeader = this;//this is so things work bla bla bla
+            elf.raf.seek(0);
+            elf.raf.read(this.e_ident);
+            elf.fileHeader = this;//this is so things work bla bla bla
             if(e_ident[EI_CLASS] == 1) {
                 read32(elf);
             }else if(e_ident[EI_CLASS] == 2){
                 read64(elf);
             }else{
-                throw new IOException();
+                throw new ElfException("Unrecognized elf class either 1(32 bit) or 2(64 bit) expected got: " + e_ident[EI_CLASS]);
             }
 
             return this;
@@ -408,6 +505,101 @@ public class Elf {
     }
 
     public static class ProgramHeader{
+
+        public enum TYPE{
+            PT_NULL(0),
+            PT_LOAD(1),
+            PT_DYNAMIC(2),
+            PT_INTERP(3),
+            PT_NOTE(4),
+            PT_SHLIB(5),
+            PT_PHDR(6),
+            PT_TLS(7),
+            PT_LOOS(0x60000000),
+            PT_HIOS(0x6fffffff),
+            PT_LOPROC(0x70000000),
+            PT_HIPROC(0x7fffffff),
+            // The remaining values are not in the standard.
+            // Frame unwind information.
+            PT_GNU_EH_FRAME(0x6474e550),
+            PT_SUNW_EH_FRAME(0x6474e550),
+            // Stack flags.
+            PT_GNU_STACK(0x6474e551),
+            // Read only after relocation.
+            PT_GNU_RELRO(0x6474e552),
+            // Platform architecture compatibility information
+            PT_ARM_ARCHEXT(0x70000000),
+            // Exception unwind tables
+            PT_ARM_EXIDX(0x70000001),
+            // Register usage information.  Identifies one .reginfo section.
+            PT_MIPS_REGINFO(0x70000000),
+            // Runtime procedure table.
+             PT_MIPS_RTPROC(0x70000001),
+            // .MIPS.options section.
+            PT_MIPS_OPTIONS(0x70000002),
+            // .MIPS.abiflags section.
+            PT_MIPS_ABIFLAGS(0x70000003),
+            // Platform architecture compatibility information
+            PT_AARCH64_ARCHEXT(0x70000000),
+            // Exception unwind tables
+            PT_AARCH64_UNWIND(0x70000001),
+            // 4k page table size
+            PT_S390_PGSTE(0x70000000);
+
+            public final int TYPE;
+
+            public static TYPE fromType(int type){
+                for(ProgramHeader.TYPE typeO: ProgramHeader.TYPE.values()){
+                    if(typeO.TYPE == type)
+                        return typeO;
+                }
+                return PT_NULL;
+            }
+
+            TYPE(int type){
+                this.TYPE = type;
+            }
+        }
+        
+        public static final int PT_NULL = 0;		/* Program header table entry unused */
+        public static final int PT_LOAD = 1;		/* Loadable program segment */
+        public static final int PT_DYNAMIC = 2;		/* Dynamic linking information */
+        public static final int PT_INTERP = 3;		/* Program interpreter */
+        public static final int PT_NOTE = 4;		/* Auxiliary information */
+        public static final int PT_SHLIB = 5;		/* Reserved, unspecified semantics */
+        public static final int PT_PHDR = 6;		/* Entry for header table itself */
+        public static final int PT_TLS = 7;		/* Thread local storage segment */
+        public static final int PT_LOOS = 0x60000000;	/* OS-specific */
+        public static final int PT_HIOS = 0x6fffffff;	/* OS-specific */
+        public static final int PT_LOPROC = 0x70000000;	/* Processor-specific */
+        public static final int PT_HIPROC = 0x7FFFFFFF;	/* Processor-specific */
+
+        public static final int PT_GNU_EH_FRAME  = (PT_LOOS + 0x474e550); /* Frame unwind information */
+        public static final int PT_SUNW_EH_FRAME = PT_GNU_EH_FRAME;     /* Solaris uses the same value */
+        public static final int PT_GNU_STACK = (PT_LOOS + 0x474e551); /* Stack flags */
+        public static final int PT_GNU_RELRO = (PT_LOOS + 0x474e552); /* Read-only after relocation */
+        public static final int PT_GNU_PROPERTY = (PT_LOOS + 0x474e553); /* GNU property */
+
+        /* OpenBSD segment types.  */
+        public static final int PT_OPENBSD_RANDOMIZE = (PT_LOOS + 0x5a3dbe6);  /* Fill with random data.  */
+        public static final int PT_OPENBSD_WXNEEDED = (PT_LOOS + 0x5a3dbe7);  /* Program does W^X violations.  */
+        public static final int PT_OPENBSD_BOOTDATA = (PT_LOOS + 0x5a41be6);  /* Section for boot arguments.  */
+
+        /* Mbind segments */
+        public static final int PT_GNU_MBIND_NUM = 4096;
+        public static final int PT_GNU_MBIND_LO = (PT_LOOS + 0x474e555);
+        public static final int PT_GNU_MBIND_HI = (PT_GNU_MBIND_LO + PT_GNU_MBIND_NUM - 1);
+
+        /* Program segment permissions, in program header p_flags field.  */
+
+        public static final int PF_X = (1 << 0);	/* Segment is executable */
+        public static final int PF_W = (1 << 1);	/* Segment is writable */
+        public static final int PF_R = (1 << 2);	/* Segment is readable */
+        /* public static final int PF_MASKOS	0x0F000000    *//* OS-specific reserved bits */
+        public static final int PF_MASKOS = 0x0FF00000;	/* New value, Oct 4, 1999 Draft */
+        public static final int PF_MASKPROC = 0xF0000000;	/* Processor-specific reserved bits */
+
+
         public int p_type;
         public int p_flags;
         public long p_offset;
@@ -463,6 +655,73 @@ public class Elf {
     }
 
     public static class SectionHeader{
+
+        //types
+        public static int SHT_NULL = 0x0;
+        public static int SHT_PROGBITS = 0x1;
+        public static int SHT_SYMTAB = 0x2;
+        public static int SHT_STRTAB = 0x3;
+        public static int SHT_RELA = 0x4;
+        public static int SHT_HASH = 0x5;
+        public static int SHT_DYNAMIC = 0x6;
+        public static int SHT_NOTE = 0x7;
+        public static int SHT_NOBITS = 0x8; /* Section occupies no space in file */
+        public static int SHT_REL = 0x9;    /* Relocation entries, no addends */
+        public static int SHT_SHLIB = 0xA;  /* Reserved, unspecified semantics */
+        public static int SHT_DYNSYM = 0xB; /* Dynamic linking symbol table */
+        public static int SHT_INIT_ARRAY = 0xE;
+        public static int SHT_FINI_ARRAY = 0xF;
+        public static int SHT_PREINIT_ARRAY = 0x10;
+        public static int SHT_GROUP = 0x11;
+        public static int SHT_SYMTAB_SHNDX = 0x12;
+        public static int SHT_NUM = 0x13;
+        public static int SHT_LOOS = 0x60000000;
+        public static final int  SHT_HIOS = 0x6fffffff;	/* Last of OS specific semantics */
+
+        public static final int  SHT_GNU_INCREMENTAL_INPUTS = 0x6fff4700;   /* incremental build data */
+        public static final int  SHT_GNU_ATTRIBUTES = 0x6ffffff5;	/* Object attributes */
+        public static final int  SHT_GNU_HASH = 0x6ffffff6;	/* GNU style symbol hash table */
+        public static final int  SHT_GNU_LIBLIST = 0x6ffffff7;	/* List of prelink dependencies */
+
+        /* The next three section types are defined by Solaris, and are named
+           SHT_SUNW*.  We use them in GNU code, so we also define SHT_GNU*
+           versions.  */
+        public static final int  SHT_SUNW_verdef = 0x6ffffffd;	/* Versions defined by file */
+        public static final int  SHT_SUNW_verneed = 0x6ffffffe;	/* Versions needed by file */
+        public static final int  SHT_SUNW_versym = 0x6fffffff;	/* Symbol versions */
+
+        public static final int  SHT_GNU_verdef = SHT_SUNW_verdef;
+        public static final int  SHT_GNU_verneed = SHT_SUNW_verneed;
+        public static final int  SHT_GNU_versym = SHT_SUNW_versym;
+
+        public static final int  SHT_LOPROC = 0x70000000;	/* Processor-specific semantics, lo */
+        public static final int  SHT_HIPROC = 0x7FFFFFFF;	/* Processor-specific semantics, hi */
+        public static final int  SHT_LOUSER = 0x80000000;	/* Application-specific semantics */
+        /* public static final int  SHT_HIUSER = 0x8FFFFFFF    *//* Application-specific semantics */
+        public static final int  SHT_HIUSER = 0xFFFFFFFF;	/* New value, defined in Oct 4, 1999 Draft */
+
+        //flags
+        public static int SHF_WRITE = (1 << 0);
+        public static int SHF_ALLOC = (1 << 1);
+        public static int SHF_EXECINSTR = (1 << 2);
+        public static int SHF_MERGE = (1 << 4);
+        public static int SHF_STRINGS = (1 << 5);
+        public static int SHF_INFO_LINK = (1 << 6);
+        public static int SHF_LINK_ORDER = (1 << 7);
+        public static int SHF_OS_NONCONFORMING = (1 << 8);
+        public static int SHF_GROUP = (1 << 9);
+        public static int SHF_TLS = (1 << 10);
+        public static int SHF_COMPRESSED = (1 << 11);	/* Section with compressed data */
+
+        public static int SHF_MASKOS = 0x0FF00000;
+        public static int SHF_MASKPROC = 0xF0000000;
+        public static int SHF_ORDERED = 0x4000000;
+
+        public static int SHF_EXCLUDE = 0x8000000;
+        public static int SHF_GNU_MBIND = 0x01000000;	/* Mbind section.  */
+
+
+
         public int sh_name;
         /*
           This member specifies the name of the section.  Its value
@@ -672,6 +931,82 @@ public class Elf {
             sh_addralign = elf.readLong();
             sh_entsize = elf.readLong();
         }
+    }
+
+    public static boolean ELF_TBSS_SPECIAL(Elf.SectionHeader sectionHeader, Elf.ProgramHeader segment){
+        return (((sectionHeader.sh_flags & Elf.SectionHeader.SHF_TLS) != 0)
+        && sectionHeader.sh_flags == SectionHeader.SHT_NOBITS
+        && segment.p_type != ProgramHeader.TYPE.PT_TLS.TYPE);
+    }
+
+    public static boolean ELF_SECTION_IN_SEGMENT_STRICT(Elf.SectionHeader section, Elf.ProgramHeader segment){
+        return ELF_SECTION_IN_SEGMENT(section, segment, true, true);
+    }
+
+    public static boolean ELF_SECTION_IN_SEGMENT(Elf.SectionHeader section, Elf.ProgramHeader segment){
+        return ELF_SECTION_IN_SEGMENT(section, segment, true, false);
+    }
+
+    public static long ELF_SECTION_SIZE(Elf.SectionHeader section, Elf.ProgramHeader segment){
+        return ELF_TBSS_SPECIAL(section, segment) ? 0 : section.sh_size;
+    }
+
+    public static boolean ELF_SECTION_IN_SEGMENT(Elf.SectionHeader section, Elf.ProgramHeader segment, boolean check_vma, boolean strict){
+        return ((
+                /* Only PT_LOAD, PT_GNU_RELRO and PT_TLS segments can contain	\
+                SHF_TLS sections.  */
+                (((section.sh_flags & SectionHeader.SHF_TLS) != 0)
+                && (segment.p_type == ProgramHeader.TYPE.PT_TLS.TYPE
+                || segment.p_type == ProgramHeader.TYPE.PT_GNU_RELRO.TYPE
+                || segment.p_type == ProgramHeader.TYPE.PT_GNU_RELRO.TYPE))
+                /* PT_TLS segment contains only SHF_TLS sections, PT_PHDR no	\
+                sections at all.  */
+                || ((section.sh_flags & Elf.SectionHeader.SHF_TLS) == 0
+                && segment.p_type != ProgramHeader.TYPE.PT_TLS.TYPE
+                && segment.p_type != ProgramHeader.TYPE.PT_PHDR.TYPE))
+                /* PT_LOAD and similar segments only have SHF_ALLOC sections.  */	
+                && !((section.sh_flags & SectionHeader.SHF_ALLOC) == 0
+                && (segment.p_type == ProgramHeader.TYPE.PT_LOAD.TYPE
+                    || segment.p_type == ProgramHeader.TYPE.PT_DYNAMIC.TYPE
+                    || segment.p_type == ProgramHeader.TYPE.PT_GNU_EH_FRAME.TYPE
+                    || segment.p_type == ProgramHeader.TYPE.PT_GNU_STACK.TYPE
+                    || segment.p_type == ProgramHeader.TYPE.PT_GNU_RELRO.TYPE
+                    || (segment.p_type >= ProgramHeader.PT_GNU_MBIND_LO
+                    && segment.p_type <= ProgramHeader.PT_GNU_MBIND_HI)))
+               /* Any section besides one of type SHT_NOBITS must have file		\
+                  offsets within the segment.  */					
+               && (section.sh_type == SectionHeader.SHT_NOBITS
+                   || ( section.sh_offset >= segment.p_offset
+                   && (!(strict)						
+                       || (section.sh_offset - segment.p_offset		
+                       <= segment.p_filesz - 1))				
+                   && ((section.sh_offset - segment.p_offset		
+                    + ELF_SECTION_SIZE(section, segment))
+                       <= segment.p_filesz)))				
+                    /* SHF_ALLOC sections must have VMAs within the segment.  */		
+               && (!(check_vma)							
+                   || (section.sh_flags & SectionHeader.SHF_ALLOC) == 0
+                   || (section.sh_addr >= segment.p_vaddr			
+                   && (!(strict)						
+                       || (section.sh_addr - segment.p_vaddr		
+                       <= segment.p_memsz - 1))				
+                   && ((section.sh_addr - segment.p_vaddr			
+                    + ELF_SECTION_SIZE(section, segment))
+                       <= segment.p_memsz)))					
+               /* No zero size sections at start or end of PT_DYNAMIC nor		\
+                  PT_NOTE.  */							
+               && ((segment.p_type != ProgramHeader.TYPE.PT_DYNAMIC.TYPE
+                && segment.p_type != ProgramHeader.TYPE.PT_NOTE.TYPE)
+                   || section.sh_size != 0					
+                   || segment.p_memsz == 0					
+                   || ((section.sh_type == SectionHeader.SHT_NOBITS
+                    || ( section.sh_offset > segment.p_offset
+                        && (section.sh_offset - segment.p_offset		
+                        < segment.p_filesz)))				
+                   && ((section.sh_flags & SectionHeader.SHF_ALLOC) == 0
+                       || (section.sh_addr > segment.p_vaddr		
+                       && (section.sh_addr - segment.p_vaddr		
+                           < segment.p_memsz))))));
     }
 
 }

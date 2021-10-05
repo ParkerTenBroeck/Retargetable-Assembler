@@ -145,10 +145,6 @@ public abstract class ElfSymbol {
     //}
 
     enum SymbolType{
-
-
-
-
         Elf64_Sym(24),
         Elf32_Sym(16);
 
