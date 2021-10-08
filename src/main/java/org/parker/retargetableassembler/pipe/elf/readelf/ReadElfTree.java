@@ -1,9 +1,15 @@
 package org.parker.retargetableassembler.pipe.elf.readelf;
 
 import org.parker.retargetableassembler.pipe.elf.Elf;
+import org.parker.retargetableassembler.pipe.elf.dynamic.ElfDynamic;
+import org.parker.retargetableassembler.pipe.elf.rel.ElfRela;
+import org.parker.retargetableassembler.pipe.elf.symtab.ElfSymbol;
 
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.MutableTreeNode;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ReadElfTree {
 
@@ -166,19 +172,40 @@ public class ReadElfTree {
         return tmp;
     }
 
+    public static DefaultMutableTreeNode node(String name, List<DefaultMutableTreeNode> nodes){
+        DefaultMutableTreeNode tmp = new DefaultMutableTreeNode(name);
+        if(nodes == null) return tmp;
+        for(DefaultMutableTreeNode node: nodes) tmp.add(node);
+        return tmp;
+    }
+
     public static DefaultMutableTreeNode nodeSplit(String name, String value){
         DefaultMutableTreeNode tmp = new DefaultMutableTreeNode(name);
         for(String sub: value.split("\n"))
         tmp.add(new DefaultMutableTreeNode(sub));
         return tmp;
     }
+    public static List<DefaultMutableTreeNode> nodeSplit(String value){
+        ArrayList<DefaultMutableTreeNode> nodes = new ArrayList<>();
+        for(String sub: value.split("\n"))
+            nodes.add(new DefaultMutableTreeNode(sub));
+        return nodes;
+    }
+
+    public static List<DefaultMutableTreeNode> getChildren(DefaultMutableTreeNode parent){
+        ArrayList<DefaultMutableTreeNode> nodes = new ArrayList<>();
+        for(int i = 0; i < parent.getChildCount(); i ++)
+            nodes.add((DefaultMutableTreeNode) parent.getChildAt(i));
+        return nodes;
+    }
+
     public static DefaultMutableTreeNode node(String name){
         DefaultMutableTreeNode tmp = new DefaultMutableTreeNode(name);
         return tmp;
     }
     public static DefaultMutableTreeNode node(String name, DefaultMutableTreeNode... children){
         DefaultMutableTreeNode tmp = new DefaultMutableTreeNode(name);
-        for(DefaultMutableTreeNode child: children)
+        for(MutableTreeNode child: children)
         tmp.add(child);
         return tmp;
     }
@@ -193,7 +220,7 @@ public class ReadElfTree {
 
                 Elf.SectionHeader sectionHeader = elf.sectionHeaders[i];
 
-                DefaultMutableTreeNode iNode = new DefaultMutableTreeNode(i + " " + elf.get_e_shstrndx_string(sectionHeader.sh_name));
+                DefaultMutableTreeNode iNode = new DefaultMutableTreeNode(i + ": " + elf.get_e_shstrndx_string(sectionHeader.sh_name));
                 node.add(iNode);
 
                 iNode.add(node("Name", elf.get_e_shstrndx_string(sectionHeader.sh_name)));
@@ -320,7 +347,7 @@ public class ReadElfTree {
                 iNode.add(node("Info", Long.toHexString(sectionHeader.sh_info)));
                 iNode.add(node("Entry Size(bytes)", sectionHeader.sh_entsize));
                 iNode.add(nodeSplit("Hex Dump", hexDump(elf.readSectionData(i), 0, elf.readSectionData(i).length)));
-                iNode.add(nodeSplit("Representation", readSection(sectionHeader, elf.readSectionData(i))));
+                iNode.add(node("Representation", readSection(elf, sectionHeader, elf.readSectionData(i))));
             }
         }else{
             node = node("No section Headers");
@@ -330,14 +357,24 @@ public class ReadElfTree {
         return node;
     }
 
-    public static String readSection(Elf.SectionHeader header, byte[] data){
-        if(header.sh_type == 0x3){
-            return stringDump(data, 0, data.length);
+    public static List<DefaultMutableTreeNode> readSection(Elf elf, Elf.SectionHeader section, byte[] data) throws IOException {
+        switch (section.sh_type){
+            case Elf.SectionHeader.SHT_STRTAB:
+                return nodeSplit(stringDump(data, 0, data.length));
+            case Elf.SectionHeader.SHT_SYMTAB:
+            case Elf.SectionHeader.SHT_DYNSYM:
+                return decodeSymbolSection(elf, section);
+            case Elf.SectionHeader.SHT_REL:
+            case Elf.SectionHeader.SHT_RELA:
+                return decodeRelocationSection(elf, section);
+            case Elf.SectionHeader.SHT_DYNAMIC:
+                return decodeDynamicSection(elf, section);
+            default:
+                return null;
         }
-        return "";
     }
 
-    public static DefaultMutableTreeNode readElfProgramHeaders(Elf elf) {
+    public static MutableTreeNode readElfProgramHeaders(Elf elf) {
 
         DefaultMutableTreeNode node = new DefaultMutableTreeNode("Program Headers");
 
@@ -348,7 +385,7 @@ public class ReadElfTree {
                 Elf.ProgramHeader programHeader = elf.programHeaders[i];
 
                 DefaultMutableTreeNode iNode = new DefaultMutableTreeNode(
-                        i + " " + Elf.ProgramHeader.TYPE.fromType(programHeader.p_type).name());
+                        i + ": " + Elf.ProgramHeader.TYPE.fromType(programHeader.p_type).name());
                 node.add(iNode);
 
                 {
@@ -418,37 +455,119 @@ public class ReadElfTree {
         return node;
     }
 
-    public static DefaultMutableTreeNode decodeSymbolSection(Elf.SectionHeader section){
+    public static List<DefaultMutableTreeNode> decodeSymbolSection(Elf elf, Elf.SectionHeader section) throws IOException {
         DefaultMutableTreeNode node = new DefaultMutableTreeNode("Dynamic Symbols");
         if((section.sh_type != Elf.SectionHeader.SHT_SYMTAB
-                && section.sh_type != Elf.SectionHeader.SHT_DYNSYM)
-                || (section.sh_type == Elf.SectionHeader.SHT_SYMTAB))
+                && section.sh_type != Elf.SectionHeader.SHT_DYNSYM))
             return null;
 
         if (section.sh_entsize == 0)
         {
-            node.add(node("ziltz"));
-            //printf (_("\nSymbol table '%s' has a sh_entsize of zero!\n"),
-            //        printable_section_name (filedata, section));
-            return node;
+            node.add(node("Section table for: " + elf.getSectionName(section) + " is null"));
+            return getChildren(node);
         }
 
         int num_sysm = (int) (section.sh_size / section.sh_entsize);
 
         for(int si = 0; si < num_sysm; si ++){
-
+            node.add(pDynamicSymbol(elf, section, si));
         }
 
-
-        //for(int i = 0; i < ){
-
-        //}
-
-        return node;
+        return getChildren(node);
     }
 
-    public static DefaultMutableTreeNode pDynamicSymbol(){
-        return null;
+    public static List<DefaultMutableTreeNode> decodeRelocationSection(Elf elf, Elf.SectionHeader section) throws IOException {
+        DefaultMutableTreeNode node = new DefaultMutableTreeNode("Relocation Entries");
+        if((section.sh_type != Elf.SectionHeader.SHT_REL
+                && section.sh_type != Elf.SectionHeader.SHT_RELA))
+            return null;
+
+        if (section.sh_entsize == 0)
+        {
+            node.add(node("Relocation table for: " + elf.getSectionName(section) + " is null"));
+            return getChildren(node);
+        }
+
+        int num_sysm = (int) (section.sh_size / section.sh_entsize);
+
+        for(int si = 0; si < num_sysm; si ++){
+            node.add(pRelocationEntry(elf, section, si));
+        }
+
+        return getChildren(node);
+    }
+
+    public static List<DefaultMutableTreeNode> decodeDynamicSection(Elf elf, Elf.SectionHeader section) throws IOException {
+        DefaultMutableTreeNode node = new DefaultMutableTreeNode("Dynamic Entries");
+        if(section.sh_type != Elf.SectionHeader.SHT_DYNAMIC)
+            return null;
+
+        if (section.sh_entsize == 0)
+        {
+            node.add(node("Dynamic table for: " + elf.getSectionName(section) + " is null"));
+            return getChildren(node);
+        }
+
+        int num_sysm = (int) (section.sh_size / section.sh_entsize);
+
+        for(int si = 0; si < num_sysm; si ++){
+            node.add(pDynamicEntry(elf, section, si));
+        }
+
+        return getChildren(node);
+    }
+
+    public static DefaultMutableTreeNode pDynamicEntry(Elf elf, Elf.SectionHeader section, int index) throws IOException {
+
+        ElfDynamic dynamic = ElfDynamic.fromElf(elf, section, index);
+
+        DefaultMutableTreeNode me = new DefaultMutableTreeNode(index + ": " + dynamic.getName(elf, section));
+        //me.add(node("Tag", index));
+        me.add(node("Tag", "0x" + Long.toHexString(dynamic.getTag())));
+        me.add(node("Type", "("  + ElfDynamic.DT.fromID((int) dynamic.getTag()).name()+ ")"));
+        me.add(node("Name/Value",dynamic.getName(elf, section)));
+        return me;
+    }
+
+    public static DefaultMutableTreeNode pDynamicSymbol(Elf elf, Elf.SectionHeader section, int index) throws IOException {
+
+        ElfSymbol symbol = ElfSymbol.fromElf(elf, section, index);
+
+        DefaultMutableTreeNode me = new DefaultMutableTreeNode(index + ": " + symbol.getName());
+        me.add(node("Index", index));
+        me.add(node("Value", "0x" + Long.toHexString(symbol.getValue())));
+        me.add(node("Size", symbol.getSize()));
+        me.add(node("Type", symbol.getType().name()));
+        me.add(node("Visibility", symbol.getVisibility().name()));
+        me.add(node("Ndx", symbol.getNDX() == 0 ? "UND" : symbol.getNDX()));
+        me.add(node("Name",symbol.getName()));
+        return me;
+    }
+
+    public static DefaultMutableTreeNode pRelocationEntry(Elf elf, Elf.SectionHeader section, int index) throws IOException {
+
+        ElfRela reloc;
+
+        switch (section.sh_type){
+            case Elf.SectionHeader.SHT_REL:
+                reloc = ElfRela.relFromElf(elf, section, index);
+                break;
+            case Elf.SectionHeader.SHT_RELA:
+                reloc = ElfRela.relaFromElf(elf, section, index);
+                break;
+            default:
+                return null;
+        }
+        ElfSymbol symbol = ElfSymbol.fromElf(elf, elf.getSection(section.sh_link), (int) reloc.getSym());
+
+        DefaultMutableTreeNode me = new DefaultMutableTreeNode(index);
+        me.add(node("Offset", "0x" + (elf.is64Bit() ? Long.toHexString(reloc.getOffset()) : Integer.toHexString((int) reloc.getOffset()))));
+        me.add(node("Info", "0x" + (elf.is64Bit() ? Long.toHexString(reloc.getInfo()) : Integer.toHexString((int) reloc.getInfo()))));
+        me.add(node("Type", reloc.getRelocType(elf)));
+        me.add(node("Sym. Value", "0x" + (elf.is64Bit() ? Long.toHexString(symbol.getValue()) : Integer.toHexString((int)symbol.getValue()))));
+
+        me.add(node("Sym. Name + Addend", symbol.getName() + (symbol.getName().trim().equals("") ? "" : " + ") + reloc.getAddend()));
+        return me;
     }
 
     public static DefaultMutableTreeNode sectionToSegmentMapping(Elf elf){

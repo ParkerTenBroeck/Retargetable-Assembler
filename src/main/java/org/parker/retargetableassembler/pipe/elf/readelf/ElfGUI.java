@@ -13,6 +13,10 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static org.parker.retargetableassembler.pipe.elf.readelf.ReadElfTree.node;
 
 public class ElfGUI {
 
@@ -21,9 +25,10 @@ public class ElfGUI {
     private JTree tree1;
     private JLabel filepath;
 
-    public static void main(String... args) throws IOException {
+    public static void main(String... args) throws Exception {
         ElfGUI e = new ElfGUI();
-        e.tree1.setModel(new DefaultTreeModel(ReadElfTree.readElf(new Elf(new File("U:\\home\\parker\\testCode\\gdbTest\\a.out")))));
+        //e.tree1.setModel(new DefaultTreeModel(ReadElfTree.readElf(new Elf())));
+        e.loadElf(new File("U:\\home\\parker\\testCode\\gdbTest\\a.out"));
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setContentPane(e.$$$getRootComponent$$$());
@@ -34,20 +39,45 @@ public class ElfGUI {
     public ElfGUI() {
         button1.addActionListener(e -> {
             try {
-                JFileChooser fc = new JFileChooser();
-                fc.showDialog($$$getRootComponent$$$(), "select");
-                File f = fc.getSelectedFile();
-                filepath.setText(f.getAbsolutePath());
-                DefaultMutableTreeNode tree = ReadElfTree.readElf(new Elf(f));
-                tree1.setModel(new DefaultTreeModel(tree));
-            } catch (Exception ex) {
-                ByteOutputStream bo = new ByteOutputStream();
-                PrintStream ps = new PrintStream(bo);
-                ex.printStackTrace(ps);
-
-                JOptionPane.showMessageDialog($$$getRootComponent$$$(), "Error opening file: \n" + new String(bo.getBytes()));
+                loadElf(null);
+            } catch (Exception ioException) {
+                throw new RuntimeException(ioException);
             }
         });
+    }
+
+    public void loadElf(File f) throws Exception {
+        try {
+            if (f == null) {
+                JFileChooser fc = new JFileChooser();
+                fc.showDialog($$$getRootComponent$$$(), "select");
+                f = fc.getSelectedFile();
+            }
+            filepath.setText(f.getAbsolutePath());
+            DefaultMutableTreeNode tree = ReadElfTree.readElf(new Elf(f));
+            tree1.setModel(new DefaultTreeModel(tree) {
+                @Override
+                public Object getChild(Object parent, int index) {
+                    if (parent instanceof DefaultMutableTreeNode) {
+                        if (((DefaultMutableTreeNode) parent).getChildAt(index).getChildCount() == 1) {
+                            if (((DefaultMutableTreeNode) parent).getChildAt(index).getChildAt(0).isLeaf()) {
+                                return ReadElfTree.node(
+                                        ((DefaultMutableTreeNode) parent).getChildAt(index).toString() + ": " + ((DefaultMutableTreeNode) parent).getChildAt(index).getChildAt(0),
+                                        ((DefaultMutableTreeNode) parent).getChildAt(index).getChildAt(0));
+                            }
+                        }
+                    }
+                    return super.getChild(parent, index);
+                }
+            });
+        } catch (Exception ex) {
+            ByteOutputStream bo = new ByteOutputStream();
+            PrintStream ps = new PrintStream(bo);
+            ex.printStackTrace(ps);
+
+            JOptionPane.showMessageDialog($$$getRootComponent$$$(), "Error opening file: \n" + new String(bo.getBytes()));
+            throw ex;
+        }
     }
 
     {
