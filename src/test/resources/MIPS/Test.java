@@ -1,4 +1,4 @@
-package org.parker.retargetableassembler.pipe.elf.symtab;
+package org.parker.elfutils.symtab;
 
 public class Test {
 

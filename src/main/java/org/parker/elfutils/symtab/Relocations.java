@@ -1,6 +1,6 @@
 package org.parker.elfutils.symtab;
 
-public class Test {
+public class Relocations {
 
 
     public enum elf_aarch64_reloc_type {
@@ -5574,5 +5574,6 @@ public class Test {
             return "";
         }
     }
+}
 
 
